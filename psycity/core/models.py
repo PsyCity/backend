@@ -22,4 +22,13 @@ class Warehouse(models.Model):
     write_date = models.DateTimeField(auto_now=True, auto_now_add=True)
 
 
-
+class BankDeposit(models.model):
+    money = models.PositiveIntegerField()
+    robbery_state = models.BooleanField(default=False)
+    # rubbery_team = models.ForeignKey("Team", on_delete=models.DO_NOTHING, related_name="bank_robberies")
+    sensor_state = models.BooleanField(default=False)
+    # sensor_owner = models.ForeignKey("Team", on_delete=models.DO_NOTHING, related_name="bank_sensor")
+    is_copy = models.BooleanField(default=False)
+    parent_box = models.ForeignKey("BankDeposit", on_delete=models.DO_NOTHING, related_name="childe_box")
+    create_date = models.DateTimeField(auto_now=True, auto_now_add=True)  #FIXME 
+    write_date = models.DateTimeField(auto_now=True, auto_now_add=True)
