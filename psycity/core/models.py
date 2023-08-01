@@ -32,3 +32,12 @@ class BankDeposit(models.model):
     parent_box = models.ForeignKey("BankDeposit", on_delete=models.DO_NOTHING, related_name="childe_box")
     create_date = models.DateTimeField(auto_now=True, auto_now_add=True)  #FIXME 
     write_date = models.DateTimeField(auto_now=True, auto_now_add=True)
+
+
+class EscapeRoom(models.Model):
+    no_valid_citizen = models.PositiveIntegerField()
+    no_valid_police = models.PositiveIntegerField()
+    no_valid_mafia = models.PositiveIntegerField()
+    bank_deposit_box = models.ForeignKey(BankDeposit, related_name="escape_rooms", on_delete=models.CASCADE)
+    create_date = models.DateTimeField(auto_now=True, auto_now_add=True)  #FIXME 
+    write_date = models.DateTimeField(auto_now=True, auto_now_add=True)
