@@ -36,6 +36,26 @@ class EscapeRoom(models.Model):
     write_date = models.DateTimeField(auto_now=True, auto_now_add=True)
 
 
+class Contract(models.Model):
+    class ContractTypes(models.TextChoices):
+        BANK_RUBBERY = "R", _("Bank_Rubbery")
+        SENSOR_INSTALLATION = "S", _("Sensor_installation")
+        BODYGUARD = "B", _("Bodyguard")
+        DEALING = "D", _("Dealing")
+        OTHER   = "O", _("Other")
+
+    contract_type = models.CharField(max_length=1, choices=ContractTypes.choices)
+    state = models.IntegerField()
+    terms = models.TextField()
+    archive = models.TextField()
+    # first_party_id = 
+    # second_party_id
+    first_party_agree = models.BooleanField(null=True, blank=True)
+    second_party_agree = models.BooleanField(null=True, blank=True)
+    create_date = models.DateTimeField(auto_now=True, auto_now_add=True)
+    write_date  = models.DateTimeField(auto_now=True, auto_now_add=True)
+
+
 class ConstantConfig(models.Model):
     team_member_min = 2
     team_member_max = 4
