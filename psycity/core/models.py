@@ -9,13 +9,13 @@ class Warehouse(models.Model):
     # sensor_hacker = models.ForeignKey("Player", on_delete=models.DO_NOTHING)
     money = models.PositiveIntegerField()
     is_lock = models.BinaryField(default=True)
-    sensor_state = models.BooleanField(defualt=False)
-    expiration_date = models.DateTimeField(auto_now=False, auto_now_add=False)
-    create_date = models.DateTimeField(auto_now=True, auto_now_add=True)  #FIXME 
-    write_date = models.DateTimeField(auto_now=True, auto_now_add=True)
+    sensor_state = models.BooleanField(default=False)
+    expiration_date = models.DateTimeField(auto_now_add=False)
+    create_date = models.DateTimeField(auto_now_add=True)  #FIXME 
+    write_date = models.DateTimeField(auto_now_add=True)
 
 
-class BankDeposit(models.model):
+class BankDeposit(models.Model):
     money = models.PositiveIntegerField()
     robbery_state = models.BooleanField(default=False)
     # rubbery_team = models.ForeignKey("Team", on_delete=models.DO_NOTHING, related_name="bank_robberies")
@@ -23,8 +23,8 @@ class BankDeposit(models.model):
     # sensor_owner = models.ForeignKey("Team", on_delete=models.DO_NOTHING, related_name="bank_sensor")
     is_copy = models.BooleanField(default=False)
     parent_box = models.ForeignKey("BankDeposit", on_delete=models.DO_NOTHING, related_name="childe_box")
-    create_date = models.DateTimeField(auto_now=True, auto_now_add=True)  #FIXME 
-    write_date = models.DateTimeField(auto_now=True, auto_now_add=True)
+    create_date = models.DateTimeField(auto_now_add=True)  #FIXME 
+    write_date = models.DateTimeField(auto_now_add=True)
 
 
 class EscapeRoom(models.Model):
@@ -32,8 +32,8 @@ class EscapeRoom(models.Model):
     no_valid_police = models.PositiveIntegerField()
     no_valid_mafia = models.PositiveIntegerField()
     bank_deposit_box = models.ForeignKey(BankDeposit, related_name="escape_rooms", on_delete=models.CASCADE)
-    create_date = models.DateTimeField(auto_now=True, auto_now_add=True)  #FIXME 
-    write_date = models.DateTimeField(auto_now=True, auto_now_add=True)
+    create_date = models.DateTimeField(auto_now_add=True)  #FIXME 
+    write_date = models.DateTimeField(auto_now_add=True)
 
 
 class Contract(models.Model):
@@ -55,14 +55,18 @@ class Contract(models.Model):
     # second_party_id
     first_party_agree = models.BooleanField(null=True, blank=True)
     second_party_agree = models.BooleanField(null=True, blank=True)
-    create_date = models.DateTimeField(auto_now=True, auto_now_add=True)
-    write_date  = models.DateTimeField(auto_now=True, auto_now_add=True)
+    create_date = models.DateTimeField(auto_now_add=True)
+    write_date  = models.DateTimeField(auto_now_add=True)
 
 
 class ConstantConfig(models.Model):
+    GAME_STATUS = [
+        (0, "Night"),
+        (1, "Day")
+    ]
     team_member_min = models.PositiveIntegerField()
     team_member_max = models.PositiveIntegerField()
-    game_current_state = models.IntegerField(_("current_game_state"), choices=("DAY NIGHT"))
+    game_current_state = models.IntegerField(choices=GAME_STATUS)
     wallet_init_value = models.IntegerField()
     question_level_0_value = models.IntegerField()
     question_level_1_value = models.IntegerField()
