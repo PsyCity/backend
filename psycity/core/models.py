@@ -97,7 +97,6 @@ class TeamQuestionRel(models.Model):
 class EscapeRoom(models.Model):
     no_valid_citizen = models.IntegerField()
     no_valid_police = models.IntegerField()
-    bank_deposit_box_id = models.IntegerField()
 
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
