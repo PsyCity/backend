@@ -79,7 +79,7 @@ class ConstantConfig(models.Model):
     question_level_0_max_try = models.PositiveIntegerField()
     question_level_1_max_try = models.PositiveIntegerField()
     question_level_2_max_try = models.PositiveIntegerField()
-    question_code_max_try = models.BigIntegerField()
+    question_code_max_try = models.IntegerField()
     question_level_0_early_solve_time = models.PositiveIntegerField()
     question_level_1_early_solve_time = models.PositiveIntegerField()
     question_level_2_early_solve_time = models.PositiveIntegerField()
