@@ -28,35 +28,8 @@ class BankDepositBox(BaseModel):
     sensor_state = models.BooleanField(default=False)
     # sensor_owner = models.ForeignKey("Team", on_delete=models.DO_NOTHING, related_name="bank_sensor")
     is_copy = models.BooleanField(default=False)
-    parent_box = models.ForeignKey("BankDeposit", on_delete=models.DO_NOTHING, related_name="childe_box")
+    parent_box = models.ForeignKey('self', on_delete=models.DO_NOTHING, related_name="childe_box")
 
-
-class EscapeRoom(BaseModel):
-    no_valid_citizen = models.PositiveIntegerField()
-    no_valid_police = models.PositiveIntegerField()
-    no_valid_mafia = models.PositiveIntegerField()
-    bank_deposit_box = models.ForeignKey(BankDeposit, related_name="escape_rooms", on_delete=models.CASCADE)
-
-
-class Contract(BaseModel):
-
-    CONTRACT_TYPE = [
-        ("R", "Bank_Robbery"),
-        ("S", "Sensor_Installation"),
-        ("B", "Bodyguard"),
-        ("D", "Dealing"),
-        ("O", "Other")
-    ]
-
-    contract_type = models.CharField(max_length=1,
-                                     choices=CONTRACT_TYPE)
-    state = models.IntegerField()
-    terms = models.TextField()
-    archive = models.BooleanField()
-    # first_party_id = 
-    # second_party_id
-    first_party_agree = models.BooleanField(null=True, blank=True)
-    second_party_agree = models.BooleanField(null=True, blank=True)
 
 
 class ConstantConfig(BaseModel):
@@ -186,6 +159,7 @@ class TeamQuestionRel(BaseModel):
 class EscapeRoom(BaseModel):
     no_valid_citizen = models.IntegerField()
     no_valid_police = models.IntegerField()
+    no_valid_mafia = models.IntegerField()
 
 
 class Contract(BaseModel):
