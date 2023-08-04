@@ -114,3 +114,5 @@ creds
 creds/*
 *.db
 
+# configs
+mariadb.cnf
