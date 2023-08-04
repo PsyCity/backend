@@ -3,20 +3,25 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.translation import gettext_lazy as _
 
 
-class Warehouse(models.Model):
-    
+class BaseModel(models.Model):
+    created_date = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+
+class WarehouseBox(BaseModel):
     # question_id = models.ForeignKey("Question", on_delete=models.DO_NOTHING)
     # unlocker_id = models.ForeignKey("Player", on_delete=models.DO_NOTHING)
     # sensor_hacker = models.ForeignKey("Player", on_delete=models.DO_NOTHING)
     money = models.PositiveIntegerField()
-    is_lock = models.BinaryField(default=True)
+    is_lock = models.BooleanField(default=True)
     sensor_state = models.BooleanField(default=False)
     expiration_date = models.DateTimeField(auto_now_add=False)
-    create_date = models.DateTimeField(auto_now_add=True)  #FIXME 
-    write_date = models.DateTimeField(auto_now_add=True)
 
 
-class BankDeposit(models.Model):
+class BankDepositBox(BaseModel):
     money = models.PositiveIntegerField()
     robbery_state = models.BooleanField(default=False)
     # rubbery_team = models.ForeignKey("Team", on_delete=models.DO_NOTHING, related_name="bank_robberies")
@@ -24,20 +29,16 @@ class BankDeposit(models.Model):
     # sensor_owner = models.ForeignKey("Team", on_delete=models.DO_NOTHING, related_name="bank_sensor")
     is_copy = models.BooleanField(default=False)
     parent_box = models.ForeignKey("BankDeposit", on_delete=models.DO_NOTHING, related_name="childe_box")
-    create_date = models.DateTimeField(auto_now_add=True)  #FIXME 
-    write_date = models.DateTimeField(auto_now_add=True)
 
 
-class EscapeRoom(models.Model):
+class EscapeRoom(BaseModel):
     no_valid_citizen = models.PositiveIntegerField()
     no_valid_police = models.PositiveIntegerField()
     no_valid_mafia = models.PositiveIntegerField()
     bank_deposit_box = models.ForeignKey(BankDeposit, related_name="escape_rooms", on_delete=models.CASCADE)
-    create_date = models.DateTimeField(auto_now_add=True)  #FIXME 
-    write_date = models.DateTimeField(auto_now_add=True)
 
 
-class Contract(models.Model):
+class Contract(BaseModel):
 
     CONTRACT_TYPE = [
         ("R", "Bank_Robbery"),
@@ -51,16 +52,14 @@ class Contract(models.Model):
                                      choices=CONTRACT_TYPE)
     state = models.IntegerField()
     terms = models.TextField()
-    archive = models.TextField()
+    archive = models.BooleanField()
     # first_party_id = 
     # second_party_id
     first_party_agree = models.BooleanField(null=True, blank=True)
     second_party_agree = models.BooleanField(null=True, blank=True)
-    create_date = models.DateTimeField(auto_now_add=True)
-    write_date  = models.DateTimeField(auto_now_add=True)
 
 
-class ConstantConfig(models.Model):
+class ConstantConfig(BaseModel):
     GAME_STATUS = [
         (0, "Night"),
         (1, "Day")
@@ -90,7 +89,7 @@ class ConstantConfig(models.Model):
     loan_interest_percent = models.PositiveIntegerField()
     loan_interest_day_time = models.PositiveIntegerField()
     loan_interest_night_time = models.PositiveIntegerField()
-    bonus_percent = models.PositiveIntegerField()    
+    bonus_percent = models.PositiveIntegerField()
     penaly_percent = models.PositiveIntegerField()
     subsidy_percentage = models.PositiveIntegerField()
     mafia_prison_per_report_time = models.PositiveIntegerField()
@@ -104,7 +103,7 @@ class ConstantConfig(models.Model):
     escape_room_solve_time = models.PositiveIntegerField()
 
 
-class Player(models.Model):
+class Player(BaseModel):
     ROLES_CHOICES = [
         ('Nerd', 'Nerd'),
         ('MasterMind', 'Master mind'),
@@ -133,14 +132,11 @@ class Player(models.Model):
     last_assassination_attempt = models.DateTimeField() # todo
     last_bodyguard_cost = models.IntegerField()
 
-    created_date = models.DateTimeField(auto_now_add=True)
-    updated_date = models.DateTimeField(auto_now=True)
-
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
 
-class Team(models.Model):
+class Team(BaseModel):
     ROLES_CHOICES = [
         ('Mafia', 'Mafia'),
         ('Police', 'Police'),
@@ -167,14 +163,11 @@ class Team(models.Model):
     last_bank_action = models.DateTimeField()
     today_bought_question = models.IntegerField()
 
-    created_date = models.DateTimeField(auto_now_add=True)
-    updated_date = models.DateTimeField(auto_now=True)
-
     def __str__(self):
         return self.name
 
 
-class TeamFeature(models.Model):
+class TeamFeature(BaseModel):
     mafia_last_night_report = models.IntegerField()
     mafia_opened_night_escape_rooms = models.IntegerField()
     police_opened_night_escape_rooms = models.IntegerField()
@@ -183,28 +176,19 @@ class TeamFeature(models.Model):
     citizen_opened_night_escape_rooms = models.IntegerField()
     citizen_theft_request_contracts = models.IntegerField()
 
-    created_date = models.DateTimeField(auto_now_add=True)
-    updated_date = models.DateTimeField(auto_now=True)
 
-
-class TeamQuestionRel(models.Model):
+class TeamQuestionRel(BaseModel):
     solved = models.IntegerField()
     received_score = models.IntegerField()
     tries = models.IntegerField()
 
-    created_date = models.DateTimeField(auto_now_add=True)
-    updated_date = models.DateTimeField(auto_now=True)
 
-
-class EscapeRoom(models.Model):
+class EscapeRoom(BaseModel):
     no_valid_citizen = models.IntegerField()
     no_valid_police = models.IntegerField()
 
-    created_date = models.DateTimeField(auto_now_add=True)
-    updated_date = models.DateTimeField(auto_now=True)
 
-
-class Contract(models.Model):
+class Contract(BaseModel):
     STATE_CHOICE = [
         (0, 'waiting for sign'),
         (1, 'waiting to be done'),
@@ -225,5 +209,3 @@ class Contract(models.Model):
     second_party_agree = models.BooleanField()
     archive = models.BooleanField() # todo isn't it avail in state?
 
-    created_date = models.DateTimeField(auto_now_add=True)
-    updated_date = models.DateTimeField(auto_now=True)
