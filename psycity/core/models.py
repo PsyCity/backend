@@ -12,23 +12,27 @@ class BaseModel(models.Model):
 
 
 class WarehouseBox(BaseModel):
-    # question_id = models.ForeignKey("Question", on_delete=models.DO_NOTHING)
-    # unlocker_id = models.ForeignKey("Player", on_delete=models.DO_NOTHING)
-    # sensor_hacker = models.ForeignKey("Player", on_delete=models.DO_NOTHING)
-    money = models.PositiveIntegerField()
     is_lock = models.BooleanField(default=True)
+    unlocker_id = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='warehouse_box_unlocker')
     sensor_state = models.BooleanField(default=False)
+    sensor_hacker = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='warehouse_box_sensor_hacker')
     expiration_date = models.DateTimeField(auto_now_add=False)
+    question_id = models.ForeignKey("Question", on_delete=models.CASCADE, related_name='warehouse_box_question')
+    money = models.PositiveIntegerField()
 
 
 class BankDepositBox(BaseModel):
+    SENSOR_STATE_CHOICE = [
+        (1, 'Installed'),
+        (2, 'Not Installed'),
+    ]
     money = models.PositiveIntegerField()
     robbery_state = models.BooleanField(default=False)
-    # rubbery_team = models.ForeignKey("Team", on_delete=models.DO_NOTHING, related_name="bank_robberies")
-    sensor_state = models.BooleanField(default=False)
-    # sensor_owner = models.ForeignKey("Team", on_delete=models.DO_NOTHING, related_name="bank_sensor")
+    rubbery_team_id = models.ForeignKey("Team", on_delete=models.CASCADE, related_name="bankdispositbox_rubbery_team")
+    sensor_state = models.CharField(max_length=30, choices=SENSOR_STATE_CHOICE)
+    sensor_owner_id = models.ForeignKey("Team", on_delete=models.CASCADE, related_name="bankdispositbox_sensor_owner")
     is_copy = models.BooleanField(default=False)
-    parent_box = models.ForeignKey('self', on_delete=models.DO_NOTHING, related_name="childe_box")
+    parent_box_id = models.ForeignKey('self', on_delete=models.CASCADE, related_name="bankdispositbox_parent_box", null=True, blank=True)
 
 
 
@@ -99,10 +103,12 @@ class Player(BaseModel):
     email = models.EmailField()
     password = models.CharField(max_length=100)
     player_role = models.CharField(max_length=20, choices=ROLES_CHOICES)
+    team_id = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='player_team')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     wallet = models.IntegerField()
     bank_liabilities = models.IntegerField()
     last_assassination_attempt = models.DateTimeField() # todo
+    bodyguard_team_id = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='player_bodyguard_team')
     last_bodyguard_cost = models.IntegerField()
 
     def __str__(self):
@@ -149,9 +155,35 @@ class TeamFeature(BaseModel):
     citizen_opened_night_escape_rooms = models.IntegerField()
     citizen_theft_request_contracts = models.IntegerField()
 
+class Question(BaseModel):
+    LEVEL_CHOICE = [
+        (1, 'Level 1'),
+        (2, 'Level 2'),
+        (3, 'Level 3')
+    ]
+    TYPE_CHOICE = [
+        (1, 'Short answer'),
+        (2, 'Code'),
+    ]
+    level = models.IntegerField(choices=LEVEL_CHOICE)
+    last_owner_id = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='question_last_owner_id')
+    price = models.IntegerField()
+    score = models.IntegerField()
+    is_published = models.BooleanField(default=False)
+    title = models.CharField(max_length=300)
+    body = models.TextField()
+    qtype = models.CharField(max_length=30, choices=TYPE_CHOICE)
+    answer = models.TextField()
+    no_valid_tries = models.IntegerField()
+    valid_solve_minutes = models.IntegerField()
+
+    
+
 
 class TeamQuestionRel(BaseModel):
-    solved = models.IntegerField()
+    team_id = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='teamquestionrel_team')
+    question_id = models.ForeignKey("Question", on_delete=models.CASCADE, related_name='teamquestionrel_question')
+    solved = models.BooleanField()
     received_score = models.IntegerField()
     tries = models.IntegerField()
 
@@ -160,6 +192,7 @@ class EscapeRoom(BaseModel):
     no_valid_citizen = models.IntegerField()
     no_valid_police = models.IntegerField()
     no_valid_mafia = models.IntegerField()
+    bank_deposit_box_id = models.ForeignKey("BankDepositBox", on_delete=models.CASCADE, related_name='escaperoom_bank_deposit_box')
 
 
 class Contract(BaseModel):
@@ -175,9 +208,10 @@ class Contract(BaseModel):
         ('D', 'Bodyguard for the Homeless'),
         ('E', 'Other'),
     ]
-
     state = models.IntegerField(choices=STATE_CHOICE)
     contract_type = models.CharField(max_length=1, choices=CONTRACT_TYPES)
+    first_party_id = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='contract_first_party')
+    first_second_id = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='contract_second_party')
     terms = models.TextField()
     first_party_agree = models.BooleanField()
     second_party_agree = models.BooleanField()
