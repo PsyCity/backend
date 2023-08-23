@@ -217,3 +217,12 @@ class Contract(BaseModel):
     second_party_agree = models.BooleanField()
     archive = models.BooleanField() # todo isn't it avail in state?
 
+
+class TeamJoinRequest(BaseModel):
+    STATE_CHOICE = [
+        ('active', 'Question Ownership Transfer'),
+        ('inactive', 'Bank Robbery Sponsorship'),
+    ]
+    player_id = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='team_join_request_player')
+    team_id = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='team_join_request_team')
+    state = models.CharField(choices=STATE_CHOICE)
