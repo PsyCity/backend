@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core.apps.CoreConfig',
+    'player_api.apps.PlayerApiConfig',
+    'team_api.apps.TeamApiConfig',
     'rest_framework',
 ]
 
