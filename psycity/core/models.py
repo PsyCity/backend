@@ -225,4 +225,4 @@ class TeamJoinRequest(BaseModel):
     ]
     player_id = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='team_join_request_player')
     team_id = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='team_join_request_team')
-    state = models.CharField(choices=STATE_CHOICE)
+    state = models.CharField(choices=STATE_CHOICE, max_length=30)
