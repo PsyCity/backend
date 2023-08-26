@@ -81,11 +81,7 @@ class ConstantConfig(BaseModel):
 
 
 class Player(BaseModel):
-    ROLES_CHOICES = [
-        ('Nerd', 'Nerd'),
-        ('MasterMind', 'Master mind'),
-        ('SmoothTalker', 'Smooth Talker'),
-    ]
+
 
     STATUS_CHOICES = [
         ('TeamMember', 'Team Member'),
@@ -102,14 +98,23 @@ class Player(BaseModel):
     discord_username = models.CharField(max_length=100)
     email = models.EmailField()
     password = models.CharField(max_length=100)
-    player_role = models.CharField(max_length=20, choices=ROLES_CHOICES)
-    team_id = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='player_team')
+    player_role = models.ManyToManyField("core.Role")
+    team_id = models.ForeignKey('Team',
+                                on_delete=models.CASCADE,
+                                related_name='player_team',
+                                blank=True,
+                                null=True)
+
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
-    wallet = models.IntegerField()
-    bank_liabilities = models.IntegerField()
-    last_assassination_attempt = models.DateTimeField() # todo
-    bodyguard_team_id = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='player_bodyguard_team')
-    last_bodyguard_cost = models.IntegerField()
+    wallet = models.IntegerField(default=0)
+    bank_liabilities = models.IntegerField(default=0)
+    last_assassination_attempt = models.DateTimeField(blank=True, null=True) # todo
+    bodyguard_team_id = models.ForeignKey('Team',
+                                          blank=True,
+                                          null=True,
+                                          on_delete=models.CASCADE,
+                                          related_name='player_bodyguard_team')
+    last_bodyguard_cost = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -130,17 +135,17 @@ class Team(BaseModel):
     name = models.CharField(max_length=35)
     team_role = models.CharField(max_length=20, choices=ROLES_CHOICES)
     state = models.CharField(max_length=20, choices=STATE_CHOICE)
-    wallet = models.IntegerField()
-    bank = models.IntegerField()
-    total_asset = models.IntegerField()
+    wallet = models.IntegerField(default=0)
+    bank = models.IntegerField(default=0)
+    total_asset = models.IntegerField(default=0)
     level = models.PositiveIntegerField(validators=[
-            MinValueValidator(0, message='Value must be greater than or equal to 0.'),
+            MinValueValidator(1, message='Value must be greater than or equal to 1.'),
             MaxValueValidator(10, message='Value must be less than or equal to 10.'),
         ])
-    bank_liabilities = models.IntegerField()
-    max_bank_loan = models.IntegerField()
-    last_bank_action = models.DateTimeField()
-    today_bought_question = models.IntegerField()
+    bank_liabilities = models.IntegerField(default=0)
+    max_bank_loan = models.IntegerField(default=0)
+    last_bank_action = models.DateTimeField(blank=True, null=True)
+    today_bought_question = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
@@ -226,3 +231,14 @@ class TeamJoinRequest(BaseModel):
     player_id = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='team_join_request_player')
     team_id = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='team_join_request_team')
     state = models.CharField(choices=STATE_CHOICE, max_length=30)
+
+class Role(models.Model):
+    class RoleChoices(models.TextChoices):
+        NERD = "Nerd", _("Nerd")
+        MASTER_MIND = "MasterMind", _("Master Mind")
+        SMOOTH_TALKER = 'SmoothTalker', _('Smooth Talker')
+
+    name = models.CharField(max_length=15, choices=RoleChoices.choices)
+
+    def __str__(self) -> str:
+        return f"{self.name}"
