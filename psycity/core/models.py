@@ -98,7 +98,7 @@ class Player(BaseModel):
     discord_username = models.CharField(max_length=100)
     email = models.EmailField()
     password = models.CharField(max_length=100)
-    player_role = models.ManyToManyField("core.Role")
+    player_role = models.ManyToManyField('PlayerRole')
     team_id = models.ForeignKey('Team',
                                 on_delete=models.CASCADE,
                                 related_name='player_team',
@@ -232,13 +232,13 @@ class TeamJoinRequest(BaseModel):
     team_id = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='team_join_request_team')
     state = models.CharField(choices=STATE_CHOICE, max_length=30)
 
-class Role(models.Model):
-    class RoleChoices(models.TextChoices):
+class PlayerRole(models.Model):
+    class ROLES_CHOICES(models.TextChoices):
         NERD = "Nerd", _("Nerd")
         MASTER_MIND = "MasterMind", _("Master Mind")
         SMOOTH_TALKER = 'SmoothTalker', _('Smooth Talker')
 
-    name = models.CharField(max_length=15, choices=RoleChoices.choices)
+    name = models.CharField(max_length=15, choices=ROLES_CHOICES.choices)
 
     def __str__(self) -> str:
         return f"{self.name}"
