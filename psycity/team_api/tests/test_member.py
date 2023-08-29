@@ -5,7 +5,7 @@ import json
 from core.models import (
     Player,
     Team,
-    Role
+    PlayerRole
 ) 
 # Create your tests here.
 
@@ -19,8 +19,8 @@ BASE_REQUEST = {
 class RoleTest(TestCase):
     def setUp(self) -> None:
         roles = []
-        for role in Role.RoleChoices.choices:
-            roles.append(Role.objects.create(name=role[0]))
+        for role in PlayerRole.ROLES_CHOICES.choices:
+            roles.append(PlayerRole.objects.create(name=role[0]))
         self.request = BASE_REQUEST
         player1 = Player.objects.create()
         player1.player_role.set((roles[1],roles[2]))
@@ -64,6 +64,6 @@ class RoleTest(TestCase):
         self.assertDictEqual(returned_data, expected_response)
 
         player = Player.objects.get(pk=data["player_id"])
-        role = Role.objects.get(name=role)
+        role = PlayerRole.objects.get(name=role)
         self.assertEqual((role in player.player_role.all()),
                          role_existing_in_player_roles)

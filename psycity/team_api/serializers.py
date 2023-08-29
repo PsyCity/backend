@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from core.models import Team, Player, Role
+from core.models import Team, Player, PlayerRole
 from rest_framework.exceptions import bad_request
 class TeamSerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,7 +11,7 @@ class TeamMemberSerializers(serializers.Serializer):
     player_id   = serializers.IntegerField()
     team_id     = serializers.IntegerField()
     todo        = serializers.ChoiceField(["add","delete"], required=False)
-    role        = serializers.ChoiceField(choices=Role.RoleChoices,
+    role        = serializers.ChoiceField(choices=PlayerRole.ROLES_CHOICES,
                                           required=False)
     agreement   = serializers.ListField()
 
@@ -36,7 +36,7 @@ class TeamMemberSerializers(serializers.Serializer):
         player = self.player
         
         role = validated_data.get("role")
-        role = Role.objects.get(name=role)
+        role = PlayerRole.objects.get(name=role)
 
         todo = validated_data.get("todo")
 

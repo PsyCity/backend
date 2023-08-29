@@ -12,6 +12,6 @@ class MembersRole(GenericAPIView):
         serializer.is_valid(raise_exception=True)   #TODO: handel exceptions
         team = serializer.team
         serializer.update(team, serializer.validated_data)
-        response = ResponseStructure()  #TODO: remove data from response 200
+        response = ResponseStructure() 
         return response.response
     
