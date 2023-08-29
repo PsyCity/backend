@@ -13,11 +13,11 @@ class BaseModel(models.Model):
 
 class WarehouseBox(BaseModel):
     is_lock = models.BooleanField(default=True)
-    unlocker_id = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='warehouse_box_unlocker')
+    unlocker = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='warehouse_box_unlocker')
     sensor_state = models.BooleanField(default=False)
     sensor_hacker = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='warehouse_box_sensor_hacker')
     expiration_date = models.DateTimeField(auto_now_add=False)
-    question_id = models.ForeignKey("Question", on_delete=models.CASCADE, related_name='warehouse_box_question')
+    question = models.ForeignKey("Question", on_delete=models.CASCADE, related_name='warehouse_box_question')
     money = models.PositiveIntegerField()
 
 
@@ -28,11 +28,11 @@ class BankDepositBox(BaseModel):
     ]
     money = models.PositiveIntegerField()
     robbery_state = models.BooleanField(default=False)
-    rubbery_team_id = models.ForeignKey("Team", on_delete=models.CASCADE, related_name="bankdispositbox_rubbery_team")
+    rubbery_team = models.ForeignKey("Team", on_delete=models.CASCADE, related_name="bankdispositbox_rubbery_team")
     sensor_state = models.CharField(max_length=30, choices=SENSOR_STATE_CHOICE)
-    sensor_owner_id = models.ForeignKey("Team", on_delete=models.CASCADE, related_name="bankdispositbox_sensor_owner")
+    sensor_owner = models.ForeignKey("Team", on_delete=models.CASCADE, related_name="bankdispositbox_sensor_owner")
     is_copy = models.BooleanField(default=False)
-    parent_box_id = models.ForeignKey('self', on_delete=models.CASCADE, related_name="bankdispositbox_parent_box", null=True, blank=True)
+    parent_box = models.ForeignKey('self', on_delete=models.CASCADE, related_name="bankdispositbox_parent_box", null=True, blank=True)
 
 
 
@@ -98,8 +98,8 @@ class Player(BaseModel):
     discord_username = models.CharField(max_length=100)
     email = models.EmailField()
     password = models.CharField(max_length=100)
-    player_role = models.ManyToManyField("core.Role")
-    team_id = models.ForeignKey('Team',
+    player_role = models.ManyToManyField('PlayerRole')
+    team = models.ForeignKey('Team',
                                 on_delete=models.CASCADE,
                                 related_name='player_team',
                                 blank=True,
@@ -109,7 +109,7 @@ class Player(BaseModel):
     wallet = models.IntegerField(default=0)
     bank_liabilities = models.IntegerField(default=0)
     last_assassination_attempt = models.DateTimeField(blank=True, null=True) # todo
-    bodyguard_team_id = models.ForeignKey('Team',
+    bodyguard_team = models.ForeignKey('Team',
                                           blank=True,
                                           null=True,
                                           on_delete=models.CASCADE,
@@ -171,7 +171,7 @@ class Question(BaseModel):
         (2, 'Code'),
     ]
     level = models.IntegerField(choices=LEVEL_CHOICE)
-    last_owner_id = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='question_last_owner_id')
+    last_owner = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='question_last_owner_id')
     price = models.IntegerField()
     score = models.IntegerField()
     is_published = models.BooleanField(default=False)
@@ -186,8 +186,8 @@ class Question(BaseModel):
 
 
 class TeamQuestionRel(BaseModel):
-    team_id = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='teamquestionrel_team')
-    question_id = models.ForeignKey("Question", on_delete=models.CASCADE, related_name='teamquestionrel_question')
+    team = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='teamquestionrel_team')
+    question = models.ForeignKey("Question", on_delete=models.CASCADE, related_name='teamquestionrel_question')
     solved = models.BooleanField()
     received_score = models.IntegerField()
     tries = models.IntegerField()
@@ -197,7 +197,7 @@ class EscapeRoom(BaseModel):
     no_valid_citizen = models.IntegerField()
     no_valid_police = models.IntegerField()
     no_valid_mafia = models.IntegerField()
-    bank_deposit_box_id = models.ForeignKey("BankDepositBox", on_delete=models.CASCADE, related_name='escaperoom_bank_deposit_box')
+    bank_deposit_box = models.ForeignKey("BankDepositBox", on_delete=models.CASCADE, related_name='escaperoom_bank_deposit_box')
 
 
 class Contract(BaseModel):
@@ -215,8 +215,8 @@ class Contract(BaseModel):
     ]
     state = models.IntegerField(choices=STATE_CHOICE)
     contract_type = models.CharField(max_length=1, choices=CONTRACT_TYPES)
-    first_party_id = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='contract_first_party')
-    first_second_id = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='contract_second_party')
+    first_party = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='contract_first_party')
+    first_second = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='contract_second_party')
     terms = models.TextField()
     first_party_agree = models.BooleanField()
     second_party_agree = models.BooleanField()
@@ -228,17 +228,17 @@ class TeamJoinRequest(BaseModel):
         ('active', 'Question Ownership Transfer'),
         ('inactive', 'Bank Robbery Sponsorship'),
     ]
-    player_id = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='team_join_request_player')
-    team_id = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='team_join_request_team')
+    player = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='team_join_request_player')
+    team = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='team_join_request_team')
     state = models.CharField(choices=STATE_CHOICE, max_length=30)
 
-class Role(models.Model):
-    class RoleChoices(models.TextChoices):
+class PlayerRole(models.Model):
+    class ROLES_CHOICES(models.TextChoices):
         NERD = "Nerd", _("Nerd")
         MASTER_MIND = "MasterMind", _("Master Mind")
         SMOOTH_TALKER = 'SmoothTalker', _('Smooth Talker')
 
-    name = models.CharField(max_length=15, choices=RoleChoices.choices)
+    name = models.CharField(max_length=15, choices=ROLES_CHOICES.choices)
 
     def __str__(self) -> str:
         return f"{self.name}"
