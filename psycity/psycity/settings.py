@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'player_api.apps.PlayerApiConfig',
     'team_api.apps.TeamApiConfig',
     'rest_framework',
+    'drf_yasg',
+
 ]
 
 MIDDLEWARE = [
