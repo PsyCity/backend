@@ -1,4 +1,5 @@
 from rest_framework.viewsets import GenericViewSet, mixins
+from rest_framework.exceptions import ValidationError
 
 from core.models import Player, PlayerRole
 
@@ -23,8 +24,14 @@ class MemberRoleViewset(mixins.UpdateModelMixin,
 
     def perform_update(self, serializer, instance):
         player = instance
+        
         team = player.team
+        if not team:
+            raise ValidationError("team does not exist")
+
         role = serializer.validated_data.get("role")
+        if not role:
+            raise ValidationError("role cant be null",400)
         role = PlayerRole.objects.get(name=role)
 
         todo = serializer.validated_data.get("todo")

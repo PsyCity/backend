@@ -1,5 +1,5 @@
 from django.test import TestCase, Client
-from django.urls import reverse_lazy
+from django.urls import reverse
 from team_api.utils import ResponseStructure
 import json
 from core.models import (
@@ -16,22 +16,28 @@ BASE_REQUEST = {
     'agreement': [], 
 }
 
-class RoleTest(TestCase):
+
+class BaseTest(TestCase):
+
     def setUp(self) -> None:
         roles = []
         for role in PlayerRole.ROLES_CHOICES.choices:
             roles.append(PlayerRole.objects.create(name=role[0]))
         self.request = BASE_REQUEST
-        player1 = Player.objects.create()
+        
+        self.team1   = Team.objects.create(level=1) 
+
+        player1 = Player.objects.create(team=self.team1)
         player1.player_role.set((roles[1],roles[2]))
         self.player1 = player1
-        self.team1   = Team.objects.create(level=1) 
         
         return super().setUp()
     
+
+class RoleTest(BaseTest):
     def test_response_status_code(self):
         c = Client()
-        res = c.patch(reverse_lazy("team_api:member-role"))
+        res = c.patch(reverse("team_api:role-detail", kwargs={"pk":1}))
         self.assertEqual(res.status_code, 400, res.content)
 
     def test_add_role(self):
@@ -54,7 +60,7 @@ class RoleTest(TestCase):
         data["role"] = role
         data["todo"] = todo 
         response = c.patch(
-            path=reverse_lazy("team_api:member-role"),
+            path=reverse("team_api:role-detail", kwargs={"pk":1}),
             content_type="application/json",
             data=data)
         self.assertEqual(response.status_code, 200, response.content)
