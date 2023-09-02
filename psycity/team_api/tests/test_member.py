@@ -73,3 +73,24 @@ class RoleTest(BaseTest):
         role = PlayerRole.objects.get(name=role)
         self.assertEqual((role in player.player_role.all()),
                          role_existing_in_player_roles)
+
+
+class KickTest(BaseTest):
+    def setUp(self) -> None:
+        super().setUp()
+        player2 = Player.objects.create(team=self.team1)
+        player3 = Player.objects.create(team=self.team1)
+        player4 = Player.objects.create(team=self.team1)
+    def test_kick_properly(self):
+        url = reverse("team_api:kick-detail", kwargs={"pk":1})
+        c = Client()
+        response = c.patch(url,
+                        {"agreement" : []},
+                        "application/json")
+    
+        self.assertEqual(response.status_code, 200)    
+    
+    def test_invalid_input(self):
+        ...
+    def test_lack_of_team_player(self):
+        ...
