@@ -5,7 +5,7 @@ from .views import member
 
 member_router = DefaultRouter()
 member_router.register("role", member.RoleViewset, "role")
-
+member_router.register("kick", member.KickViewset, "kick")
 app_name = "team_api"
 
 urlpatterns = [

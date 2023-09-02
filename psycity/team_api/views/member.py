@@ -1,7 +1,7 @@
 from rest_framework.viewsets import GenericViewSet, mixins
 from rest_framework.exceptions import ValidationError
 
-from core.models import Player, PlayerRole
+from core.models import Player, PlayerRole, Team
 
 from team_api import serializers
 from team_api.utils import ResponseStructure
@@ -46,3 +46,27 @@ class RoleViewset(mixins.UpdateModelMixin,
             player.player_role.remove(role)
 
     
+class KickViewset(mixins.UpdateModelMixin,
+                  GenericViewSet):
+    serializer_class = serializers.TeamMemberSerializers
+    queryset = Player.objects.all()
+    http_method_names = ["patch"]
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer, instance)
+        return ResponseStructure().response
+    
+    def perform_update(self, serializer, player):
+        team = player.team
+        if not team:
+            raise ValidationError("no team for player")
+        if team.player_team.count() <= 2:
+            raise ValidationError("Team members are not enough")
+
+        player.team = None
+        player.status = Player.STATUS_CHOICES[1]
+        player.player_role.clear()
+        player.save()
