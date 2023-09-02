@@ -8,45 +8,10 @@ class TeamSerializer(serializers.ModelSerializer):
 
 
 class TeamMemberSerializers(serializers.Serializer):
-    player_id   = serializers.IntegerField()
-    team_id     = serializers.IntegerField()
     todo        = serializers.ChoiceField(["add","delete"], required=False)
+
     role        = serializers.ChoiceField(choices=PlayerRole.ROLES_CHOICES,
                                           required=False)
-    agreement   = serializers.ListField()
+    agreement   = serializers.ListField(required=True)
 
-    @property
-    def team(self):
-        team_id = self.validated_data.get("team_id")
-        instance = Team.objects.filter(pk=team_id).first()
-        return instance
-    
-    @property
-    def player(self):
-        player_id = self.validated_data.get("player_id")
-        obj = Player.objects.filter(pk=player_id).first()
-        return obj
-
-    def update(self, instance, validated_data):
-        if self.data["role"]:
-            self.role_update(instance, validated_data)
-
-        return instance
-    def role_update(self, team:Team, validated_data):
-        player = self.player
-        
-        role = validated_data.get("role")
-        role = PlayerRole.objects.get(name=role)
-
-        todo = validated_data.get("todo")
-
-        if todo == "add":
-            players = team.player_team.all()
-            players = list(filter(lambda p: role in p.player_role.all(), players))
-            map(lambda p: p.player_role.remove(role),players)
-
-            player.player_role.add(role)
-        
-        elif todo=="delete":
-            player.player_role.remove(role)
-        
+    team_id     = serializers.IntegerField(allow_null=True)
