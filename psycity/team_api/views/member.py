@@ -13,7 +13,7 @@ class MemberRoleViewset(mixins.UpdateModelMixin,
                         GenericViewSet):
     serializer_class = serializers.TeamMemberSerializers
     queryset = Player.objects.all()
-
+    http_method_names = ["patch"]
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
