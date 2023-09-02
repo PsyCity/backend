@@ -9,7 +9,7 @@ from team_api.utils import ResponseStructure
 # Create your views here.
 
 
-class MemberRoleViewset(mixins.UpdateModelMixin,
+class RoleViewset(mixins.UpdateModelMixin,
                         GenericViewSet):
     serializer_class = serializers.TeamMemberSerializers
     queryset = Player.objects.all()
