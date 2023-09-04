@@ -8,10 +8,12 @@ class TeamSerializer(serializers.ModelSerializer):
 
 
 class TeamMemberSerializers(serializers.Serializer):
-    todo        = serializers.ChoiceField(["add","delete"], required=False)
+    todo        = serializers.ChoiceField(["add","delete"],
+                                          required=False,
+                                          write_only=True)
 
     role        = serializers.ChoiceField(choices=PlayerRole.ROLES_CHOICES,
-                                          required=False)
-    agreement   = serializers.ListField(required=True)
-
-    team_id     = serializers.IntegerField(allow_null=True)
+                                          required=False,
+                                          write_only=True)
+    
+    agreement   = serializers.ListField(required=True, write_only=True)
