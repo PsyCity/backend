@@ -5,7 +5,8 @@ import json
 from core.models import (
     Player,
     Team,
-    PlayerRole
+    PlayerRole,
+    TeamJoinRequest
 ) 
 # Create your tests here.
 
@@ -94,3 +95,32 @@ class KickTest(BaseTest):
         ...
     def test_lack_of_team_player(self):
         ...
+
+
+class InviteTest(BaseTest):
+    def setUp(self) -> None:
+        
+        super().setUp()
+
+        self.player2 = Player.objects.create(team=self.team1)
+        self.player3 = Player.objects.create(team=self.team1)
+        self.player4 = Player.objects.create()
+        self.url     = reverse("team_api:invite-list")
+
+    def test_invite_properly(self):
+        c = Client()
+        data = {
+            "team": self.team1.pk,
+            "player": self.player4.pk
+        }
+        response = c.post(self.url, data)
+        self.assertEqual(response.status_code, 201)
+        invite = \
+            TeamJoinRequest.objects.filter(
+                player=self.player4
+            ).first()
+        self.assertFalse(invite is None)
+        
+    def test_invite_responses(self):
+        ...
+    
