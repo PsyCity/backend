@@ -47,3 +47,10 @@ kick_schema = swagger_auto_schema(
         200 : ResponseStructure().schema
     }
 )
+
+invite_schema = swagger_auto_schema(
+    operation_description="invite a player to Team",
+    responses={
+        201: ResponseStructure(status_code=201).schema
+    }
+)

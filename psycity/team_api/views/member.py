@@ -81,6 +81,10 @@ class InviteViewset(mixins.CreateModelMixin,
     queryset = TeamJoinRequest.objects.all()
     http_method_names = ["post"]
 
+    @schema.invite_schema
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         
         join_request = \
