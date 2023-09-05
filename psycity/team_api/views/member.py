@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 
 from core.models import Player, PlayerRole, Team, TeamJoinRequest
 
-from team_api import serializers
+from team_api import serializers, schema
 from team_api.utils import ResponseStructure
 
 # Create your views here.
@@ -16,6 +16,7 @@ class RoleViewset(mixins.UpdateModelMixin,
     queryset = Player.objects.all()
     http_method_names = ["patch"]
 
+    @schema.role_schema
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(data=request.data, partial=True)

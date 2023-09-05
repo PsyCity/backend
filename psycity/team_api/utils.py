@@ -1,4 +1,7 @@
+from typing import Any
 from rest_framework.response import Response
+
+from drf_yasg import openapi
 
 
 class ResponseStructure:
@@ -24,3 +27,32 @@ class ResponseStructure:
     @property
     def response(self):
         return Response(self.data)
+
+    @property
+    def schema(self):
+        schema = \
+            openapi.Response(
+                description="OK",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "result" : openapi.Schema(
+                            type = openapi.TYPE_STRING,
+                            pattern=self.result
+                        ),
+                        "data" : openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items= openapi.Schema( type=openapi.TYPE_STRING),
+                            default=self._data
+                        ),
+                        "error_msg" : openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                        ),
+                        "status_code" : openapi.Schema(
+                            type=openapi.TYPE_INTEGER,
+                            default=self.code
+                        ),
+                    }
+                )
+            )
+        return schema
