@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from core.models import Team, Player, PlayerRole
+from core.models import Team, Player, PlayerRole, TeamJoinRequest
 from rest_framework.exceptions import bad_request
 class TeamSerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,3 +17,9 @@ class TeamMemberSerializers(serializers.Serializer):
                                           write_only=True)
     
     agreement   = serializers.ListField(required=True, write_only=True)
+
+class TeamJoinRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TeamJoinRequest
+        fields = ["player", "team"]
+
