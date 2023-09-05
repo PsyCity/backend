@@ -34,3 +34,16 @@ role_schema = swagger_auto_schema(
         200: ResponseStructure().schema,
     },
 )
+
+
+kick_schema = swagger_auto_schema(
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "agreement" : agreement_schema
+        }
+    ),
+    responses={
+        200 : ResponseStructure().schema
+    }
+)
