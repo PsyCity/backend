@@ -1,9 +1,10 @@
 from rest_framework.viewsets import GenericViewSet, mixins
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, NotAcceptable
+from rest_framework.decorators import action
 
-from core.models import Player, PlayerRole, Team
+from core.models import Player, PlayerRole, Team, TeamJoinRequest
 
-from team_api import serializers
+from team_api import serializers, schema
 from team_api.utils import ResponseStructure
 
 # Create your views here.
@@ -15,6 +16,7 @@ class RoleViewset(mixins.UpdateModelMixin,
     queryset = Player.objects.all()
     http_method_names = ["patch"]
 
+    @schema.role_schema
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(data=request.data, partial=True)
@@ -52,6 +54,7 @@ class KickViewset(mixins.UpdateModelMixin,
     queryset = Player.objects.all()
     http_method_names = ["patch"]
 
+    @schema.kick_schema
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(data=request.data, partial=True)
@@ -70,3 +73,28 @@ class KickViewset(mixins.UpdateModelMixin,
         player.status = Player.STATUS_CHOICES[1]
         player.player_role.clear()
         player.save()
+
+
+class InviteViewset(mixins.CreateModelMixin,
+                    GenericViewSet):
+    serializer_class = serializers.TeamJoinRequestSerializer
+    queryset = TeamJoinRequest.objects.all()
+    http_method_names = ["post"]
+
+    @schema.invite_schema
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        
+        join_request = \
+            TeamJoinRequest.objects.filter(
+                player = serializer.validated_data.get("player"),
+                team = serializer.validated_data.get("team"),
+                state = "active"
+            ).first()
+        
+        if join_request:
+            raise NotAcceptable("an active request exist")   
+            
+        serializer.save(state='active')

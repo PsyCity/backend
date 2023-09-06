@@ -5,7 +5,8 @@ import json
 from core.models import (
     Player,
     Team,
-    PlayerRole
+    PlayerRole,
+    TeamJoinRequest
 ) 
 # Create your tests here.
 
@@ -94,3 +95,126 @@ class KickTest(BaseTest):
         ...
     def test_lack_of_team_player(self):
         ...
+
+
+class InviteTest(BaseTest):
+    def setUp(self) -> None:
+        
+        super().setUp()
+
+        self.player2 = Player.objects.create(team=self.team1)
+        self.player3 = Player.objects.create(team=self.team1)
+        self.player4 = Player.objects.create()
+        self.url     = reverse("team_api:invite-list")
+
+    def test_agreement(self):
+        ...
+    def test_other_validations(self):
+        ...
+
+    def test_invite_properly(self):
+        
+        response = self.call_api(
+            team_pk=self.team1.pk,
+            player_pk=self.player4.pk
+        )
+        
+        self.assertEqual(response.status_code, 201)
+        
+        invite = \
+            TeamJoinRequest.objects.filter(
+                player=self.player4
+            ).first()
+        
+        self.assertFalse(invite is None)
+        
+
+
+    def test_team_is_full(self):
+        Player.objects.create(team=self.team1)
+        response = self.call_api(
+            self.team1.pk,
+            self.player4.pk
+        )
+        self.assertEqual(
+            response.status_code,
+            406,
+            response.content)
+
+
+    def test_player_not_found(self):
+        res = self.call_api(
+            team_pk=self.team1.pk,
+            player_pk=1234
+        )
+
+        self.assertEqual(
+            res.status_code,
+            404,
+            res.content)
+
+
+    def test_team_not_found(self):
+        res = self.call_api(
+            team_pk=1234,
+            player_pk=self.player4.pk,
+        )
+
+        self.assertEqual(
+            res.status_code,
+            404,
+            res.content
+        )
+
+
+    def test_not_homeless(self):
+        team2 = Team.objects.create(level=3)
+        res = self.call_api(
+            team_pk=team2.pk,
+            player_pk=self.player1.pk
+        )
+
+        self.assertFalse(
+            res.status_code == 201,
+            "sent the player the join-request" 
+            )
+
+
+    def test_methods(self):
+        c = Client()
+        patch_res   = c.patch(self.url)
+        get_res     = c.get(self.url)
+        put_res     = c.put(self.url)
+        
+        self.assertEqual(patch_res.status_code, 405)
+        self.assertEqual(put_res.status_code, 405)
+        self.assertEqual(get_res.status_code, 405)
+
+
+    def test_duplicate_invitation(self):
+        
+        self.call_api(
+            team_pk=self.team1.pk,
+            player_pk=self.player1.pk
+        )
+        
+        response2 = self.call_api(
+            self.team1.pk,
+            self.player1.pk
+        )
+        
+        self.assertEqual(
+            406,
+            response2.status_code,
+            response2.content
+            )
+
+
+    def call_api(self, team_pk, player_pk):
+        c = Client()
+        data = {
+            "team" : team_pk,
+            "player" : player_pk
+        }
+        response = c.post(self.url, data)
+        return response
