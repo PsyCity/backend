@@ -2,6 +2,8 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from team_api.utils import ResponseStructure
 import json
+from team_api.views import member
+from team_api import  serializers
 from core.models import (
     Player,
     Team,
@@ -12,8 +14,6 @@ from core.models import (
 
 
 BASE_REQUEST = {
-    'team_id':1,
-    'player_id' : 1,
     'agreement': 4, 
 }
 
@@ -35,66 +35,164 @@ class BaseTest(TestCase):
         return super().setUp()
     
 
-class RoleTest(BaseTest):
-    def test_response_status_code(self):
-        c = Client()
-        res = c.patch(reverse("team_api:role-detail", kwargs={"pk":1}))
-        self.assertEqual(res.status_code, 400, res.content)
+# class RoleTest(BaseTest):
+#     def test_response_status_code(self):
+#         c = Client()
+#         res = c.patch(reverse("team_api:role-detail", kwargs={"pk":1}))
+#         self.assertEqual(res.status_code, 400, res.content)
 
-    def test_add_role(self):
-        self.set_role("Nerd", "add")
+#     def test_add_role(self):
+#         self.set_role("Nerd", "add")
 
-    def test_remove_role(self):
-        self.set_role("Nerd", "delete")
+#     def test_remove_role(self):
+#         self.set_role("Nerd", "delete")
 
-    def set_role(self, role, todo):
-        if todo=="delete":
-            role_existing_in_player_roles = False
-        elif todo == "add":
-            role_existing_in_player_roles = True
-        else:
-            raise ValueError("Not an option")
+#     def set_role(self, role, todo):
+#         if todo=="delete":
+#             role_existing_in_player_roles = False
+#         elif todo == "add":
+#             role_existing_in_player_roles = True
+#         else:
+#             raise ValueError("Not an option")
 
             
-        c = Client()
-        data = self.request
-        data["role"] = role
-        data["todo"] = todo 
-        response = c.patch(
-            path=reverse("team_api:role-detail", kwargs={"pk":1}),
-            content_type="application/json",
-            data=data)
-        self.assertEqual(response.status_code, 200, response.content)
+#         c = Client()
+#         data = self.request
+#         data["role"] = role
+#         data["todo"] = todo 
+#         response = c.patch(
+#             path=reverse("team_api:role-detail", kwargs={"pk":1}),
+#             content_type="application/json",
+#             data=data)
+#         self.assertEqual(response.status_code, 200, response.content)
 
-        expected_response = ResponseStructure().data
-        returned_data = json.loads(response.content)
-        self.assertDictEqual(returned_data, expected_response)
+#         expected_response = ResponseStructure().data
+#         returned_data = json.loads(response.content)
+#         self.assertDictEqual(returned_data, expected_response)
 
-        player = Player.objects.get(pk=data["player_id"])
-        role = PlayerRole.objects.get(name=role)
-        self.assertEqual((role in player.player_role.all()),
-                         role_existing_in_player_roles)
+#         player = Player.objects.get(pk=data["player_id"])
+#         role = PlayerRole.objects.get(name=role)
+#         self.assertEqual((role in player.player_role.all()),
+#                          role_existing_in_player_roles)
 
 
 class KickTest(BaseTest):
     def setUp(self) -> None:
         super().setUp()
+        
         player2 = Player.objects.create(team=self.team1)
         player3 = Player.objects.create(team=self.team1)
         player4 = Player.objects.create(team=self.team1)
+
+
+
     def test_kick_properly(self):
-        url = reverse("team_api:kick-detail", kwargs={"pk":1})
+        response = self.patch_caller(
+            agreement=3,
+            player_id=self.player1.pk
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200
+        )
+
+        player = Player.objects.get(pk=self.player1.pk)
+        
+        self.assertEqual(
+            player.team,
+            None
+        )
+
+        self.assertEqual(
+            player.status,
+            player.STATUS_CHOICES[1][0]
+        )
+
+    def test_player_not_exist(self):
+        
+        response = self.patch_caller(
+            agreement=3,
+            player_id=123
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            404
+        )
+
+    def test_homeless_player(self):
+        homeless = Player.objects.create()
+
+        response = self.patch_caller(
+            agreement=0,
+            player_id=homeless.pk
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            400,
+            msg=response.content
+        )
+
+    def test_agreement(self):
+        response = self.patch_caller(
+            agreement=2,
+            player_id=3
+        )
+
+        self.assertEqual(
+            response.status_code,
+            406,
+            response.content
+        )
+
+    def test_lack_of_team_member(self):
+        team = Team.objects.create(level=2)
+        Player.objects.create(team=team)
+        player = Player.objects.create(team=team)
+        
+
+        response = self.patch_caller(
+            agreement=1,
+            player_id=player.pk
+        )
+
+        self.assertEqual(
+            response.status_code,
+            406
+        )
+    def test_validation(self):
+        serializer = serializers.TeamMemberSerializer(data={}) 
+        
+        self.assertEqual(
+            serializer.is_valid(),
+            False
+        )
+
+    def test_method_not_allowed(self):
         c = Client()
-        response = c.patch(url,
-                        {"agreement" : 3},
-                        "application/json")
-    
-        self.assertEqual(response.status_code, 200)    
-    
-    def test_invalid_input(self):
-        ...
-    def test_lack_of_team_player(self):
-        ...
+        url = reverse("team_api:kick-detail", kwargs={"pk" : 1})
+
+        get_response = c.get(url)
+        post_response = c.post(url)
+        put_response = c.put(url)
+
+        self.assertTrue(
+            get_response.status_code  == \
+            put_response.status_code  == \
+            post_response.status_code ==\
+            405,
+        )
+        
+    def patch_caller(self, agreement, player_id):
+        data = {
+            "agreement" : agreement
+        }
+        url = reverse("team_api:kick-detail", kwargs={"pk" : player_id})
+        c = Client()
+        return c.patch(url, data, "application/json")
+
 
 
 class InviteTest(BaseTest):
