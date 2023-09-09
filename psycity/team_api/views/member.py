@@ -67,12 +67,12 @@ class KickViewset(mixins.UpdateModelMixin,
         if not team:
             raise ValidationError("no team for player")
         if (n_of_player:=team.player_team.count()) <= 2:
-            raise ValidationError("Team members are not enough")
+            raise NotAcceptable("Team members are not enough", 406)
         agreement = serializer.validated_data.get("agreement")
         if agreement < (n_of_player - 1):
-            raise ValidationError("Not enough vote.") 
+            raise NotAcceptable("Not enough vote.", 406) 
         player.team = None
-        player.status = Player.STATUS_CHOICES[1]
+        player.status = Player.STATUS_CHOICES[1][0]
         player.player_role.clear()
         player.save()
 
