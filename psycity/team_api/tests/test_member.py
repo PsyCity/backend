@@ -14,7 +14,7 @@ from core.models import (
 BASE_REQUEST = {
     'team_id':1,
     'player_id' : 1,
-    'agreement': [], 
+    'agreement': 4, 
 }
 
 
@@ -86,7 +86,7 @@ class KickTest(BaseTest):
         url = reverse("team_api:kick-detail", kwargs={"pk":1})
         c = Client()
         response = c.patch(url,
-                        {"agreement" : []},
+                        {"agreement" : 3},
                         "application/json")
     
         self.assertEqual(response.status_code, 200)    

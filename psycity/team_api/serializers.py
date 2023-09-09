@@ -8,7 +8,7 @@ class TeamSerializer(serializers.ModelSerializer):
         fields = []
 
 
-class TeamMemberSerializers(serializers.Serializer):
+class TeamMemberSerializer(serializers.Serializer):
     todo        = serializers.ChoiceField(["add","delete"],
                                           required=False,
                                           write_only=True)
@@ -17,7 +17,7 @@ class TeamMemberSerializers(serializers.Serializer):
                                           required=False,
                                           write_only=True)
     
-    agreement   = serializers.ListField(required=True, write_only=True)
+    agreement   = serializers.IntegerField(required=True, write_only=True)
 
 class TeamJoinRequestSerializer(serializers.ModelSerializer):
 

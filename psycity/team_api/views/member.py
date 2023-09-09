@@ -1,8 +1,8 @@
 from rest_framework.viewsets import GenericViewSet, mixins
 from rest_framework.exceptions import ValidationError, NotAcceptable
-from rest_framework.decorators import action
 
-from core.models import Player, PlayerRole, Team, TeamJoinRequest
+
+from core.models import Player, PlayerRole, TeamJoinRequest
 
 from team_api import serializers, schema
 from team_api.utils import ResponseStructure
@@ -12,7 +12,7 @@ from team_api.utils import ResponseStructure
 
 class RoleViewset(mixins.UpdateModelMixin,
                         GenericViewSet):
-    serializer_class = serializers.TeamMemberSerializers
+    serializer_class = serializers.TeamMemberSerializer
     queryset = Player.objects.all()
     http_method_names = ["patch"]
 
@@ -50,7 +50,7 @@ class RoleViewset(mixins.UpdateModelMixin,
     
 class KickViewset(mixins.UpdateModelMixin,
                   GenericViewSet):
-    serializer_class = serializers.TeamMemberSerializers
+    serializer_class = serializers.TeamMemberSerializer
     queryset = Player.objects.all()
     http_method_names = ["patch"]
 
@@ -66,9 +66,11 @@ class KickViewset(mixins.UpdateModelMixin,
         team = player.team
         if not team:
             raise ValidationError("no team for player")
-        if team.player_team.count() <= 2:
+        if (n_of_player:=team.player_team.count()) <= 2:
             raise ValidationError("Team members are not enough")
-
+        agreement = serializer.validated_data.get("agreement")
+        if agreement < (n_of_player - 1):
+            raise ValidationError("Not enough vote.") 
         player.team = None
         player.status = Player.STATUS_CHOICES[1]
         player.player_role.clear()
