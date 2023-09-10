@@ -36,11 +36,30 @@ class BaseTest(TestCase):
 class RoleTest(BaseTest):
 
     def test_add_role(self):
-        self.patch_call("Nerd", "add", 3)
+        player = Player.objects.last()
+        role = PlayerRole.objects.get(name="Nerd")
+
+        response = self.patch_call(
+            role=role.name,
+            todo="add",
+            agreement=3,
+            player=player
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+
+        self.assertTrue(
+            role in player.player_role.all()
+        )
 
     def test_remove_role(self):
+        role = PlayerRole.objects.get(name="Nerd")
+
         response = self.patch_call(
-            role="Nerd",
+            role= role.name,
             todo="delete",
             agreement=3
         )
@@ -50,6 +69,12 @@ class RoleTest(BaseTest):
             status.HTTP_200_OK,
             response.content
         )
+        player = Player.objects.get(pk=self.player1.pk)
+        
+        self.assertTrue(
+            role not in player.player_role.all()
+        )
+
 
     def test_serializer(self):
         
@@ -90,8 +115,11 @@ class RoleTest(BaseTest):
             status.HTTP_400_BAD_REQUEST
         )
 
-    def patch_call(self, role, todo, agreement):
-        url = reverse("team_api:role-detail", kwargs={"pk":self.player1.pk})
+    def patch_call(self, role, todo, agreement, player=None):
+
+        player = player or self.player1
+
+        url = reverse("team_api:role-detail", kwargs={"pk":player.pk})
 
         c = Client()
         response = c.patch(
