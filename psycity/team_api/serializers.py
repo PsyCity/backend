@@ -1,3 +1,5 @@
+from django.shortcuts import get_list_or_404, get_object_or_404
+
 from rest_framework import serializers
 from rest_framework.exceptions import NotAcceptable, APIException
 from core.models import Team, Player, PlayerRole, TeamJoinRequest
@@ -18,6 +20,39 @@ class TeamMemberSerializer(serializers.Serializer):
                                           write_only=True)
     
     agreement   = serializers.IntegerField(required=True, write_only=True)
+
+    def update(self, instance, validated_data):
+        todo = validated_data.get("todo")
+        
+        role = get_object_or_404(
+            PlayerRole,
+            name=validated_data.get("role")
+        )
+        if todo == "add":
+            team = instance.team
+            players = team.player_team.all()
+            
+            players = list(
+                filter(
+                    lambda p : role in p.player_role.all(),
+                    players
+                )
+            )
+
+            map(
+                lambda p : p.player_role.remove(role),
+                players
+                )
+            instance.player_role.add(role)
+        
+        elif todo == "delete":
+            instance.player_role.remove(role)
+        
+        else:
+            NotAcceptable(f"{todo} not an option for todo")
+
+
+
 
 class TeamJoinRequestSerializer(serializers.ModelSerializer):
 
