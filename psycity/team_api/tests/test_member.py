@@ -1,21 +1,18 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from team_api.utils import ResponseStructure
-import json
+
+from rest_framework import status
+
+from team_api import  serializers
+
 from core.models import (
     Player,
     Team,
     PlayerRole,
     TeamJoinRequest
-) 
+)
+
 # Create your tests here.
-
-
-BASE_REQUEST = {
-    'team_id':1,
-    'player_id' : 1,
-    'agreement': [], 
-}
 
 
 class BaseTest(TestCase):
@@ -24,86 +21,238 @@ class BaseTest(TestCase):
         roles = []
         for role in PlayerRole.ROLES_CHOICES.choices:
             roles.append(PlayerRole.objects.create(name=role[0]))
-        self.request = BASE_REQUEST
-        
+
         self.team1   = Team.objects.create(level=1) 
 
         player1 = Player.objects.create(team=self.team1)
-        player1.player_role.set((roles[1],roles[2]))
         self.player1 = player1
+        
+        player2 = Player.objects.create(team=self.team1)
+        player3 = Player.objects.create(team=self.team1)
         
         return super().setUp()
     
 
 class RoleTest(BaseTest):
-    def test_response_status_code(self):
-        c = Client()
-        res = c.patch(reverse("team_api:role-detail", kwargs={"pk":1}))
-        self.assertEqual(res.status_code, 400, res.content)
 
     def test_add_role(self):
-        self.set_role("Nerd", "add")
+        player = Player.objects.last()
+        role = PlayerRole.objects.get(name="Nerd")
+
+        response = self.patch_call(
+            role=role.name,
+            todo="add",
+            agreement=3,
+            player=player
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+
+        self.assertTrue(
+            role in player.player_role.all()
+        )
 
     def test_remove_role(self):
-        self.set_role("Nerd", "delete")
+        role = PlayerRole.objects.get(name="Nerd")
 
-    def set_role(self, role, todo):
-        if todo=="delete":
-            role_existing_in_player_roles = False
-        elif todo == "add":
-            role_existing_in_player_roles = True
-        else:
-            raise ValueError("Not an option")
+        response = self.patch_call(
+            role= role.name,
+            todo="delete",
+            agreement=3
+        )
 
-            
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            response.content
+        )
+        player = Player.objects.get(pk=self.player1.pk)
+        
+        self.assertTrue(
+            role not in player.player_role.all()
+        )
+
+
+    def test_serializer(self):
+        
+        data = {
+            "role":"qwerty",
+            "todo" : "add"
+        }
+        
+        serializer = serializers.TeamMemberSerializer(data=data)
+        
+        self.assertEqual(
+            serializer.is_valid(),
+            False,
+        )
+        
+    def test_role_not_set(self):
+        response = self.patch_call(
+            role=None,
+            todo="add",
+            agreement=3
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+        
+    def test_todo_not_set(self):
+        
+        response = self.patch_call(
+            role="Nerd",
+            todo=None,
+            agreement=3
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+
+    def patch_call(self, role, todo, agreement, player=None):
+
+        player = player or self.player1
+
+        url = reverse("team_api:role-detail", kwargs={"pk":player.pk})
+
         c = Client()
-        data = self.request
-        data["role"] = role
-        data["todo"] = todo 
         response = c.patch(
-            path=reverse("team_api:role-detail", kwargs={"pk":1}),
-            content_type="application/json",
-            data=data)
-        self.assertEqual(response.status_code, 200, response.content)
-
-        expected_response = ResponseStructure().data
-        returned_data = json.loads(response.content)
-        self.assertDictEqual(returned_data, expected_response)
-
-        player = Player.objects.get(pk=data["player_id"])
-        role = PlayerRole.objects.get(name=role)
-        self.assertEqual((role in player.player_role.all()),
-                         role_existing_in_player_roles)
-
+            path=url,
+            data={
+                "agreement" : agreement,
+                "todo" : todo,
+                "role" : role
+            },
+            content_type="application/json"
+        )
+        return response
 
 class KickTest(BaseTest):
     def setUp(self) -> None:
         super().setUp()
-        player2 = Player.objects.create(team=self.team1)
-        player3 = Player.objects.create(team=self.team1)
         player4 = Player.objects.create(team=self.team1)
+
+
+
     def test_kick_properly(self):
-        url = reverse("team_api:kick-detail", kwargs={"pk":1})
+        response = self.patch_caller(
+            agreement=3,
+            player_id=self.player1.pk
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200
+        )
+
+        player = Player.objects.get(pk=self.player1.pk)
+        
+        self.assertEqual(
+            player.team,
+            None
+        )
+
+        self.assertEqual(
+            player.status,
+            player.STATUS_CHOICES[1][0]
+        )
+
+    def test_player_not_exist(self):
+        
+        response = self.patch_caller(
+            agreement=3,
+            player_id=123
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            404
+        )
+
+    def test_homeless_player(self):
+        homeless = Player.objects.create()
+
+        response = self.patch_caller(
+            agreement=0,
+            player_id=homeless.pk
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            400,
+            msg=response.content
+        )
+
+    def test_agreement(self):
+        response = self.patch_caller(
+            agreement=2,
+            player_id=3
+        )
+
+        self.assertEqual(
+            response.status_code,
+            406,
+            response.content
+        )
+
+    def test_lack_of_team_member(self):
+        team = Team.objects.create(level=2)
+        Player.objects.create(team=team)
+        player = Player.objects.create(team=team)
+        
+
+        response = self.patch_caller(
+            agreement=1,
+            player_id=player.pk
+        )
+
+        self.assertEqual(
+            response.status_code,
+            406
+        )
+    def test_validation(self):
+        serializer = serializers.TeamMemberSerializer(data={}) 
+        
+        self.assertEqual(
+            serializer.is_valid(),
+            False
+        )
+
+    def test_method_not_allowed(self):
         c = Client()
-        response = c.patch(url,
-                        {"agreement" : []},
-                        "application/json")
-    
-        self.assertEqual(response.status_code, 200)    
-    
-    def test_invalid_input(self):
-        ...
-    def test_lack_of_team_player(self):
-        ...
+        url = reverse("team_api:kick-detail", kwargs={"pk" : 1})
+
+        get_response = c.get(url)
+        post_response = c.post(url)
+        put_response = c.put(url)
+
+        self.assertTrue(
+            get_response.status_code  == \
+            put_response.status_code  == \
+            post_response.status_code ==\
+            405,
+        )
+        
+    def patch_caller(self, agreement, player_id):
+        data = {
+            "agreement" : agreement
+        }
+        url = reverse("team_api:kick-detail", kwargs={"pk" : player_id})
+        c = Client()
+        return c.patch(url, data, "application/json")
+
 
 
 class InviteTest(BaseTest):
     def setUp(self) -> None:
         
         super().setUp()
-
-        self.player2 = Player.objects.create(team=self.team1)
-        self.player3 = Player.objects.create(team=self.team1)
         self.player4 = Player.objects.create()
         self.url     = reverse("team_api:invite-list")
 

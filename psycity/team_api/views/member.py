@@ -1,8 +1,8 @@
 from rest_framework.viewsets import GenericViewSet, mixins
 from rest_framework.exceptions import ValidationError, NotAcceptable
-from rest_framework.decorators import action
 
-from core.models import Player, PlayerRole, Team, TeamJoinRequest
+
+from core.models import Player, PlayerRole, TeamJoinRequest
 
 from team_api import serializers, schema
 from team_api.utils import ResponseStructure
@@ -12,7 +12,7 @@ from team_api.utils import ResponseStructure
 
 class RoleViewset(mixins.UpdateModelMixin,
                         GenericViewSet):
-    serializer_class = serializers.TeamMemberSerializers
+    serializer_class = serializers.TeamMemberSerializer
     queryset = Player.objects.all()
     http_method_names = ["patch"]
 
@@ -24,33 +24,27 @@ class RoleViewset(mixins.UpdateModelMixin,
         self.perform_update(serializer, instance)
         return ResponseStructure().response
 
-    def perform_update(self, serializer, instance):
+    def perform_update(self, serializer:serializers.TeamMemberSerializer, instance):
         player = instance
-        
+        validated_data = serializer.validated_data
         team = player.team
         if not team:
             raise ValidationError("team does not exist")
 
-        role = serializer.validated_data.get("role")
+
+        role = validated_data.get("role")
         if not role:
             raise ValidationError("role cant be null",400)
         role = PlayerRole.objects.get(name=role)
 
-        todo = serializer.validated_data.get("todo")
-        if todo == "add":
-            players = team.player_team.all()
-            players = list(filter(lambda p: role in p.player_role.all(), players))
-            map(lambda p: p.player_role.remove(role),players)
-
-            player.player_role.add(role)
-
-        elif todo=="delete":
-            player.player_role.remove(role)
-
+        serializer.update(
+            instance=instance,
+            validated_data=validated_data
+        )
     
 class KickViewset(mixins.UpdateModelMixin,
                   GenericViewSet):
-    serializer_class = serializers.TeamMemberSerializers
+    serializer_class = serializers.TeamMemberSerializer
     queryset = Player.objects.all()
     http_method_names = ["patch"]
 
@@ -66,11 +60,13 @@ class KickViewset(mixins.UpdateModelMixin,
         team = player.team
         if not team:
             raise ValidationError("no team for player")
-        if team.player_team.count() <= 2:
-            raise ValidationError("Team members are not enough")
-
+        if (n_of_player:=team.player_team.count()) <= 2:
+            raise NotAcceptable("Team members are not enough", 406)
+        agreement = serializer.validated_data.get("agreement")
+        if agreement < (n_of_player - 1):
+            raise NotAcceptable("Not enough vote.", 406) 
         player.team = None
-        player.status = Player.STATUS_CHOICES[1]
+        player.status = Player.STATUS_CHOICES[1][0]
         player.player_role.clear()
         player.save()
 
