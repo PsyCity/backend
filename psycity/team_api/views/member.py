@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError, NotAcceptable
 
 
 from core.models import Player, PlayerRole, TeamJoinRequest
-
+from core.config import TEAM_MEMBER_MIN
 from team_api import serializers, schema
 from team_api.utils import ResponseStructure
 
@@ -60,7 +60,7 @@ class KickViewset(mixins.UpdateModelMixin,
         team = player.team
         if not team:
             raise ValidationError("no team for player")
-        if (n_of_player:=team.player_team.count()) <= 2:
+        if (n_of_player:=team.player_team.count()) <= TEAM_MEMBER_MIN:
             raise NotAcceptable("Team members are not enough", 406)
         agreement = serializer.validated_data.get("agreement")
         if agreement < (n_of_player - 1):
