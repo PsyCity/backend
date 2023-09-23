@@ -41,8 +41,6 @@ class ConstantConfig(BaseModel):
         (0, "Night"),
         (1, "Day")
     ]
-    team_member_min = models.PositiveIntegerField()
-    team_member_max = models.PositiveIntegerField()
     game_current_state = models.IntegerField(choices=GAME_STATUS)
     wallet_init_value = models.IntegerField()
     question_level_0_value = models.IntegerField()
