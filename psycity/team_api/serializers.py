@@ -1,14 +1,8 @@
-from django.shortcuts import get_list_or_404, get_object_or_404
+from django.shortcuts import get_object_or_404
 
 from rest_framework import serializers
-from rest_framework.exceptions import NotAcceptable, APIException
-from core.models import Team, Player, PlayerRole, TeamJoinRequest
-from rest_framework.exceptions import bad_request
-class TeamSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Team
-        fields = []
-
+from rest_framework.exceptions import NotAcceptable
+from core.models import  PlayerRole, TeamJoinRequest
 
 class TeamMemberSerializer(serializers.Serializer):
     todo        = serializers.ChoiceField(["add","delete"],
