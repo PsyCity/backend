@@ -1,7 +1,8 @@
 from rest_framework.viewsets import GenericViewSet, mixins
 
 from core.models import (
-    Team
+    Team,
+    Question
 )
 
 from models_retrieve_api.serializers import *
@@ -18,4 +19,17 @@ class TeamViewSet(
         if self.action == "retrieve":
             return TeamRetrieveSerializer
         return TeamListSerializer
+    
+
+class QuestionViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    GenericViewSet
+    ):
+    queryset= Question.objects.filter(is_published=True).all()
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return QuestionRetrieveSerializer
+        return QuestionListSerializer
     
