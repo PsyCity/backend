@@ -169,7 +169,12 @@ class Question(BaseModel):
         (2, 'Code'),
     ]
     level = models.IntegerField(choices=LEVEL_CHOICE)
-    last_owner = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='question_last_owner_id')
+    last_owner = models.ForeignKey('Team',
+                                   on_delete=models.CASCADE,
+                                   related_name='question_last_owner_id',
+                                   blank=True,
+                                   null=True
+                                   )
     price = models.IntegerField()
     score = models.IntegerField()
     is_published = models.BooleanField(default=False)
