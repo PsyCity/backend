@@ -14,6 +14,7 @@ class TeamListSerializer(ModelSerializer):
         ]
 
 class TeamRetrieveSerializer(ModelSerializer):
+    players = serializers.SerializerMethodField()
     class Meta:
         model = Team
         fields = "__all__"
