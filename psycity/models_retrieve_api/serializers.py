@@ -1,17 +1,16 @@
-from core.serializers import TeamSerializer
 from rest_framework.serializers import ModelSerializer
 
 from core.models import Question
-class TeamListSerializer(TeamSerializer):
-    class Meta(TeamSerializer.Meta):
+class TeamListSerializer:
+    class Meta:
         fields = [
             "id",
             "name",
             "state"
         ]
 
-class TeamRetrieveSerializer(TeamSerializer):
-    class Meta(TeamSerializer.Meta):
+class TeamRetrieveSerializer:
+    class Meta:
         fields = "__all__"
 
 
