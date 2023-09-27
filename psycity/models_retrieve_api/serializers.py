@@ -20,7 +20,10 @@ class TeamRetrieveSerializer(ModelSerializer):
         fields = "__all__"
 
     def get_players(self, obj):
-        return obj.name
+        players = obj.player_team.all()
+        players = list(map(lambda player: {"player_id" : player.id, "discord" :player.discord_username}, players))
+        return players
+
 
 class QuestionListSerializer(ModelSerializer):
     class Meta:
