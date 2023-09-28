@@ -2,7 +2,8 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 from core.models import (
     Team,
-    Question
+    Question,
+    Contract,
 )
 class TeamListSerializer(ModelSerializer):
     class Meta:
@@ -36,3 +37,20 @@ class QuestionRetrieveSerializer(ModelSerializer):
         exclude = [
             "answer"
         ]
+
+
+
+class ContractListSerializer(ModelSerializer):
+    class Meta:
+        model = Contract
+        fields = [
+            "id",
+            "contract_type",
+            "first_party_agree",
+            "second_party_agree"
+        ]
+
+class ContractRetrieveSerializer(ModelSerializer):
+    class Meta:
+        model = Contract
+        fields = "__all__"
