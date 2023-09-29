@@ -209,15 +209,15 @@ class Contract(BaseModel):
         (1, 'waiting to be done'),
         (2, 'archived')
     ]
-    CONTRACT_TYPES = [
-        ('A', 'Question Ownership Transfer'),
-        ('B', 'Bank Robbery Sponsorship'),
-        ('C', 'Bank Sensor Installation Sponsorship'),
-        ('D', 'Bodyguard for the Homeless'),
-        ('E', 'Other'),
-    ]
+    class CONTRACT_TYPES(models.TextChoices):
+        question_ownership_transfer = 'question_ownership_transfer', _('Question Ownership Transfer'),
+        bank_rubbery_sponsorship = 'bank_rubbery_sponsorship', _('Bank Robbery Sponsorship'),
+        bank_sensor_installation_sponsorship = 'bank_sensor_installation_sponsorship', _('Bank Sensor Installation Sponsorship'),
+        bodyguard_for_the_homeless = 'bodyguard_for_the_homeless', _('Bodyguard for the Homeless'),
+        other = 'other', _('Other'),
+    
     state = models.IntegerField(choices=STATE_CHOICE)
-    contract_type = models.CharField(max_length=1, choices=CONTRACT_TYPES)
+    contract_type = models.CharField(max_length=40, choices=CONTRACT_TYPES.choices)
     first_party = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='contract_first_party')
     first_second = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='contract_second_party')
     terms = models.TextField()
