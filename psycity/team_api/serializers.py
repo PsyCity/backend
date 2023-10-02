@@ -52,7 +52,7 @@ class TeamJoinRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TeamJoinRequest
-        fields = ["player", "team"]
+        fields = ["id", "player", "team"]
 
     def validate_team(self, team):
         if (team.player_team.count() > 3):

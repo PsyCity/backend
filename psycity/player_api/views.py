@@ -74,8 +74,7 @@ class PlayerJoinTeam(UpdateAPIView):
                 "data": [],
                 "result": None,
             }, status=status.HTTP_400_BAD_REQUEST)
-        
-        
+
 class PlayerIdByDiscord(GenericAPIView):
     serializer_class = DiscordPlayer
     def get_queryset(self):
