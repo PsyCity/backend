@@ -1,11 +1,12 @@
 from django.db import transaction
 from rest_framework.response import Response
-from rest_framework.generics import UpdateAPIView
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import UpdateAPIView, GenericAPIView
+from rest_framework import mixins
+from rest_framework.viewsets import GenericViewSet
 from rest_framework import status
 from core.models import TeamJoinRequest
 from core.models import Player
-from player_api.serializers import PlayerSerializer, DiscordPlayer, LoanRepaymentSerializer
+from player_api.serializers import PlayerSerializer, DiscordPlayer, LoanRepaymentSerializer, LoanReceiveSerializer
 from . import schema
 class PlayerLeftTeam(UpdateAPIView):
     http_method_names = ["patch"]
@@ -55,6 +56,11 @@ class PlayerJoinTeam(UpdateAPIView):
                     "result": None,
                 }, status=status.HTTP_400_BAD_REQUEST)
             found_request.player.team = found_request.team
+            found_request.team.wallet = found_request.player.wallet
+            found_request.player.wallet = 0
+            found_request.team.bank_liabilities = found_request.player.bank_liabilities
+            found_request.player.bank_liabilities = 0
+            found_request.team.save()
             found_request.player.save()
             TeamJoinRequest.objects.filter(player=found_request.player).update(state="inactive")
             return Response({
@@ -86,6 +92,55 @@ class PlayerIdByDiscord(GenericAPIView):
         if player:
             return Response({"id":player.pk})
         return Response({"error": "not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class LoanReceive(mixins.CreateModelMixin,
+                 GenericViewSet):
+    serializer_class = LoanReceiveSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return self.perform_create(serializer)
+
+    def perform_create(self, serializer:LoanReceiveSerializer):
+
+        try:
+            player = Player.objects.get(
+                pk=serializer.validated_data.get("player_id")
+            )
+        except:
+            return Response(
+                data={
+                "message": "player not found.",
+                "data": [],
+                "result": None,
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        
+        if player.status != Player.STATUS_CHOICES[1][0]:
+            return Response(
+                data={
+                "message": "Player is not homeless",
+                "data": [],
+                "result": None,
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+
+        amount = serializer.validated_data.get("amount")
+        player.wallet += amount
+        player.bank_liabilities += amount
+        player.save()
+        return Response(
+            data={
+                "message": "Loan amount added to player's wallet.",
+                "data": [],
+                "result": None,
+                },
+        )
 
 class PlayerLoanRepayment(GenericAPIView):
     serializer_class = LoanRepaymentSerializer

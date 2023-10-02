@@ -8,6 +8,11 @@ class PlayerSerializer(serializers.ModelSerializer):
 class DiscordPlayer(serializers.Serializer):
     discord = serializers.CharField()
 
+
+class LoanReceiveSerializer(serializers.Serializer):
+    player_id = serializers.IntegerField()
+    amount = serializers.IntegerField()
+    
 class LoanRepaymentSerializer(serializers.Serializer):
     player_id = serializers.IntegerField()
     amount = serializers.IntegerField()
