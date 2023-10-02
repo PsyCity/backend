@@ -96,7 +96,7 @@ class Player(BaseModel):
     discord_username = models.CharField(max_length=100)
     email = models.EmailField()
     password = models.CharField(max_length=100)
-    player_role = models.ManyToManyField('PlayerRole')
+    player_role = models.ManyToManyField('PlayerRole', blank=True)
     team = models.ForeignKey('Team',
                                 on_delete=models.CASCADE,
                                 related_name='player_team',

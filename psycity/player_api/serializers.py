@@ -7,3 +7,7 @@ class PlayerSerializer(serializers.ModelSerializer):
         fields = []
 class DiscordPlayer(serializers.Serializer):
     discord = serializers.CharField()
+
+class LoanRepaymentSerializer(serializers.Serializer):
+    player_id = serializers.IntegerField()
+    amount = serializers.IntegerField()
