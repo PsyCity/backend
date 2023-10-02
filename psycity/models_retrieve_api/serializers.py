@@ -4,6 +4,7 @@ from core.models import (
     Team,
     Question,
     Contract,
+    Player,
 )
 class TeamListSerializer(ModelSerializer):
     class Meta:
@@ -54,4 +55,21 @@ class ContractListSerializer(ModelSerializer):
 class ContractRetrieveSerializer(ModelSerializer):
     class Meta:
         model = Contract
+        fields = "__all__"
+
+
+class PlayerListSerializer(ModelSerializer):
+    class Meta:
+        model = Player
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "team",
+            "status",
+        ]
+
+class PlayerRetrieveSerializer(ModelSerializer):
+    class Meta:
+        model = Player
         fields = "__all__"
