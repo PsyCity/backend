@@ -73,8 +73,3 @@ class PlayerJoinTeam(UpdateAPIView):
                 "result": None,
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        
-        
-
-    
-    
