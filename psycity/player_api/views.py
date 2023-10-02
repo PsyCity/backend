@@ -1,17 +1,18 @@
 from django.db import transaction
 from rest_framework.response import Response
 from rest_framework.generics import UpdateAPIView
+from rest_framework.generics import GenericAPIView
 from rest_framework import status
 from core.models import TeamJoinRequest
 from core.models import Player
-from player_api.serializers import PlayerSerializer
-
+from player_api.serializers import PlayerSerializer, DiscordPlayer
+from . import schema
 class PlayerLeftTeam(UpdateAPIView):
     http_method_names = ["patch"]
     
     def get_serializer_class(self):
         return PlayerSerializer
-
+    @schema.left_team_schema
     def patch(self, request, *args, **kwargs):
         try:
             player = Player.objects.get(pk=request.data["player_id"])
@@ -23,6 +24,7 @@ class PlayerLeftTeam(UpdateAPIView):
             }, status=status.HTTP_404_NOT_FOUND)
         if player.team is not None:
             player.team = None
+            player.status = Player.STATUS_CHOICES[1][0]
             player.save()
             return Response({
                 "message": "player team removed",
@@ -72,4 +74,15 @@ class PlayerJoinTeam(UpdateAPIView):
                 "data": [],
                 "result": None,
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
+class PlayerIdByDiscord(GenericAPIView):
+    serializer_class = DiscordPlayer
+    def get_queryset(self):
+        discord = self.request.data.get("discord")
+        return Player.objects.filter(discord_username=discord).first()
+
+    def post(self, request, *args, **kwargs):
+        player = self.get_queryset()
+        if player:
+            return Response({"id":player.pk})
+        return Response({"error": "not found"}, status=status.HTTP_404_NOT_FOUND)
