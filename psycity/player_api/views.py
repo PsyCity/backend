@@ -6,7 +6,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework import status
 from core.models import TeamJoinRequest
 from core.models import Player
-from player_api.serializers import PlayerSerializer, DiscordPlayer, LoanReceiveSerializer
+from player_api.serializers import PlayerSerializer, DiscordPlayer, LoanRepaymentSerializer, LoanReceiveSerializer
 from . import schema
 class PlayerLeftTeam(UpdateAPIView):
     http_method_names = ["patch"]
@@ -142,3 +142,66 @@ class LoanReceive(GenericAPIView):
                 "result": None,
                 },
         )
+
+class PlayerLoanRepayment(GenericAPIView):
+    serializer_class = LoanRepaymentSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            player = Player.objects.get(pk=request.data['player_id'])
+            repayment_amount = request.data['amount']
+
+            liabilities = player.bank_liabilities
+            wallet = player.wallet
+
+            if player.status != 'Homeless':
+                return Response({
+                    "message": "only homeless can repayment his/her loan",
+                    "data": [],
+                    "result": None,
+                }, status=status.HTTP_400_BAD_REQUEST)
+            if repayment_amount <= 0:
+                return Response({
+                    "message": "amount must be positive",
+                    "data": [],
+                    "result": None,
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            
+            if repayment_amount > wallet:
+                return Response({
+                    "message": "amount is bigger than player wallet value",
+                    "data": [],
+                    "result": None,
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            if liabilities <= 0:
+                return Response({
+                    "message": "player liability is 0",
+                    "data": [],
+                    "result": None,
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            amount_to_reduce = min(liabilities, repayment_amount)
+
+            player.wallet -= amount_to_reduce
+            player.bank_liabilities -= amount_to_reduce
+            player.save()
+
+            return Response({
+                "message": "loan repayment successful. %i repaymented" % amount_to_reduce,
+                "data": [],
+                "result": None,
+            }, status=status.HTTP_200_OK)
+        except Player.DoesNotExist:
+            return Response({
+                "message": "player not found",
+                "data": [],
+                "result": None,
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({
+                "message": "something went wrong",
+                "data": [],
+                "result": None,
+            }, status=status.HTTP_400_BAD_REQUEST)
