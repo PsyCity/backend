@@ -5,3 +5,7 @@ class PlayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Player
         fields = []
+
+
+class DiscordPlayer(serializers.Serializer):
+    discord = serializers.CharField()
