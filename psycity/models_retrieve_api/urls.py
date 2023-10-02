@@ -18,6 +18,10 @@ router.register(prefix="questions",
 router.register(prefix="contracts",
                 viewset=views.ContractViewSet
                 )
+router.register(prefix="players",
+                viewset=views.PlayerViewSet,
+                basename="players"
+                )
 
 urlpatterns = [
     path("", include(router.urls))
