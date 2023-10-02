@@ -11,7 +11,7 @@ class PlayerLeftTeam(UpdateAPIView):
     
     def get_serializer_class(self):
         return PlayerSerializer
-    
+
     def patch(self, request, *args, **kwargs):
         try:
             player = Player.objects.get(pk=request.data["player_id"])
