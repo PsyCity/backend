@@ -4,8 +4,14 @@ from rest_framework.generics import UpdateAPIView
 from rest_framework import status
 from core.models import TeamJoinRequest
 from core.models import Player
+from player_api.serializers import PlayerSerializer
 
 class PlayerLeftTeam(UpdateAPIView):
+    http_method_names = ["patch"]
+    
+    def get_serializer_class(self):
+        return PlayerSerializer
+    
     def patch(self, request, *args, **kwargs):
         try:
             player = Player.objects.get(pk=request.data["player_id"])
@@ -31,6 +37,11 @@ class PlayerLeftTeam(UpdateAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)   
 
 class PlayerJoinTeam(UpdateAPIView):
+    http_method_names = ["patch"]
+    
+    def get_serializer_class(self):
+        return PlayerSerializer
+
     @transaction.atomic
     def patch(self, request):
         try:

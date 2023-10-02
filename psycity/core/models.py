@@ -228,8 +228,8 @@ class Contract(BaseModel):
 
 class TeamJoinRequest(BaseModel):
     STATE_CHOICE = [
-        ('active', 'Question Ownership Transfer'),
-        ('inactive', 'Bank Robbery Sponsorship'),
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
     ]
     player = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='team_join_request_player')
     team = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='team_join_request_team')
