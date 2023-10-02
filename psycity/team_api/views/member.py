@@ -5,6 +5,7 @@ from rest_framework.exceptions import ValidationError, NotAcceptable
 from core.models import Player, PlayerRole, TeamJoinRequest
 from core.config import TEAM_MEMBER_MIN
 from team_api import serializers, schema
+from rest_framework.response import Response
 from team_api.utils import ResponseStructure
 
 # Create your views here.
@@ -71,15 +72,20 @@ class KickViewset(mixins.UpdateModelMixin,
         player.save()
 
 
-class InviteViewset(mixins.CreateModelMixin,
+class InviteViewset(mixins.CreateModelMixin,mixins.ListModelMixin,
                     GenericViewSet):
     serializer_class = serializers.TeamJoinRequestSerializer
     queryset = TeamJoinRequest.objects.all()
-    http_method_names = ["post"]
+    http_method_names = ["post", "get"]
 
     @schema.invite_schema
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = serializers.TeamJoinRequestSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     def perform_create(self, serializer):
         
