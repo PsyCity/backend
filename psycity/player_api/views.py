@@ -60,6 +60,8 @@ class PlayerJoinTeam(UpdateAPIView):
             found_request.player.wallet = 0
             found_request.team.bank_liabilities = found_request.player.bank_liabilities
             found_request.player.bank_liabilities = 0
+            found_request.player.status = Player.STATUS_CHOICES[0][0]
+            # FIXME : Need to remove player role ??
             found_request.team.save()
             found_request.player.save()
             TeamJoinRequest.objects.filter(player=found_request.player).update(state="inactive")
@@ -94,11 +96,10 @@ class PlayerIdByDiscord(GenericAPIView):
         return Response({"error": "not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
-class LoanReceive(mixins.CreateModelMixin,
-                 GenericViewSet):
+class LoanReceive(GenericAPIView):
     serializer_class = LoanReceiveSerializer
 
-    def create(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return self.perform_create(serializer)
