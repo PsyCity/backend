@@ -28,7 +28,8 @@ class QuestionListSerializer(ModelSerializer):
         model = Question
         fields = [
             "pk",
-            "title"
+            "title",
+            "qtype"
         ]
 
 class QuestionRetrieveSerializer(ModelSerializer):
