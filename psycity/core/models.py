@@ -219,7 +219,7 @@ class Contract(BaseModel):
     state = models.IntegerField(choices=STATE_CHOICE)
     contract_type = models.CharField(max_length=40, choices=CONTRACT_TYPES.choices)
     first_party = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='contract_first_party')
-    second_party = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='contract_second_party')
+    second_party = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='contract_second_party', null=True)
     terms = models.TextField()
     first_party_agree = models.BooleanField()
     second_party_agree = models.BooleanField()
