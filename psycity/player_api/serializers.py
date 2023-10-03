@@ -16,3 +16,8 @@ class LoanReceiveSerializer(serializers.Serializer):
 class LoanRepaymentSerializer(serializers.Serializer):
     player_id = serializers.IntegerField()
     amount = serializers.IntegerField()
+
+class BodyguardRegisterSerializer(serializers.Serializer):
+    player_id = serializers.IntegerField()
+    amount = serializers.IntegerField()
+        

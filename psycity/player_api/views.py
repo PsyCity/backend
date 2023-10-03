@@ -5,8 +5,14 @@ from rest_framework import mixins
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import status
 from core.models import TeamJoinRequest
-from core.models import Player
-from player_api.serializers import PlayerSerializer, DiscordPlayer, LoanRepaymentSerializer, LoanReceiveSerializer
+from core.models import Player, Contract
+from player_api.serializers import (
+    PlayerSerializer,
+    DiscordPlayer,
+    LoanRepaymentSerializer,
+    LoanReceiveSerializer,
+    BodyguardRegisterSerializer
+)
 from . import schema
 class PlayerLeftTeam(UpdateAPIView):
     http_method_names = ["patch"]
@@ -205,3 +211,77 @@ class PlayerLoanRepayment(GenericAPIView):
                 "data": [],
                 "result": None,
             }, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class PlayerBodyguardRegister(GenericAPIView):
+
+    serializer_class = BodyguardRegisterSerializer
+    
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return self.perform_create(serializer)
+
+    def perform_create(self, serializer: BodyguardRegisterSerializer):
+        try: 
+            player = Player.objects.get(
+                pk=serializer.validated_data.get("player_id")
+            )
+            amount = serializer.validated_data.get("amount")
+
+        except Player.DoesNotExist:
+            return Response(
+                data={
+                    "message": "Player not found",
+                    "data": [],
+                    "result" : None
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except:
+            return Response(
+                data={
+                    "message" : "something went wrong",
+                    "data" : [],
+                    "result" : None
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if player.status != 'Homeless':
+            return Response(
+                data={
+                    "message": "Not a Homeless player",
+                    "data": [],
+                    "result" : None
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if player.wallet < amount:
+            return Response(
+                data={
+                    "message": "even the father of player has no such that money",
+                    "data" : [],
+                    "result" : None
+                },
+                status= status.HTTP_406_NOT_ACCEPTABLE
+            )
+        
+        contract = Contract.objects.create(
+            state=0,
+            contract_type="bodyguard_for_the_homeless",
+            first_party = player,
+            terms = f"An offer for protecting a homeless player({player.__str__()}) for {amount}",
+            first_party_agree = True,
+            second_party_agree = False,
+            archive = False
+        )
+        player.last_bodyguard_cost = amount
+        return Response(
+            data={
+                "message" : "contract object created successfully",
+                "data" : [{"contract_id": contract.pk}],
+                "result" : None
+            },
+            status=status.HTTP_201_CREATED
+        )

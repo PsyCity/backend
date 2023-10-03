@@ -8,4 +8,5 @@ urlpatterns = [
     path("id_by_discord/", views.PlayerIdByDiscord.as_view(), name="discord_player_id"),
     path("loan/receive", views.LoanReceive.as_view(), name="loan-receive"),
     path('loan/repayment', views.PlayerLoanRepayment.as_view(), name='player_loan_repayment'),
+    path("bodyguard/register/", views.PlayerBodyguardRegister.as_view(), name="player_bodyguard_register"),
 ]
