@@ -14,8 +14,7 @@ static/
 staticfiles/
 
 # django settings
-*psycity/settings.py
-
+psycity/psycity/settings.py
 
 # Distribution / packaging
 .Python
