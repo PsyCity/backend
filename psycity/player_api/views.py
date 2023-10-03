@@ -280,8 +280,8 @@ class PlayerBodyguardRegister(GenericAPIView):
         return Response(
             data={
                 "message" : "contract object created successfully",
-                "data" : [{"contract_id": contract.pk}],
-                "result" : None
+                "data" : [],
+                "result" : contract.pk
             },
             status=status.HTTP_201_CREATED
         )
