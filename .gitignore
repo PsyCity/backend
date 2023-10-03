@@ -9,6 +9,10 @@ migrations/
 # C extensions
 *.so
 
+# static
+static/
+staticfiles/
+
 # Distribution / packaging
 .Python
 build/
