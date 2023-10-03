@@ -181,7 +181,8 @@ class Question(BaseModel):
     title = models.CharField(max_length=300)
     body = models.TextField()
     qtype = models.IntegerField(choices=TYPE_CHOICE)
-    answer = models.TextField()
+    answer_text = models.TextField(blank=True, null=True)
+    answer_file = models.FileField(blank=True, null=True, upload_to='question_answer_file')
     no_valid_tries = models.IntegerField()
     valid_solve_minutes = models.IntegerField()
 
