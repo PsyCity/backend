@@ -12,3 +12,15 @@ left_team_schema = swagger_auto_schema(
         }
     )
 )
+
+
+join_team_schema = swagger_auto_schema(
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "request_id" : openapi.Schema(
+                type=openapi.TYPE_INTEGER
+            )
+        }
+    )
+)
