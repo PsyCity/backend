@@ -276,6 +276,7 @@ class PlayerBodyguardRegister(GenericAPIView):
             second_party_agree = False,
             archive = False
         )
+        player.last_bodyguard_cost = amount
         return Response(
             data={
                 "message" : "contract object created successfully",
