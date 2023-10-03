@@ -238,7 +238,7 @@ class TeamJoinRequest(BaseModel):
 
 class PlayerRole(models.Model):
     class ROLES_CHOICES(models.TextChoices):
-        NERD = "Nerd", _("Nerd")
+        CODE_MASTER = "Code_Master", _("Code Master")
         MASTER_MIND = "MasterMind", _("Master Mind")
         SMOOTH_TALKER = 'SmoothTalker', _('Smooth Talker')
 
