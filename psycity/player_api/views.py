@@ -6,7 +6,13 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework import status
 from core.models import TeamJoinRequest
 from core.models import Player
-from player_api.serializers import PlayerSerializer, DiscordPlayer, LoanRepaymentSerializer, LoanReceiveSerializer
+from player_api.serializers import (
+    PlayerSerializer,
+    DiscordPlayer,
+    LoanRepaymentSerializer,
+    LoanReceiveSerializer,
+    BodyguardRegisterSerializer
+)
 from . import schema
 class PlayerLeftTeam(UpdateAPIView):
     http_method_names = ["patch"]
@@ -204,3 +210,10 @@ class PlayerLoanRepayment(GenericAPIView):
                 "data": [],
                 "result": None,
             }, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class PlayerBodyguardRegister(GenericAPIView):
+
+    serializer_class = BodyguardRegisterSerializer
+    
