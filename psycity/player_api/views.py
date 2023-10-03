@@ -44,7 +44,7 @@ class PlayerJoinTeam(UpdateAPIView):
     
     def get_serializer_class(self):
         return PlayerSerializer
-
+    @schema.join_team_schema
     @transaction.atomic
     def patch(self, request):
         try:
