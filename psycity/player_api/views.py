@@ -64,8 +64,10 @@ class PlayerJoinTeam(UpdateAPIView):
             found_request.player.team = found_request.team
             found_request.team.wallet = found_request.player.wallet
             found_request.player.wallet = 0
-            found_request.team.bank_liabilities = found_request.player.bank_liabilities
+            found_request.team.bank_liabilities += found_request.player.bank_liabilities
             found_request.player.bank_liabilities = 0
+            found_request.player.status = "TeamMember"
+            # FIXME : Need to remove player role ??
             found_request.team.save()
             found_request.player.save()
             TeamJoinRequest.objects.filter(player=found_request.player).update(state="inactive")
