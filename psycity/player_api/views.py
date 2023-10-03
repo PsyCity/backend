@@ -271,7 +271,7 @@ class PlayerBodyguardRegister(GenericAPIView):
             state=0,
             contract_type="bodyguard_for_the_homeless",
             first_party = player,
-            terms = f"An offer for protecting a homeless player({player.__str__} for {amount} money)",
+            terms = f"An offer for protecting a homeless player({player.__str__()}) for {amount}",
             first_party_agree = True,
             second_party_agree = False,
             archive = False
