@@ -205,9 +205,10 @@ class EscapeRoom(BaseModel):
 
 class Contract(BaseModel):
     STATE_CHOICE = [
-        (0, 'waiting for sign'),
-        (1, 'waiting to be done'),
-        (2, 'archived')
+        (0, 'look for second part')
+        (1, 'waiting for sign'),
+        (2, 'waiting to be done'),
+        (3, 'archived')
     ]
     class CONTRACT_TYPES(models.TextChoices):
         question_ownership_transfer = 'question_ownership_transfer', _('Question Ownership Transfer'),
@@ -218,6 +219,7 @@ class Contract(BaseModel):
     
     state = models.IntegerField(choices=STATE_CHOICE)
     contract_type = models.CharField(max_length=40, choices=CONTRACT_TYPES.choices)
+    cost    = models.IntegerField()
     first_party = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='contract_first_party')
     second_party = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='contract_second_party', null=True)
     terms = models.TextField()
