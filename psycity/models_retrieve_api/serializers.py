@@ -37,7 +37,8 @@ class QuestionRetrieveSerializer(ModelSerializer):
     class Meta:
         model = Question
         exclude = [
-            "answer"
+            "answer_text",
+            "answer_file",
         ]
 
 

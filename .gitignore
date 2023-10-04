@@ -9,6 +9,13 @@ migrations/
 # C extensions
 *.so
 
+# static
+static/
+staticfiles/
+
+# django settings
+psycity/psycity/settings.py
+
 # Distribution / packaging
 .Python
 build/
