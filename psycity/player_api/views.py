@@ -266,17 +266,17 @@ class PlayerBodyguardRegister(GenericAPIView):
                 },
                 status= status.HTTP_406_NOT_ACCEPTABLE
             )
-        
         contract = Contract.objects.create(
             state=0,
             contract_type="bodyguard_for_the_homeless",
+            cost = amount,
             first_party = player,
             terms = f"An offer for protecting a homeless player({player.__str__()}) for {amount}",
             first_party_agree = True,
             second_party_agree = False,
             archive = False
         )
-        player.last_bodyguard_cost = amount
+        
         return Response(
             data={
                 "message" : "contract object created successfully",
