@@ -21,3 +21,6 @@ class BodyguardRequestSerializer(serializers.Serializer):
     player_id = serializers.IntegerField()
     amount = serializers.IntegerField()
         
+class BodyguardApprovementSerializer(serializers.Serializer):
+    second_part_id = serializers.IntegerField()
+    contract_id = serializers.IntegerField()

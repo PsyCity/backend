@@ -4,6 +4,7 @@ from rest_framework.generics import UpdateAPIView, GenericAPIView
 from rest_framework import mixins
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import status
+from rest_framework import exceptions
 from core.models import TeamJoinRequest
 from core.models import Player, Contract
 from player_api.serializers import (
@@ -11,7 +12,8 @@ from player_api.serializers import (
     DiscordPlayer,
     LoanRepaymentSerializer,
     LoanReceiveSerializer,
-    BodyguardRequestSerializer
+    BodyguardRequestSerializer,
+    BodyguardApprovementSerializer
 )
 from . import schema
 class PlayerLeftTeam(UpdateAPIView):
@@ -266,17 +268,17 @@ class PlayerBodyguardRequest(GenericAPIView):
                 },
                 status= status.HTTP_406_NOT_ACCEPTABLE
             )
-        
         contract = Contract.objects.create(
             state=0,
             contract_type="bodyguard_for_the_homeless",
+            cost = amount,
             first_party = player,
             terms = f"An offer for protecting a homeless player({player.__str__()}) for {amount}",
             first_party_agree = True,
             second_party_agree = False,
             archive = False
         )
-        player.last_bodyguard_cost = amount
+        
         return Response(
             data={
                 "message" : "contract object created successfully",
@@ -285,3 +287,81 @@ class PlayerBodyguardRequest(GenericAPIView):
             },
             status=status.HTTP_201_CREATED
         )
+
+
+
+class PLayerBodyguardApprovement(GenericAPIView):
+    serializer_class = BodyguardApprovementSerializer
+
+    def patch(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return self.perform_update(serializer)
+
+    def perform_update(self, serializer: BodyguardApprovementSerializer):
+        try:
+            player = Player.objects.get(
+                pk=serializer.validated_data.get("second_part_id"),
+            )
+            if player.team.team_role != "Police":
+                raise exceptions.NotAcceptable()
+            
+
+            contract = Contract.objects.get(
+                pk=serializer.validated_data.get("contract_id"),
+                archive=0,
+                state=0
+
+            )
+            contract.second_party = player
+            contract.second_party_agree = True
+            contract.state = 2
+            contract.terms += f"\n accepted by {player.__str__()} (a Police man)"
+            contract.save()
+        
+            return Response(
+                data={
+                    "message" : "Contract approved successfully",
+                    "data":[],
+                    "result" : None
+                }
+            )
+        except Contract.DoesNotExist:
+            return Response(
+                data={
+                    "message": "An active contract not found",
+                    "data": [],
+                    "result" : None
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        except Player.DoesNotExist:
+            return Response(
+                data={
+                    "message": "Player not found",
+                    "data": [],
+                    "result" : None
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        except exceptions.NotAcceptable:
+            return Response(
+                data={
+                    "message": "request is not acceptable(not a police)",
+                    "data": [],
+                    "result" : None
+                },
+                status=status.HTTP_406_NOT_ACCEPTABLE
+            )
+        
+        except Exception as e:
+            return Response(
+                data={
+                    "message": "something went wrong",
+                    "data" : [],
+                    "result" : e.__str__()
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )

@@ -9,4 +9,5 @@ urlpatterns = [
     path("loan/receive", views.LoanReceive.as_view(), name="loan-receive"),
     path('loan/repayment', views.PlayerLoanRepayment.as_view(), name='player_loan_repayment'),
     path("bodyguard/request/", views.PlayerBodyguardRequest.as_view(), name="player_bodyguard_request"),
+    path("bodyguard/approvement/", views.PLayerBodyguardApprovement.as_view(), name="player_bodyguard_approvement"),
 ]
