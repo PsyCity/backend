@@ -2,11 +2,10 @@ from django.db import transaction
 from rest_framework.response import Response
 from rest_framework.generics import UpdateAPIView, GenericAPIView
 from rest_framework import mixins
-from rest_framework.viewsets import GenericViewSet
 from rest_framework import status
 from rest_framework import exceptions
 from core.models import TeamJoinRequest
-from core.models import Player, Contract
+from core.models import Player, Contract, Team
 from player_api.serializers import (
     PlayerSerializer,
     DiscordPlayer,
@@ -227,20 +226,40 @@ class PlayerBodyguardRequest(GenericAPIView):
 
     def perform_create(self, serializer: BodyguardRequestSerializer):
         try: 
-            player = Player.objects.get(
-                pk=serializer.validated_data.get("player_id")
+            team = Team.objects.get(
+                pk=serializer.validated_data.get("team_id"),
+                team_role="Police",
+                state="Active"
             )
+
             amount = serializer.validated_data.get("amount")
+            
+            homeless = Player.objects.get(
+                pk=serializer.validated_data.get("homeless_id"),
+                status="Homeless" 
+            )
 
         except Player.DoesNotExist:
             return Response(
                 data={
-                    "message": "Player not found",
+                    "message": "The Homeless Player not found",
                     "data": [],
                     "result" : None
                 },
                 status=status.HTTP_404_NOT_FOUND
             )
+        
+        except Team.DoesNotExist:
+            return Response(
+                data={
+                    "message": "The Police Team not found",
+                    "data": [],
+                    "result" : None
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+
         except:
             return Response(
                 data={
@@ -250,16 +269,7 @@ class PlayerBodyguardRequest(GenericAPIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
-        if player.status != 'Homeless':
-            return Response(
-                data={
-                    "message": "Not a Homeless player",
-                    "data": [],
-                    "result" : None
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if player.wallet < amount:
+        if homeless.wallet < amount:
             return Response(
                 data={
                     "message": "even the father of player has no such that money",
@@ -269,11 +279,12 @@ class PlayerBodyguardRequest(GenericAPIView):
                 status= status.HTTP_406_NOT_ACCEPTABLE
             )
         contract = Contract.objects.create(
-            state=0,
+            state=1,
             contract_type="bodyguard_for_the_homeless",
             cost = amount,
-            first_party = player,
-            terms = f"An offer for protecting a homeless player({player.__str__()}) for {amount}",
+            first_party_team = team,
+            second_party_player = homeless,
+            terms = f"An offer for protecting a homeless player({homeless.__str__()}) for {amount} amount of money from {team.__str__()}",
             first_party_agree = True,
             second_party_agree = False,
             archive = False
