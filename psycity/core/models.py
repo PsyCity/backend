@@ -226,13 +226,25 @@ class Contract(BaseModel):
                                            null=True,
                                            related_name='contract_first_party_to_player'
                                            )
-                                           
+
     first_party_team = models.ForeignKey("Team",
                                          on_delete=models.CASCADE,
                                          null=True,
                                          related_name='contract_first_party_to_team'
                                          )
-    second_party = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='contract_second_party', null=True)
+    
+    second_party_player = models.ForeignKey("Player",
+                                            on_delete=models.CASCADE,
+                                            related_name='contract_second_party_to_player',
+                                            null=True
+                                            )
+
+    second_party_team = models.ForeignKey("Team",
+                                          on_delete=models.CASCADE,
+                                          related_name='contract_second_party_to_team',
+                                          null=True
+                                          )
+
     terms = models.TextField()
     first_party_agree = models.BooleanField()
     second_party_agree = models.BooleanField()
