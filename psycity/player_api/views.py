@@ -309,14 +309,15 @@ class PLayerBodyguardApprovement(GenericAPIView):
 
             contract = Contract.objects.get(
                 pk=serializer.validated_data.get("contract_id"),
-                archive=False,
-                contract_type=0
+                archive=0,
+                state=0
 
             )
             contract.second_party = player
             contract.second_party_agree = True
-            contract.contract_type = 2
+            contract.state = 2
             contract.terms += f"\n accepted by {player.__str__()} (a Police man)"
+            contract.save()
         
             return Response(
                 data={
