@@ -11,7 +11,7 @@ from player_api.serializers import (
     DiscordPlayer,
     LoanRepaymentSerializer,
     LoanReceiveSerializer,
-    BodyguardRegisterSerializer
+    BodyguardRequestSerializer
 )
 from . import schema
 class PlayerLeftTeam(UpdateAPIView):
@@ -50,7 +50,7 @@ class PlayerJoinTeam(UpdateAPIView):
     
     def get_serializer_class(self):
         return PlayerSerializer
-
+    @schema.join_team_schema
     @transaction.atomic
     def patch(self, request):
         try:
@@ -214,16 +214,16 @@ class PlayerLoanRepayment(GenericAPIView):
 
 
 
-class PlayerBodyguardRegister(GenericAPIView):
+class PlayerBodyguardRequest(GenericAPIView):
 
-    serializer_class = BodyguardRegisterSerializer
+    serializer_class = BodyguardRequestSerializer
     
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return self.perform_create(serializer)
 
-    def perform_create(self, serializer: BodyguardRegisterSerializer):
+    def perform_create(self, serializer: BodyguardRequestSerializer):
         try: 
             player = Player.objects.get(
                 pk=serializer.validated_data.get("player_id")
@@ -280,8 +280,8 @@ class PlayerBodyguardRegister(GenericAPIView):
         return Response(
             data={
                 "message" : "contract object created successfully",
-                "data" : [{"contract_id": contract.pk}],
-                "result" : None
+                "data" : [],
+                "result" : contract.pk
             },
             status=status.HTTP_201_CREATED
         )

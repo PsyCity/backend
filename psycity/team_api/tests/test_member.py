@@ -37,7 +37,7 @@ class RoleTest(BaseTest):
 
     def test_add_role(self):
         player = Player.objects.last()
-        role = PlayerRole.objects.get(name="Nerd")
+        role = PlayerRole.objects.get(name="Code_Master")
 
         response = self.patch_call(
             role=role.name,
@@ -56,7 +56,7 @@ class RoleTest(BaseTest):
         )
 
     def test_remove_role(self):
-        role = PlayerRole.objects.get(name="Nerd")
+        role = PlayerRole.objects.get(name="Code_Master")
 
         response = self.patch_call(
             role= role.name,
@@ -105,7 +105,7 @@ class RoleTest(BaseTest):
     def test_todo_not_set(self):
         
         response = self.patch_call(
-            role="Nerd",
+            role="Code_Master",
             todo=None,
             agreement=3
         )
