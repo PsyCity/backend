@@ -206,7 +206,7 @@ class EscapeRoom(BaseModel):
 
 class Contract(BaseModel):
     STATE_CHOICE = [
-        (0, 'look for second part')
+        (0, 'look for second part'),
         (1, 'waiting for sign'),
         (2, 'waiting to be done'),
         (3, 'archived')
@@ -220,7 +220,7 @@ class Contract(BaseModel):
     
     state = models.IntegerField(choices=STATE_CHOICE)
     contract_type = models.CharField(max_length=40, choices=CONTRACT_TYPES.choices)
-    cost    = models.IntegerField()
+    cost    = models.IntegerField(default=0)
     first_party = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='contract_first_party')
     second_party = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='contract_second_party', null=True)
     terms = models.TextField()
