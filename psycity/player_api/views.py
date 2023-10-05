@@ -6,7 +6,7 @@ from rest_framework import mixins
 from rest_framework import status
 from rest_framework import exceptions
 from core.models import TeamJoinRequest
-from core.models import Player, Contract, Team
+from core.models import Player, Contract
 from rest_framework.serializers import Serializer
 from player_api.serializers import (
     PlayerSerializer,
