@@ -1,11 +1,13 @@
 from django.db import transaction
 from rest_framework.response import Response
-from rest_framework.generics import UpdateAPIView, GenericAPIView
-from rest_framework import mixins
+from rest_framework.generics import UpdateAPIView, GenericAPIView, RetrieveUpdateAPIView
 from rest_framework.viewsets import GenericViewSet
+from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
 from rest_framework import status
 from core.models import TeamJoinRequest
-from core.models import Player, Contract
+from core.models import Player, Contract, Question, TeamQuestionRel, Team, ConstantConfig
+from datetime import datetime, timedelta
 from player_api.serializers import (
     PlayerSerializer,
     DiscordPlayer,
@@ -285,3 +287,36 @@ class PlayerBodyguardRequest(GenericAPIView):
             },
             status=status.HTTP_201_CREATED
         )
+
+
+class QuestionBuy(APIView):
+    # { question_id: 1, team_id: 2 }
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        question = get_object_or_404(Question, pk=request.data['question_id'])
+        team = get_object_or_404(Team, pk=request.data['team_id'])
+        today_bought_questions = TeamQuestionRel.objects.filter(team=team, created_date__gte=datetime.now()-timedelta(hours=24)).count()
+        max_bought = ConstantConfig.objects.all().first().bought_question_max
+        if (question.price > team.wallet):
+            return Response({
+                "message": "team doesn't have enough money",
+                "data": [],
+                "result": None,
+            }, status=status.HTTP_400_BAD_REQUEST)
+        elif (today_bought_questions >= max_bought):
+            return Response({
+                "message": "team can't buy more questions today",
+                "data": [],
+                "result": None,
+            }, status=status.HTTP_400_BAD_REQUEST)
+        question.last_owner = team
+        team.wallet -= question.price
+        team.save()
+        question.save()
+        TeamQuestionRel.objects.create(team=team, question=question)
+        return Response({
+            "message": "question bought",
+            "data": [],
+            "result": None,
+        }, status=status.HTTP_200_OK)
+        

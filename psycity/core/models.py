@@ -186,15 +186,19 @@ class Question(BaseModel):
     no_valid_tries = models.IntegerField()
     valid_solve_minutes = models.IntegerField()
 
+
+    def __str__(self) -> str:
+        return f"{self.title}"
+
     
 
 
 class TeamQuestionRel(BaseModel):
     team = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='teamquestionrel_team')
     question = models.ForeignKey("Question", on_delete=models.CASCADE, related_name='teamquestionrel_question')
-    solved = models.BooleanField()
-    received_score = models.IntegerField()
-    tries = models.IntegerField()
+    solved = models.BooleanField(default=False)
+    received_score = models.IntegerField(default=0)
+    tries = models.IntegerField(default=0)
 
 
 class EscapeRoom(BaseModel):
