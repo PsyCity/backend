@@ -272,4 +272,45 @@ class BodyguardViewSet(GenericViewSet,
             second_party_agree = False,
             archive = False
             )
-    
+    def partial_update(self, request, *args, **kwargs):
+        try:
+            kwargs['partial'] = True
+            return self.update(request, *args, **kwargs)
+        
+        except Exception as e:
+            return self.responser(
+                "Something went wrong",
+                data=e.__str__()
+            )
+
+
+    def update(self, request, *args, **kwargs):  
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        self.perform_update(instance)
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+        return self.responser()
+        
+    def perform_update(self, instance):
+        instance.state = 2
+        instance.second_party_agree = True
+        instance.save()
+
+
+    def responser(self,
+                  message:str="OK",
+                  data:list=[],
+                  result=None,
+                  status=status.HTTP_200_OK
+                  ):
+        return Response(
+            data={
+                "message": message,
+                "data":data,
+                "result" : result
+            },
+            status= status
+        )
