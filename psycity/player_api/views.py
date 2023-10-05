@@ -1,18 +1,19 @@
 from django.db import transaction
 from rest_framework.response import Response
 from rest_framework.generics import UpdateAPIView, GenericAPIView
+from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
 from rest_framework import status
 from rest_framework import exceptions
 from core.models import TeamJoinRequest
 from core.models import Player, Contract, Team
+from rest_framework.serializers import Serializer
 from player_api.serializers import (
     PlayerSerializer,
     DiscordPlayer,
     LoanRepaymentSerializer,
     LoanReceiveSerializer,
-    BodyguardRequestSerializer,
-    BodyguardApprovementSerializer
+    BodyguardSerializer
 )
 from . import schema
 class PlayerLeftTeam(UpdateAPIView):
@@ -214,165 +215,61 @@ class PlayerLoanRepayment(GenericAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
+class BodyguardViewSet(GenericViewSet, 
+                       mixins.UpdateModelMixin,
+                       mixins.CreateModelMixin,):
 
-class PlayerBodyguardRequest(GenericAPIView):
+    queryset = Contract.objects.all()
+    def get_serializer_class(self):
+        if self.action =="create":
+            return BodyguardSerializer
+        return Serializer
 
-    serializer_class = BodyguardRequestSerializer
-    
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return self.perform_create(serializer)
 
-    def perform_create(self, serializer: BodyguardRequestSerializer):
-        try: 
-            team = Team.objects.get(
-                pk=serializer.validated_data.get("team_id"),
-                team_role="Police",
-                state="Active"
-            )
+    #schema => description
+    def create(self, request, *args, **kwargs):    
+        try:
 
-            amount = serializer.validated_data.get("amount")
-            
-            homeless = Player.objects.get(
-                pk=serializer.validated_data.get("homeless_id"),
-                status="Homeless" 
-            )
-
-        except Player.DoesNotExist:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            contract = self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
             return Response(
                 data={
-                    "message": "The Homeless Player not found",
-                    "data": [],
-                    "result" : None
-                },
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        except Team.DoesNotExist:
-            return Response(
-                data={
-                    "message": "The Police Team not found",
-                    "data": [],
-                    "result" : None
-                },
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-
-        except:
-            return Response(
-                data={
-                    "message" : "something went wrong",
+                    "message": "Contract object created successfully",
                     "data" : [],
-                    "result" : None
+                    "result" : contract.pk
                 },
+                status=status.HTTP_201_CREATED,
+                headers=headers)
+
+        except exceptions.ValidationError as e:
+            return self.responser(
+                message="Not a valid request",
+                data=[e.detail[er][0] for er in e.detail],
                 status=status.HTTP_400_BAD_REQUEST
             )
-        if homeless.wallet < amount:
-            return Response(
-                data={
-                    "message": "even the father of player has no such that money",
-                    "data" : [],
-                    "result" : None
-                },
-                status= status.HTTP_406_NOT_ACCEPTABLE
+        
+        except exceptions.NotAcceptable as e:
+            return self.responser(
+                message="Request is not Acceptable",
+                data=[e.detail],
+                status=status.HTTP_406_NOT_ACCEPTABLE
             )
-        contract = Contract.objects.create(
+        except Exception as e:
+            return self.responser(
+                message="Something went wrong",
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+    def perform_create(self, serializer):
+        validated_data = serializer.validated_data
+        return serializer.save(
             state=1,
             contract_type="bodyguard_for_the_homeless",
-            cost = amount,
-            first_party_team = team,
-            second_party_player = homeless,
-            terms = f"An offer for protecting a homeless player({homeless.__str__()}) for {amount} amount of money from {team.__str__()}",
+            terms = f"An offer for protecting a homeless player({validated_data.get('second_party_player').__str__()}) for {validated_data['cost']} amount of money from {validated_data.get('first_party_team').__str__()}",
             first_party_agree = True,
             second_party_agree = False,
             archive = False
-        )
-        
-        return Response(
-            data={
-                "message" : "contract object created successfully",
-                "data" : [],
-                "result" : contract.pk
-            },
-            status=status.HTTP_201_CREATED
-        )
-
-
-
-class PLayerBodyguardApprovement(GenericAPIView):
-    serializer_class = BodyguardApprovementSerializer
-
-    def patch(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return self.perform_update(serializer)
-
-    def perform_update(self, serializer: BodyguardApprovementSerializer):
-        try:
-            player = Player.objects.get(
-                pk=serializer.validated_data.get("second_part_id"),
             )
-            if player.team.team_role != "Police":
-                raise exceptions.NotAcceptable()
-            
-
-            contract = Contract.objects.get(
-                pk=serializer.validated_data.get("contract_id"),
-                archive=0,
-                state=0
-
-            )
-            contract.second_party = player
-            contract.second_party_agree = True
-            contract.state = 2
-            contract.terms += f"\n accepted by {player.__str__()} (a Police man)"
-            contract.save()
-        
-            return Response(
-                data={
-                    "message" : "Contract approved successfully",
-                    "data":[],
-                    "result" : None
-                }
-            )
-        except Contract.DoesNotExist:
-            return Response(
-                data={
-                    "message": "An active contract not found",
-                    "data": [],
-                    "result" : None
-                },
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        except Player.DoesNotExist:
-            return Response(
-                data={
-                    "message": "Player not found",
-                    "data": [],
-                    "result" : None
-                },
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        except exceptions.NotAcceptable:
-            return Response(
-                data={
-                    "message": "request is not acceptable(not a police)",
-                    "data": [],
-                    "result" : None
-                },
-                status=status.HTTP_406_NOT_ACCEPTABLE
-            )
-        
-        except Exception as e:
-            return Response(
-                data={
-                    "message": "something went wrong",
-                    "data" : [],
-                    "result" : e.__str__()
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+    
