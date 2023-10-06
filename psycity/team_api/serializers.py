@@ -63,3 +63,9 @@ class TeamJoinRequestSerializer(serializers.ModelSerializer):
         if player.team_id:
             raise NotAcceptable("player is not homeless")
         return player
+    
+class TeamMoneyTransferSerializer(serializers.Serializer):
+    first_part_team_id = serializers.IntegerField()
+    second_part_team_id = serializers.IntegerField()
+    amount = serializers.IntegerField()
+    contract_id = serializers.IntegerField()

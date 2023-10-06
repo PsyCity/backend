@@ -88,7 +88,6 @@ class InviteViewset(mixins.CreateModelMixin,mixins.ListModelMixin,
         return Response(serializer.data)
 
     def perform_create(self, serializer):
-        
         join_request = \
             TeamJoinRequest.objects.filter(
                 player = serializer.validated_data.get("player"),
