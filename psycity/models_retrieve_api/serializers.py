@@ -30,6 +30,7 @@ class QuestionListSerializer(ModelSerializer):
         fields = [
             "pk",
             "title",
+            "body",
             "qtype"
         ]
 
