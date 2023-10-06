@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.translation import gettext_lazy as _
+from core.utiles import PathAndRename
+from django.utils.html import mark_safe
 
 
 class BaseModel(models.Model):
@@ -179,12 +181,15 @@ class Question(BaseModel):
     score = models.IntegerField()
     is_published = models.BooleanField(default=False)
     title = models.CharField(max_length=300)
-    body = models.TextField()
+    body = models.ImageField(upload_to=PathAndRename('data_dir/question'))
     qtype = models.IntegerField(choices=TYPE_CHOICE)
     answer_text = models.TextField(blank=True, null=True)
     answer_file = models.FileField(blank=True, null=True, upload_to='question_answer_file')
     no_valid_tries = models.IntegerField()
     valid_solve_minutes = models.IntegerField()
+
+    def body_preview(self): #new
+        return mark_safe(f'<img src = "{self.body.url}" width = "300"/>')
 
     
 
