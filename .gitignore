@@ -6,6 +6,9 @@ __pycache__/
 # migration files
 migrations/
 
+# file store
+psycity/data_dir/
+
 # C extensions
 *.so
 
