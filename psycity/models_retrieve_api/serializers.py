@@ -22,7 +22,9 @@ class TeamRetrieveSerializer(ModelSerializer):
         fields = "__all__"
 
     def get_players(self, obj):
-        return obj.name
+        players = obj.player_team.all()
+        players = list(map(lambda player: player.pk, players))
+        return players
 
 class QuestionListSerializer(ModelSerializer):
     class Meta:
@@ -60,6 +62,7 @@ class ContractRetrieveSerializer(ModelSerializer):
 
 
 class PlayerListSerializer(ModelSerializer):
+    roles = serializers.SerializerMethodField()
     class Meta:
         model = Player
         fields = [
@@ -68,7 +71,13 @@ class PlayerListSerializer(ModelSerializer):
             "last_name",
             "team",
             "status",
+            "roles"
         ]
+    def get_roles(self, obj):
+        roles = obj.player_role.all()
+        roles = list(map(lambda role: role.name, roles))
+
+        return roles
 
 class PlayerRetrieveSerializer(ModelSerializer):
     class Meta:
