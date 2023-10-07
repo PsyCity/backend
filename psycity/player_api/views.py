@@ -1,17 +1,19 @@
 from django.db import transaction
 from rest_framework.response import Response
 from rest_framework.generics import UpdateAPIView, GenericAPIView
-from rest_framework import mixins
 from rest_framework.viewsets import GenericViewSet
+from rest_framework import mixins
 from rest_framework import status
+from rest_framework import exceptions
 from core.models import TeamJoinRequest
 from core.models import Player, Contract
+from rest_framework.serializers import Serializer
 from player_api.serializers import (
     PlayerSerializer,
     DiscordPlayer,
     LoanRepaymentSerializer,
     LoanReceiveSerializer,
-    BodyguardRequestSerializer
+    BodyguardSerializer
 )
 from . import schema
 class PlayerLeftTeam(UpdateAPIView):
@@ -213,75 +215,102 @@ class PlayerLoanRepayment(GenericAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
+class BodyguardViewSet(GenericViewSet, 
+                       mixins.UpdateModelMixin,
+                       mixins.CreateModelMixin,):
 
-class PlayerBodyguardRequest(GenericAPIView):
+    queryset = Contract.objects.all()
+    def get_serializer_class(self):
+        if self.action =="create":
+            return BodyguardSerializer
+        return Serializer
 
-    serializer_class = BodyguardRequestSerializer
-    
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return self.perform_create(serializer)
 
-    def perform_create(self, serializer: BodyguardRequestSerializer):
-        try: 
-            player = Player.objects.get(
-                pk=serializer.validated_data.get("player_id")
-            )
-            amount = serializer.validated_data.get("amount")
+    #schema => description
+    def create(self, request, *args, **kwargs):    
+        try:
 
-        except Player.DoesNotExist:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            contract = self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
             return Response(
                 data={
-                    "message": "Player not found",
-                    "data": [],
-                    "result" : None
-                },
-                status=status.HTTP_404_NOT_FOUND
-            )
-        except:
-            return Response(
-                data={
-                    "message" : "something went wrong",
+                    "message": "Contract object created successfully",
                     "data" : [],
-                    "result" : None
+                    "result" : contract.pk
                 },
+                status=status.HTTP_201_CREATED,
+                headers=headers)
+
+        except exceptions.ValidationError as e:
+            return self.responser(
+                message="Not a valid request",
+                data=[e.detail[er][0] for er in e.detail],
                 status=status.HTTP_400_BAD_REQUEST
-            )
-        if player.status != 'Homeless':
-            return Response(
-                data={
-                    "message": "Not a Homeless player",
-                    "data": [],
-                    "result" : None
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if player.wallet < amount:
-            return Response(
-                data={
-                    "message": "even the father of player has no such that money",
-                    "data" : [],
-                    "result" : None
-                },
-                status= status.HTTP_406_NOT_ACCEPTABLE
             )
         
-        contract = Contract.objects.create(
-            state=0,
+        except exceptions.NotAcceptable as e:
+            return self.responser(
+                message="Request is not Acceptable",
+                data=[e.detail],
+                status=status.HTTP_406_NOT_ACCEPTABLE
+            )
+        except Exception as e:
+            return self.responser(
+                message="Something went wrong",
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+    def perform_create(self, serializer):
+        validated_data = serializer.validated_data
+        return serializer.save(
+            state=1,
             contract_type="bodyguard_for_the_homeless",
-            first_party = player,
-            terms = f"An offer for protecting a homeless player({player.__str__()}) for {amount}",
+            terms = f"An offer for protecting a homeless player({validated_data.get('second_party_player').__str__()}) for {validated_data['cost']} amount of money from {validated_data.get('first_party_team').__str__()}",
             first_party_agree = True,
             second_party_agree = False,
             archive = False
-        )
-        player.last_bodyguard_cost = amount
+            )
+    def partial_update(self, request, *args, **kwargs):
+        try:
+            kwargs['partial'] = True
+            return self.update(request, *args, **kwargs)
+        
+        except Exception as e:
+            return self.responser(
+                "Something went wrong",
+                data=e.__str__()
+            )
+
+
+    def update(self, request, *args, **kwargs):  
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        self.perform_update(instance)
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+        return self.responser()
+        
+    def perform_update(self, instance):
+        instance.state = 2
+        instance.second_party_agree = True
+        instance.save()
+
+
+    def responser(self,
+                  message:str="OK",
+                  data:list=[],
+                  result=None,
+                  status=status.HTTP_200_OK
+                  ):
         return Response(
             data={
-                "message" : "contract object created successfully",
-                "data" : [],
-                "result" : contract.pk
+                "message": message,
+                "data":data,
+                "result" : result
             },
-            status=status.HTTP_201_CREATED
+            status= status
         )

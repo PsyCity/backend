@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.translation import gettext_lazy as _
+from core.utiles import PathAndRename
+from django.utils.html import mark_safe
 
 
 class BaseModel(models.Model):
@@ -179,12 +181,15 @@ class Question(BaseModel):
     score = models.IntegerField()
     is_published = models.BooleanField(default=False)
     title = models.CharField(max_length=300)
-    body = models.TextField()
+    body = models.ImageField(upload_to=PathAndRename('data_dir/question'))
     qtype = models.IntegerField(choices=TYPE_CHOICE)
     answer_text = models.TextField(blank=True, null=True)
     answer_file = models.FileField(blank=True, null=True, upload_to='question_answer_file')
     no_valid_tries = models.IntegerField()
     valid_solve_minutes = models.IntegerField()
+
+    def body_preview(self): #new
+        return mark_safe(f'<img src = "{self.body.url}" width = "300"/>')
 
     
 
@@ -206,9 +211,10 @@ class EscapeRoom(BaseModel):
 
 class Contract(BaseModel):
     STATE_CHOICE = [
-        (0, 'waiting for sign'),
-        (1, 'waiting to be done'),
-        (2, 'archived')
+        (0, 'look for second part'),
+        (1, 'waiting for sign'),
+        (2, 'waiting to be done'),
+        (3, 'archived')
     ]
     class CONTRACT_TYPES(models.TextChoices):
         question_ownership_transfer = 'question_ownership_transfer', _('Question Ownership Transfer'),
@@ -219,8 +225,31 @@ class Contract(BaseModel):
     
     state = models.IntegerField(choices=STATE_CHOICE)
     contract_type = models.CharField(max_length=40, choices=CONTRACT_TYPES.choices)
-    first_party = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='contract_first_party')
-    second_party = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='contract_second_party', null=True)
+    cost    = models.IntegerField(default=0)
+    first_party_player = models.ForeignKey("Player",
+                                           on_delete=models.CASCADE,
+                                           null=True,
+                                           related_name='contract_first_party_to_player'
+                                           )
+
+    first_party_team = models.ForeignKey("Team",
+                                         on_delete=models.CASCADE,
+                                         null=True,
+                                         related_name='contract_first_party_to_team'
+                                         )
+    
+    second_party_player = models.ForeignKey("Player",
+                                            on_delete=models.CASCADE,
+                                            related_name='contract_second_party_to_player',
+                                            null=True
+                                            )
+
+    second_party_team = models.ForeignKey("Team",
+                                          on_delete=models.CASCADE,
+                                          related_name='contract_second_party_to_team',
+                                          null=True
+                                          )
+
     terms = models.TextField()
     first_party_agree = models.BooleanField()
     second_party_agree = models.BooleanField()
