@@ -1,8 +1,9 @@
 from django.shortcuts import get_object_or_404
 
 from rest_framework import serializers
-from rest_framework.exceptions import NotAcceptable
-from core.models import  PlayerRole, TeamJoinRequest
+from rest_framework import exceptions
+
+from core.models import  PlayerRole, TeamJoinRequest, Team, Player
 
 class TeamMemberSerializer(serializers.Serializer):
     todo        = serializers.ChoiceField(["add","delete"],
@@ -43,7 +44,7 @@ class TeamMemberSerializer(serializers.Serializer):
             instance.player_role.remove(role)
         
         else:
-            NotAcceptable(f"{todo} not an option for todo")
+            exceptions.NotAcceptable(f"{todo} not an option for todo")
 
 
 
@@ -56,10 +57,36 @@ class TeamJoinRequestSerializer(serializers.ModelSerializer):
 
     def validate_team(self, team):
         if (team.player_team.count() > 3):
-           raise  NotAcceptable("team is full", 406)
+           raise  exceptions.NotAcceptable("team is full", 406)
         return team
     
     def validate_player(self, player):
         if player.team_id:
-            raise NotAcceptable("player is not homeless")
+            raise exceptions.NotAcceptable("player is not homeless")
         return player
+    
+class KillHomelessSerializer(serializers.Serializer):
+    team_id = serializers.IntegerField()
+    homeless_id = serializers.IntegerField()
+
+    def validate_team_id(self, team_id):
+        team = Team.objects.get(pk=team_id)
+        if team.team_role != "Mafia":
+            raise exceptions.NotAcceptable("Team is not Mafia")
+            
+        return team
+    
+    def validate_homeless_id(self, id):
+        player = Player.objects.get(pk=id)
+        if player.status != "Homeless":
+            raise exceptions.NotAcceptable("Player is not homeless.")
+
+        if player.last_assassination_attempt:
+            self.check_last_assassination_attempt(player)
+
+        return player
+    
+
+    def check_last_assassination_attempt(self, player:Player):
+        #TODO
+        ...

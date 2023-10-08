@@ -56,3 +56,12 @@ class ResponseStructure:
                 )
             )
         return schema
+    
+
+def transfer_money(from_team,
+                   penalty_percent,
+                   to_team,
+                   bonus_percent
+                   ):
+    ...
+    #TODO
