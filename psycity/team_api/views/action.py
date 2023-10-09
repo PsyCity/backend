@@ -79,4 +79,14 @@ class KillHomelessViewSet(GenericViewSet):
         print(f"[KILL] killing {player.__str__()}")
 
     def bodyguard_exist(self, player):
-        ...
+        contract = Contract.objects.filter(
+            state=2,
+            contract_type="bodyguard_for_the_homeless",
+            second_party_player=player,
+            first_party_agree=True,
+            second_party_agree=True,
+            archive=False
+        ).last()
+        if contract:
+            return contract.first_party_team
+        return
