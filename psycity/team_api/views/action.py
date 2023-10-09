@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import status
 from team_api.serializers import KillHomelessSerializer
-from core.models import Player, ConstantConfig
+from core.models import Player, ConstantConfig, Contract
 from team_api.utils import transfer_money
 
 
