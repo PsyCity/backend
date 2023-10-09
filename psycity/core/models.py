@@ -67,7 +67,7 @@ class ConstantConfig(BaseModel):
     loan_interest_day_time = models.PositiveIntegerField()
     loan_interest_night_time = models.PositiveIntegerField()
     bonus_percent = models.PositiveIntegerField()
-    penaly_percent = models.PositiveIntegerField()
+    penalty_percent = models.PositiveIntegerField()
     subsidy_percentage = models.PositiveIntegerField()
     mafia_prison_per_report_time = models.PositiveIntegerField()
     assassination_attempt_cooldown_time = models.PositiveIntegerField()
