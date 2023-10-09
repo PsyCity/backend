@@ -14,6 +14,27 @@ class TeamListSerializer(ModelSerializer):
             "name",
             "state"
         ]
+class TeamPlayerSerializer(serializers.ModelSerializer):
+    roles = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Player
+        fields = [
+            "id",
+            "name",
+            "discord_username",
+            "roles"
+                  ]
+    def get_name(self, player):
+        return player.__str__()
+    
+    def get_roles(self, obj):
+        roles = obj.player_role.all()
+        roles = list(map(lambda role: role.name, roles))
+
+        return roles
+
 
 class TeamRetrieveSerializer(ModelSerializer):
     players = serializers.SerializerMethodField()
@@ -23,8 +44,10 @@ class TeamRetrieveSerializer(ModelSerializer):
 
     def get_players(self, obj):
         players = obj.player_team.all()
-        players = list(map(lambda player: player.pk, players))
-        return players
+        players_serializer = TeamPlayerSerializer(players, many=True)
+        print(players_serializer.data)
+        return players_serializer.data
+
 
 class QuestionListSerializer(ModelSerializer):
     class Meta:
