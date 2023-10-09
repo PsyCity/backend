@@ -31,7 +31,7 @@ class TeamPlayerSerializer(serializers.ModelSerializer):
     
     def get_roles(self, obj):
         roles = obj.player_role.all()
-        roles = list(map(lambda role: role.name, roles))
+        roles = list(map(lambda role: role.pk, roles))
 
         return roles
 
@@ -99,7 +99,7 @@ class PlayerListSerializer(ModelSerializer):
         ]
     def get_roles(self, obj):
         roles = obj.player_role.all()
-        roles = list(map(lambda role: role.name, roles))
+        roles = list(map(lambda role: role.pk, roles))
 
         return roles
 
