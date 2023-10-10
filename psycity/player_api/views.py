@@ -296,6 +296,9 @@ class BodyguardViewSet(GenericViewSet,
         
     def perform_update(self, instance):
         instance.state = 2
+        instance.second_party_player.bodyguard_team = instance.first_party_team
+        instance.second_party_player.last_bodyguard_cost = instance.cost
+        instance.second_party_player.save()
         instance.second_party_agree = True
         instance.save()
 
