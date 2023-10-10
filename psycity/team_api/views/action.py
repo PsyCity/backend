@@ -3,6 +3,7 @@ from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import status
+from rest_framework import exceptions
 from team_api.serializers import KillHomelessSerializer
 from core.models import Player, ConstantConfig, Contract
 from team_api.utils import transfer_money
@@ -22,8 +23,33 @@ class KillHomelessViewSet(GenericViewSet):
                 data=data,
                 status=code
             )
-        except Player.DoesNotExist:
-            pass
+        except Player.DoesNotExist as e:
+            return Response(
+                data={
+                    "message" : "cant find the player",
+                    "data" : [],
+                    "result" : None
+                    },
+                    status=status.HTTP_404_NOT_FOUND
+            )
+        except exceptions.NotAcceptable as e:
+            return Response(
+                data={
+                    "message": e.detail,
+                    "data": [],
+                    "result" : None
+                },
+                status=status.HTTP_406_NOT_ACCEPTABLE
+            )
+        except Exception as e:
+            return Response(
+                data={
+                    "message": "something went wrong.",
+                    "data" : [],
+                    "result": None
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
     def perform_kill(self, serializer):
         team = serializer.validated_data.get("team_id")
