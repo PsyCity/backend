@@ -112,7 +112,7 @@ class Player(BaseModel):
     bodyguard_team = models.ForeignKey('Team',
                                           blank=True,
                                           null=True,
-                                          on_delete=models.CASCADE,
+                                          on_delete=models.DO_NOTHING,
                                           related_name='player_bodyguard_team')
     last_bodyguard_cost = models.IntegerField(default=0)
 
