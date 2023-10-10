@@ -61,7 +61,19 @@ class ResponseStructure:
 def transfer_money(from_team,
                    penalty_percent,
                    to_team,
-                   bonus_percent
+                   bonus_percent,
+                   amount
                    ):
-    ...
+    to_redius = round(amount * ((100+penalty_percent)/100))
+    to_pay = round(amount * ((100+bonus_percent)/100))
+
+    if from_team.wallet < to_redius:
+        to_redius -= from_team.wallet
+        from_team.wallet = 0
+        from_team.bank -= to_redius
+    
+    to_team.wallet += to_pay
+    to_team.save()
+    from_team.save()
+
     #TODO
