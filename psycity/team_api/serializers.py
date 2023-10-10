@@ -5,6 +5,8 @@ from rest_framework import exceptions
 
 from core.models import  PlayerRole, TeamJoinRequest, Team, Player, ConstantConfig
 
+from datetime import timedelta
+from django.utils import timezone
 class TeamMemberSerializer(serializers.Serializer):
     todo        = serializers.ChoiceField(["add","delete"],
                                           required=False,
@@ -75,6 +77,11 @@ class KillHomelessSerializer(serializers.Serializer):
             raise exceptions.NotAcceptable("Team is not Mafia")
             
         return team
+
+
+    def is_valid(self, *, raise_exception=False):
+        self.conf = ConstantConfig.objects.last()
+        return super().is_valid(raise_exception=raise_exception)
     
     def validate_homeless_id(self, id):
         player = Player.objects.get(pk=id)
@@ -87,12 +94,13 @@ class KillHomelessSerializer(serializers.Serializer):
         return player
     
     def validate(self, attrs):
-        conf = ConstantConfig.objects.last()
-        if conf.game_current_state != 0:
+        if self.conf.game_current_state != 0:
             raise exceptions.NotAcceptable("Bad time to kill.")
         
         return super().validate(attrs)
 
     def check_last_assassination_attempt(self, player:Player):
-        #TODO
-        ...
+        t = player.last_assassination_attempt + timedelta(minutes=self.conf.assassination_attempt_cooldown_time)
+        if timezone.now() < t:
+            raise exceptions.NotAcceptable("cool_down has not passed") 
+        

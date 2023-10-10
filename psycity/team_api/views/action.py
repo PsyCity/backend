@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-
+from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import status
@@ -28,6 +28,7 @@ class KillHomelessViewSet(GenericViewSet):
     def perform_kill(self, serializer):
         team = serializer.validated_data.get("team_id")
         player = serializer.validated_data.get("homeless_id")
+        player.last_assassination_attempt = timezone.now()
         conf = get_object_or_404(ConstantConfig.objects.filter())
         
         bodyguard, contract = self.bodyguard_exist(player)
