@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework import exceptions
 
-from core.models import  PlayerRole, TeamJoinRequest, Team, Player
+from core.models import  PlayerRole, TeamJoinRequest, Team, Player, ConstantConfig
 
 class TeamMemberSerializer(serializers.Serializer):
     todo        = serializers.ChoiceField(["add","delete"],
@@ -86,6 +86,12 @@ class KillHomelessSerializer(serializers.Serializer):
 
         return player
     
+    def validate(self, attrs):
+        conf = ConstantConfig.objects.last()
+        if conf.game_current_state != 0:
+            raise exceptions.NotAcceptable("Bad time to kill.")
+        
+        return super().validate(attrs)
 
     def check_last_assassination_attempt(self, player:Player):
         #TODO
