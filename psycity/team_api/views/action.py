@@ -30,53 +30,80 @@ class KillHomelessViewSet(GenericViewSet):
         player = serializer.validated_data.get("homeless_id")
         conf = get_object_or_404(ConstantConfig.objects.filter())
         
-
-        if bodyguard:=self.bodyguard_exist(player):
-            if team.level > bodyguard.level:
+        bodyguard, contract = self.bodyguard_exist(player)
+        if bodyguard:
+            if team.level < bodyguard.level:
                 """
                 decrease contract_amount + penaly_percent from police
                 add contract_amount + bonus to bodyguard 
                 kill homeless
                 """
                 transfer_money(
+                    amount=contract.cost,
                     from_team=bodyguard,
                     penalty_percent=conf.penalty_percent,
                     to_team=team,
                     bonus_percent=conf.bonus_percent
                 )
-                
+
                 self.kill(player)
-                code = status.HTTP_200_OK
                 data = {
                     "message" : f"Mafia Wins. {player.__str__()} is dead.",
                     "data" : [],
-                    "result" : None
+                    "result" : 1
                 }
                 
             elif team.level == bodyguard.level:
-                """
-                transfer 1/2 * contract_cost to mafia
-                """
-                ...
-            elif team.level < bodyguard.level:
+
+                transfer_money(
+                    amount=contract.cost // 2,
+                    from_team=bodyguard,
+                    to_team=team,
+                    penalty_percent=0,
+                    bonus_percent=0
+                )
+                data = {
+                    "message" : "homeless saved. bodyguard level == mafia level",
+                    "data": [],
+                    "result" : 2
+                }
+                
+            elif team.level > bodyguard.level:
                 """
                 transfer from mafia to bodyguard 
                 """
-                ...
-            return data, code
+                transfer_money(
+                    amount=contract.cost,
+                    from_team=team,
+                    to_team=bodyguard,
+                    bonus_percent=conf.bonus_percent,
+                    penalty_percent=conf.penalty_percent
+                )
+                data={
+                    "message": "Bodyguard wins. mafia level < police level.",
+                    "data": [],
+                    "result":3
+                }
+
+            contract.archive = True
+            contract.save()
+
+            return data, status.HTTP_200_OK
         
         self.kill(player)
-        # TODO : archive contract
         data={
             "message": "homeless killed successfully.",
             "data" :[],
-            "result" : None
+            "result" : 0
         } 
 
         return data, status.HTTP_200_OK
     
     def kill(self, player):
         print(f"[KILL] killing {player.__str__()}")
+        player.player_role.clear()
+        player.status = "Dead"
+        player.save()
 
     def bodyguard_exist(self, player):
         contract = Contract.objects.filter(
@@ -88,5 +115,5 @@ class KillHomelessViewSet(GenericViewSet):
             archive=False
         ).last()
         if contract:
-            return contract.first_party_team
-        return
+            return player.bodyguard_team, contract
+        return False, None
