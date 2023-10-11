@@ -56,3 +56,24 @@ class ResponseStructure:
                 )
             )
         return schema
+    
+
+def transfer_money(from_team,
+                   penalty_percent,
+                   to_team,
+                   bonus_percent,
+                   amount
+                   ):
+    withdraw = round(amount * ((100+penalty_percent)/100))
+    to_pay = round(amount * ((100+bonus_percent)/100))
+
+    if from_team.wallet < withdraw:
+        withdraw -= from_team.wallet
+        from_team.wallet = 0
+        from_team.bank -= withdraw
+    
+    to_team.wallet += to_pay
+    to_team.save()
+    from_team.save()
+
+    #TODO withdraw
