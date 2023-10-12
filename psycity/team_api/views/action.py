@@ -7,7 +7,7 @@ from rest_framework import exceptions
 from team_api.serializers import KillHomelessSerializer, DepositBoxSensorReportListSerializer
 from core.models import Player, ConstantConfig, Contract, BankDepositBox
 from team_api.utils import transfer_money
-
+from team_api.schema import deposit_list_schema
 
 
 class KillHomelessViewSet(GenericViewSet):
@@ -151,11 +151,13 @@ class DepositBoxSensor(GenericViewSet):
         - [x] list team deposit boxes 
         - [x] change BankDepositBox model 
         - [ ] update team deposit boxes (delete owner ? or deactivate)
-        - [ ] Add Swagger and description
+        - [x] Add Swagger and description
     """
     queryset = BankDepositBox.objects.all() 
     serializer_class = DepositBoxSensorReportListSerializer
 
+
+    @deposit_list_schema
     def list(self, request, *args, **kwargs):
         try:
             queryset = self.filter_queryset(self.get_queryset())
