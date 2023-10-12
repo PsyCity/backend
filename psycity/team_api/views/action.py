@@ -145,11 +145,11 @@ class KillHomelessViewSet(GenericViewSet):
             return player.bodyguard_team, contract
         return False, None
     
-class DepositBoxSensor(GenericViewSet, mixins.RetrieveModelMixin):
+class DepositBoxSensor(GenericViewSet):
     """
     TODO:
         - [x] list team deposit boxes 
-        - [ ] change BankDepositBox model 
+        - [x] change BankDepositBox model 
         - [ ] update team deposit boxes (delete owner ? or deactivate)
         - [ ] Add Swagger and description
     """
