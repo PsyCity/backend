@@ -165,7 +165,7 @@ class DepositBoxSensor(GenericViewSet):
             if not owner:
                 raise exceptions.ValidationError("set sensor_owner_pk in api params")
 
-            queryset = self.queryset.filter(sensor_owner=owner).all()
+            queryset = self.queryset.filter(sensor_owner=owner, reported=False).all()
             page = self.paginate_queryset(queryset)
 
         except exceptions.ValidationError as e:

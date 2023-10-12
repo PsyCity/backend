@@ -31,7 +31,7 @@ class BankDepositBox(BaseModel):
 
     money = models.PositiveIntegerField(default=0)
     robbery_state = models.BooleanField(default=False)
-
+    reported = models.BooleanField(default=False)
     rubbery_team = models.ForeignKey("Team",
                                      on_delete=models.DO_NOTHING,
                                      related_name="bankdispositbox_rubbery_team",
