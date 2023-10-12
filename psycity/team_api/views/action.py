@@ -1,11 +1,11 @@
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet, mixins
 from rest_framework import status
 from rest_framework import exceptions
-from team_api.serializers import KillHomelessSerializer
-from core.models import Player, ConstantConfig, Contract
+from team_api.serializers import KillHomelessSerializer, DepositBoxSensorReportListSerializer
+from core.models import Player, ConstantConfig, Contract, BankDepositBox
 from team_api.utils import transfer_money
 
 
@@ -144,3 +144,42 @@ class KillHomelessViewSet(GenericViewSet):
         if contract:
             return player.bodyguard_team, contract
         return False, None
+    
+class DepositBoxSensor(GenericViewSet, mixins.RetrieveModelMixin):
+    """
+    TODO:
+        - [x] list team deposit boxes 
+        - [ ] change BankDepositBox model 
+        - [ ] update team deposit boxes (delete owner ? or deactivate)
+        - [ ] Add Swagger and description
+    """
+    queryset = BankDepositBox.objects.all() 
+    serializer_class = DepositBoxSensorReportListSerializer
+
+    def list(self, request, *args, **kwargs):
+        try:
+            queryset = self.filter_queryset(self.get_queryset())
+            owner = request.GET.get("sensor_owner_pk")
+            if not owner:
+                raise exceptions.ValidationError("set sensor_owner_pk in api params")
+
+            queryset = self.queryset.filter(sensor_owner=owner).all()
+            page = self.paginate_queryset(queryset)
+
+        except exceptions.ValidationError as e:
+            return Response(
+                data={
+                    "message": "something went wrong.",
+                    "data": e.detail,
+                    "result": None
+                }
+            )
+    
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    
