@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, mixins
 from rest_framework import status
 from rest_framework import exceptions
-from team_api.serializers import KillHomelessSerializer, DepositBoxSensorReportListSerializer
+from team_api.serializers import KillHomelessSerializer, DepositBoxSensorReportListSerializer, serializers
 from core.models import Player, ConstantConfig, Contract, BankDepositBox
 from team_api.utils import transfer_money
 from team_api.schema import deposit_list_schema
@@ -146,16 +146,14 @@ class KillHomelessViewSet(GenericViewSet):
         return False, None
     
 class DepositBoxSensor(GenericViewSet):
-    """
-    TODO:
-        - [x] list team deposit boxes 
-        - [x] change BankDepositBox model 
-        - [ ] update team deposit boxes (delete owner ? or deactivate)
-        - [x] Add Swagger and description
-    """
-    queryset = BankDepositBox.objects.all() 
-    serializer_class = DepositBoxSensorReportListSerializer
 
+    queryset = BankDepositBox.objects.all() 
+    http_method_names=["get", "patch", "options"]
+
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return DepositBoxSensorReportListSerializer
+        return serializers.Serializer
 
     @deposit_list_schema
     def list(self, request, *args, **kwargs):
@@ -185,3 +183,71 @@ class DepositBoxSensor(GenericViewSet):
         return Response(serializer.data)
 
     
+    
+    
+    
+    def update(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            if instance.reported:
+                raise exceptions.NotAcceptable("Already reported.")
+            self.perform_update(instance)
+
+            return Response(
+                data={
+                    "message": "Rubbery reported successfully.",
+                    "data": [],
+                    "result": None
+                },
+                status=status.HTTP_200_OK
+            )
+        except BankDepositBox.DoesNotExist:
+            return Response(
+                data={
+                    "message": "Box not found.",
+                    "data":[],
+                    "result":None
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except ConstantConfig.DoesNotExist:
+            return Response(
+                data={
+                    "message": "Config not found.",
+                    "data":[],
+                    "result":None
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        except exceptions.NotAcceptable as e:
+            return Response(
+                data={
+                    "message": "Request is not acceptable.",
+                    "data": [e.detail],
+                    "result": None
+                },
+                status=status.HTTP_406_NOT_ACCEPTABLE
+            )
+        
+        except Exception as e:
+            return Response(
+                data={
+                    "message": "Something went wrong",
+                    "data": [],
+                    "result": None
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def perform_update(self, box):
+        conf = ConstantConfig.objects.get()
+        team = box.sensor_owner
+        team.wallet += (box.money) * conf.bonus_percent // 100
+        box.reported = True
+        team.save()
+        box.save()
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
