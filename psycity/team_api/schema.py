@@ -42,3 +42,14 @@ invite_schema = swagger_auto_schema(
         201: ResponseStructure(status_code=201).schema
     }
 )
+
+
+deposit_list_schema = swagger_auto_schema(
+    manual_parameters=[
+        openapi.Parameter(
+            "sensor_owner_pk",
+            openapi.IN_QUERY,
+            type=openapi.TYPE_INTEGER
+        )
+    ]
+)
