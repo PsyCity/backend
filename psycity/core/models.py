@@ -51,7 +51,7 @@ class ConstantConfig(BaseModel):
     question_solve_interest_percent = models.PositiveIntegerField()
     bought_question_max = models.PositiveIntegerField()
     contract_tax = models.PositiveIntegerField()
-    inflation_coefficient = models.IntegerField()
+    inflation_coefficient = models.FloatField()
     delay_factor = models.FloatField()
     question_level_0_max_try = models.PositiveIntegerField()
     question_level_1_max_try = models.PositiveIntegerField()
