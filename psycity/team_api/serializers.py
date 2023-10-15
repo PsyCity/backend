@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework import exceptions
 
-from core.models import  PlayerRole, TeamJoinRequest, Team, Player, ConstantConfig
+from core.models import  PlayerRole, TeamJoinRequest, Team, Player, ConstantConfig, BankDepositBox
 
 from datetime import timedelta
 from django.utils import timezone
@@ -104,3 +104,15 @@ class KillHomelessSerializer(serializers.Serializer):
         if timezone.now() < t:
             raise exceptions.NotAcceptable("cool_down has not passed") 
         
+
+
+
+class DepositBoxSensorReportListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BankDepositBox
+        fields = [
+            "id",
+            "money",
+            "robbery_state",
+            "sensor_state",
+        ]

@@ -25,14 +25,29 @@ class WarehouseBox(BaseModel):
 
 class BankDepositBox(BaseModel):
     SENSOR_STATE_CHOICE = [
+        (0, 'Not Installed'),
         (1, 'Installed'),
-        (2, 'Not Installed'),
     ]
-    money = models.PositiveIntegerField()
+
+    money = models.PositiveIntegerField(default=0)
     robbery_state = models.BooleanField(default=False)
-    rubbery_team = models.ForeignKey("Team", on_delete=models.CASCADE, related_name="bankdispositbox_rubbery_team")
-    sensor_state = models.CharField(max_length=30, choices=SENSOR_STATE_CHOICE)
-    sensor_owner = models.ForeignKey("Team", on_delete=models.CASCADE, related_name="bankdispositbox_sensor_owner")
+    reported = models.BooleanField(default=False)
+    rubbery_team = models.ForeignKey("Team",
+                                     on_delete=models.DO_NOTHING,
+                                     related_name="bankdispositbox_rubbery_team",
+                                     blank=True,
+                                     null=True
+                                     )
+    
+    sensor_state = models.IntegerField(choices=SENSOR_STATE_CHOICE, default=0)
+
+    sensor_owner = models.ForeignKey("Team",
+                                     on_delete=models.DO_NOTHING,
+                                     related_name="bankdispositbox_sensor_owner",
+                                     blank=True,
+                                     null=True
+                                    )
+                                    
     is_copy = models.BooleanField(default=False)
     parent_box = models.ForeignKey('self', on_delete=models.CASCADE, related_name="bankdispositbox_parent_box", null=True, blank=True)
 

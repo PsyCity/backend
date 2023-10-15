@@ -11,7 +11,7 @@ app_name = "team_api"
 
 action_router = DefaultRouter()
 action_router.register("kill-homeless", action.KillHomelessViewSet, "kill_homeless")
-
+action_router.register("depositbox-sensor-report", action.DepositBoxSensor, "depositbox_sensor_report")
 
 urlpatterns = [
     path("member/", include(member_router.urls)),
