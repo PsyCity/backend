@@ -12,7 +12,7 @@ class TeamMemberSerializer(serializers.Serializer):
                                           required=False,
                                           write_only=True)
 
-    role        = serializers.ChoiceField(choices=PlayerRole.ROLES_CHOICES,
+    role        = serializers.ChoiceField(choices=[1,2,3],
                                           required=False,
                                           write_only=True)
     
@@ -23,7 +23,7 @@ class TeamMemberSerializer(serializers.Serializer):
         
         role = get_object_or_404(
             PlayerRole,
-            name=validated_data.get("role")
+            pk=validated_data.get("role")
         )
         if todo == "add":
             team = instance.team
@@ -52,10 +52,10 @@ class TeamMemberSerializer(serializers.Serializer):
 
 
 class TeamJoinRequestSerializer(serializers.ModelSerializer):
-
+    team_name = serializers.SerializerMethodField() 
     class Meta:
         model = TeamJoinRequest
-        fields = ["id", "player", "team"]
+        fields = ["id", "player", "team", "team_name"]
 
     def validate_team(self, team):
         if (team.player_team.count() > 3):
@@ -63,9 +63,12 @@ class TeamJoinRequestSerializer(serializers.ModelSerializer):
         return team
     
     def validate_player(self, player):
-        if player.team_id:
-            raise exceptions.NotAcceptable("player is not homeless")
+        # if player.team_id:
+        #     raise exceptions.NotAcceptable("player is not homeless")
         return player
+    
+    def get_team_name(self, obj):
+        return obj.team.name
     
 class KillHomelessSerializer(serializers.Serializer):
     team_id = serializers.IntegerField()

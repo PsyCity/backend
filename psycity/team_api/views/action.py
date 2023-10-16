@@ -164,8 +164,6 @@ class DepositBoxSensor(GenericViewSet):
                 raise exceptions.ValidationError("set sensor_owner_pk in api params")
 
             queryset = self.queryset.filter(sensor_owner=owner, reported=False).all()
-            page = self.paginate_queryset(queryset)
-
         except exceptions.ValidationError as e:
             return Response(
                 data={
@@ -174,11 +172,6 @@ class DepositBoxSensor(GenericViewSet):
                     "result": None
                 }
             )
-    
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 

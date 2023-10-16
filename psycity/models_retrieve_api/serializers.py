@@ -93,6 +93,7 @@ class PlayerListSerializer(ModelSerializer):
             "id",
             "first_name",
             "last_name",
+            "discord_username",
             "team",
             "status",
             "roles"

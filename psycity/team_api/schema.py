@@ -53,3 +53,13 @@ deposit_list_schema = swagger_auto_schema(
         )
     ]
 )
+
+invite_list_schema = swagger_auto_schema(
+    manual_parameters=[
+        openapi.Parameter(
+            "player_pk",
+            openapi.IN_QUERY,
+            type=openapi.TYPE_INTEGER
+        )
+    ]
+)
