@@ -63,8 +63,8 @@ class TeamJoinRequestSerializer(serializers.ModelSerializer):
         return team
     
     def validate_player(self, player):
-        if player.team_id:
-            raise exceptions.NotAcceptable("player is not homeless")
+        # if player.team_id:
+        #     raise exceptions.NotAcceptable("player is not homeless")
         return player
     
 class KillHomelessSerializer(serializers.Serializer):
