@@ -12,7 +12,7 @@ class TeamMemberSerializer(serializers.Serializer):
                                           required=False,
                                           write_only=True)
 
-    role        = serializers.ChoiceField(choices=PlayerRole.ROLES_CHOICES,
+    role        = serializers.ChoiceField(choices=[1,2,3],
                                           required=False,
                                           write_only=True)
     
@@ -23,7 +23,7 @@ class TeamMemberSerializer(serializers.Serializer):
         
         role = get_object_or_404(
             PlayerRole,
-            name=validated_data.get("role")
+            pk=validated_data.get("role")
         )
         if todo == "add":
             team = instance.team

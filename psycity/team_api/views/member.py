@@ -36,7 +36,7 @@ class RoleViewset(mixins.UpdateModelMixin,
         role = validated_data.get("role")
         if not role:
             raise ValidationError("role cant be null",400)
-        role = PlayerRole.objects.get(name=role)
+        role = PlayerRole.objects.get(pk=role)
 
         serializer.update(
             instance=instance,
