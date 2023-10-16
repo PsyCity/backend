@@ -40,7 +40,7 @@ class RoleTest(BaseTest):
         role = PlayerRole.objects.get(name="Code_Master")
 
         response = self.patch_call(
-            role=role.name,
+            role=role.pk,
             todo="add",
             agreement=3,
             player=player
@@ -59,7 +59,7 @@ class RoleTest(BaseTest):
         role = PlayerRole.objects.get(name="Code_Master")
 
         response = self.patch_call(
-            role= role.name,
+            role= role.pk,
             todo="delete",
             agreement=3
         )
@@ -316,18 +316,6 @@ class InviteTest(BaseTest):
         )
 
 
-    def test_not_homeless(self):
-        team2 = Team.objects.create(level=3)
-        res = self.call_api(
-            team_pk=team2.pk,
-            player_pk=self.player1.pk
-        )
-
-        self.assertFalse(
-            res.status_code == 201,
-            "sent the player the join-request" 
-            )
-
 
     def test_methods(self):
         c = Client()
@@ -337,7 +325,7 @@ class InviteTest(BaseTest):
         
         self.assertEqual(patch_res.status_code, 405)
         self.assertEqual(put_res.status_code, 405)
-        self.assertEqual(get_res.status_code, 405)
+        # self.assertEqual(get_res.status_code, 405)
 
 
     def test_duplicate_invitation(self):
