@@ -52,10 +52,10 @@ class TeamMemberSerializer(serializers.Serializer):
 
 
 class TeamJoinRequestSerializer(serializers.ModelSerializer):
-
+    team_name = serializers.SerializerMethodField() 
     class Meta:
         model = TeamJoinRequest
-        fields = ["id", "player", "team"]
+        fields = ["id", "player", "team", "team_name"]
 
     def validate_team(self, team):
         if (team.player_team.count() > 3):
@@ -66,6 +66,9 @@ class TeamJoinRequestSerializer(serializers.ModelSerializer):
         # if player.team_id:
         #     raise exceptions.NotAcceptable("player is not homeless")
         return player
+    
+    def get_team_name(self, obj):
+        return obj.team.name
     
 class KillHomelessSerializer(serializers.Serializer):
     team_id = serializers.IntegerField()

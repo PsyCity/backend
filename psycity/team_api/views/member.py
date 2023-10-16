@@ -72,8 +72,11 @@ class KickViewset(mixins.UpdateModelMixin,
         player.save()
 
 
-class InviteViewset(mixins.CreateModelMixin,mixins.ListModelMixin,
-                    GenericViewSet):
+class InviteViewset(mixins.CreateModelMixin,
+                    mixins.ListModelMixin,
+                    GenericViewSet
+                    ):
+
     serializer_class = serializers.TeamJoinRequestSerializer
     queryset = TeamJoinRequest.objects.all()
     http_method_names = ["post", "get"]
@@ -81,9 +84,15 @@ class InviteViewset(mixins.CreateModelMixin,mixins.ListModelMixin,
     @schema.invite_schema
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
-    
+
+    @schema.invite_list_schema
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        player = request.GET.get("player_pk")
+        print(player)
+        player = Player.objects.get(pk=player)
+        queryset = TeamJoinRequest.objects.filter(
+            player=player
+        ).all()
         serializer = serializers.TeamJoinRequestSerializer(queryset, many=True)
         return Response(serializer.data)
 
