@@ -1,4 +1,5 @@
 from rest_framework.viewsets import GenericViewSet, mixins
+from rest_framework.response import Response
 
 from core.models import (
     Team,
@@ -20,10 +21,21 @@ from models_retrieve_api.serializers import (
     PlayerListSerializer,
     PlayerRetrieveSerializer,
 )
+
+
+class ListModelMixin:
+    """
+    List a queryset.
+    """
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
 # Create your views here.
 
 class TeamViewSet(
-    mixins.ListModelMixin,
+    ListModelMixin,
     mixins.RetrieveModelMixin,
     GenericViewSet
     ):
@@ -36,7 +48,7 @@ class TeamViewSet(
     
 
 class QuestionViewSet(
-    mixins.ListModelMixin,
+    ListModelMixin,
     mixins.RetrieveModelMixin,
     GenericViewSet
     ):
@@ -48,7 +60,7 @@ class QuestionViewSet(
         return QuestionListSerializer
     
 class ContractViewSet(
-    mixins.ListModelMixin,
+    ListModelMixin,
     mixins.RetrieveModelMixin,
     GenericViewSet
     ):
@@ -60,7 +72,7 @@ class ContractViewSet(
         return ContractRetrieveSerializer
     
 class PlayerViewSet(
-    mixins.ListModelMixin,
+    ListModelMixin,
     mixins.RetrieveModelMixin,
     GenericViewSet
     ):
