@@ -88,7 +88,6 @@ class InviteViewset(mixins.CreateModelMixin,
     @schema.invite_list_schema
     def list(self, request, *args, **kwargs):
         player = request.GET.get("player_pk")
-        print(player)
         player = Player.objects.get(pk=player)
         queryset = TeamJoinRequest.objects.filter(
             player=player
