@@ -272,7 +272,7 @@ class DiscoverBankRobber(
     TODO: 
     - [x] List EscapeRooms
     - [x] reserve to solve
-    - [ ] after puzzle
+    - [x] after puzzle
     - [ ] report
     - [ ] exception handlers
     - [ ] define discord api
