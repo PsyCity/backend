@@ -155,7 +155,7 @@ class EscapeRoomReserve(serializers.ModelSerializer):
     def validate(self, attrs):
         
         if self.instance.state != 1:
-            raise exceptions.ValidationError("not a robbed room")
+            raise exceptions.NotAcceptable("Room is not in robbed state.")
         return attrs
 
     

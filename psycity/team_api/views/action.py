@@ -267,6 +267,15 @@ class DiscoverBankRobber(
     GenericViewSet,
     mixins.ListModelMixin
     ):
+    """
+    TODO: 
+    - [x] List EscapeRooms
+    - [x] reserve to solve
+    - [ ] after puzzle
+    - [ ] report
+    - [ ] exception handlers
+    - [ ] define discord api
+    """
 
     queryset = EscapeRoom.objects.all()
 
@@ -278,7 +287,7 @@ class DiscoverBankRobber(
         return serializers.Serializer
     
     @action(["post"], True)
-    def reserve_escape_room(self, request, *args, **kwargs):
+    def reserve_to_solve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
