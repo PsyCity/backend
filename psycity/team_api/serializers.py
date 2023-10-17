@@ -119,3 +119,8 @@ class DepositBoxSensorReportListSerializer(serializers.ModelSerializer):
             "robbery_state",
             "sensor_state",
         ]
+
+class QuestionBuySerializer(serializers.Serializer):
+    team_id = serializers.IntegerField()
+    question_id = serializers.IntegerField()
+
