@@ -222,7 +222,7 @@ class EscapeRoom(BaseModel):
     ESCAPE_ROOM_STATE = [
         (0, "base_state"),
         (1, "robbed"),
-        (2, "solving")
+        (2, "solving"),
         (3, "solved"),
         (4, "failed_to_solve")
     ]
