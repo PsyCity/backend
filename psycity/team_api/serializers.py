@@ -3,7 +3,16 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework import exceptions
 
-from core.models import  PlayerRole, TeamJoinRequest, Team, Player, ConstantConfig, BankDepositBox
+from core.models import (
+    PlayerRole,
+    TeamJoinRequest,
+    Team, 
+    Player, 
+    ConstantConfig, 
+    BankDepositBox,
+    EscapeRoom
+)
+
 
 from datetime import timedelta
 from django.utils import timezone
@@ -119,3 +128,12 @@ class DepositBoxSensorReportListSerializer(serializers.ModelSerializer):
             "robbery_state",
             "sensor_state",
         ]
+
+class EscapeRoomListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EscapeRoom
+        exclude = (
+            "bank_deposit_box",
+            "created_date",
+            "updated_date"
+            )

@@ -4,8 +4,22 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, mixins
 from rest_framework import status
 from rest_framework import exceptions
-from team_api.serializers import KillHomelessSerializer, DepositBoxSensorReportListSerializer, serializers
-from core.models import Player, ConstantConfig, Contract, BankDepositBox
+
+from team_api.serializers import (
+    KillHomelessSerializer, 
+    DepositBoxSensorReportListSerializer, 
+    EscapeRoomListSerializer,
+    serializers
+)
+
+from core.models import (
+    Player,
+    ConstantConfig, 
+    Contract,
+    BankDepositBox,
+    EscapeRoom
+)
+
 from team_api.utils import transfer_money
 from team_api.schema import deposit_list_schema
 
@@ -244,3 +258,17 @@ class DepositBoxSensor(GenericViewSet):
     def partial_update(self, request, *args, **kwargs):
         kwargs['partial'] = True
         return self.update(request, *args, **kwargs)
+
+
+
+class DiscoverBankRobber(
+    GenericViewSet,
+    mixins.ListModelMixin
+    ):
+
+    queryset = EscapeRoom.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return EscapeRoomListSerializer
+        return serializers.Serializer
