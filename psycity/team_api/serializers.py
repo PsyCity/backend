@@ -158,4 +158,11 @@ class EscapeRoomReserve(serializers.ModelSerializer):
             raise exceptions.NotAcceptable("Room is not in robbed state.")
         return attrs
 
+
+class EscapeRoomAfterPuzzleSerializer(serializers.ModelSerializer):
+    solved = serializers.BooleanField()
+
+    class Meta:
+        model = EscapeRoom
+        fields = ("solved",)
     

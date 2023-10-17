@@ -9,6 +9,7 @@ from rest_framework import exceptions
 from team_api.serializers import (
     KillHomelessSerializer, 
     DepositBoxSensorReportListSerializer, 
+    EscapeRoomAfterPuzzleSerializer,
     EscapeRoomListSerializer,
     EscapeRoomReserve,
     serializers
@@ -282,8 +283,10 @@ class DiscoverBankRobber(
     def get_serializer_class(self):
         if self.action == "list":
             return EscapeRoomListSerializer
-        elif self.action == "reserve_escape_room":
+        elif self.action == "reserve_to_solve":
             return EscapeRoomReserve 
+        elif self.action == "after_puzzle":
+            return EscapeRoomAfterPuzzleSerializer 
         return serializers.Serializer
     
     @action(["post"], True)
@@ -310,7 +313,32 @@ class DiscoverBankRobber(
 
     @action(["post"], True)
     def after_puzzle(self, request, *args, **kwargs):
-        ...
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        d = self.perform_update_solve(serializer)
+        return Response(
+            data={
+                "message": "ok",
+                "data": d,
+                "result":None
+            },
+            status=status.HTTP_200_OK
+        )
+
+    def perform_update_solve(self, serializer):
+        instance = serializer.instance
+        data = []
+        if serializer.validated_data["solved"]:
+            instance.state = 3
+            data = [{"box_id": instance.bank_deposit_box.id}]
+        else:
+            instance.state = 4
+
+        instance.save()
+        return data
+
+
 
     @action(["post"], True)
     def report(self, request, *args, **kwargs):
