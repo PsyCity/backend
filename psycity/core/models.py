@@ -237,6 +237,11 @@ class EscapeRoom(BaseModel):
                                          blank=True)
 
     state = models.IntegerField(choices=ESCAPE_ROOM_STATE, default=0)
+    solver_police = models.ForeignKey("Team",
+                                      models.DO_NOTHING,
+                                      null=True,
+                                      blank=True
+                                      )
 
 
 class Contract(BaseModel):
