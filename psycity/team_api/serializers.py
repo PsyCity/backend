@@ -1,12 +1,20 @@
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 from rest_framework import serializers
 from rest_framework import exceptions
 
-from core.models import  PlayerRole, TeamJoinRequest, Team, Player, ConstantConfig, BankDepositBox
+from core.models import (
+    PlayerRole, 
+    TeamJoinRequest, 
+    Team, 
+    Player, 
+    ConstantConfig, 
+    BankDepositBox,
+    Contract
+)
 
 from datetime import timedelta
-from django.utils import timezone
 class TeamMemberSerializer(serializers.Serializer):
     todo        = serializers.ChoiceField(["add","delete"],
                                           required=False,
@@ -119,3 +127,48 @@ class DepositBoxSensorReportListSerializer(serializers.ModelSerializer):
             "robbery_state",
             "sensor_state",
         ]
+
+def cost_validation(cost, team):
+    ...
+    #TODO
+
+
+def required(value):
+    if value is None:
+        raise serializers.ValidationError('This field is required')
+
+class ContractRegisterSerializer(serializers.ModelSerializer):
+    id = serializers.SerializerMethodField()
+    class Meta:
+        model = Contract
+        fields = (
+            "id",
+            "first_party_team",
+            "second_party_team",
+            "contract_type",
+            "cost",
+            "terms",
+        )
+
+    def base_team_validation(self, team_id):
+        required(team_id)
+        return team_id
+
+    def get_id(self, obj):
+        return obj.id
+    
+    def validate_first_party_team(self, team_id):
+        self.base_team_validation(team_id)
+        return team_id
+    
+    def validate_second_party_team(self, team_id):
+        self.base_team_validation(team_id)        
+        return team_id
+    
+    def contract_type_validation(self, attrs):
+        ...
+
+    def validate(self, attrs):
+
+        self.contract_type_validation(attrs)
+        return attrs
