@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, mixins
+from rest_framework.decorators import action
 from rest_framework import status
 from rest_framework import exceptions
 
@@ -9,6 +10,7 @@ from team_api.serializers import (
     KillHomelessSerializer, 
     DepositBoxSensorReportListSerializer, 
     EscapeRoomListSerializer,
+    EscapeRoomReserve,
     serializers
 )
 
@@ -271,4 +273,36 @@ class DiscoverBankRobber(
     def get_serializer_class(self):
         if self.action == "list":
             return EscapeRoomListSerializer
+        elif self.action == "reserve_escape_room":
+            return EscapeRoomReserve 
         return serializers.Serializer
+    
+    @action(["post"], True)
+    def reserve_escape_room(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update_reserve(serializer)
+        return Response(
+            data={
+                "message": "reserved",
+                "data": [],
+                "result": None
+            },
+            status=status.HTTP_200_OK
+        )
+    
+    def perform_update_reserve(self, serializer):
+        instance = serializer.instance
+        instance.state = 2
+        instance.solver_police = serializer.validated_data.get("team_id")
+        instance.no_valid_police -= 1
+        instance.save()
+
+    @action(["post"], True)
+    def after_puzzle(self, request, *args, **kwargs):
+        ...
+
+    @action(["post"], True)
+    def report(self, request, *args, **kwargs):
+        ...

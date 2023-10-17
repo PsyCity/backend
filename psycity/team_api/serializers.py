@@ -137,3 +137,25 @@ class EscapeRoomListSerializer(serializers.ModelSerializer):
             "created_date",
             "updated_date"
             )
+        
+class EscapeRoomReserve(serializers.ModelSerializer):
+    team_id = serializers.IntegerField()
+
+    class Meta:
+        model = EscapeRoom
+        fields = ["team_id"]
+
+    def validate_team_id(self, attr):
+        team = get_object_or_404(Team,pk=attr)
+        print(team.name)
+        if team.team_role != "Police":
+            raise exceptions.ValidationError("Not a police Team")
+        return team
+    
+    def validate(self, attrs):
+        
+        if self.instance.state != 1:
+            raise exceptions.ValidationError("not a robbed room")
+        return attrs
+
+    
