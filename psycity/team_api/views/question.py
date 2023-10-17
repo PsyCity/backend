@@ -47,7 +47,7 @@ class QuestionBuyView(GenericAPIView):
                     "result": None,
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            if team_bought_questions_till_last_night > conf.bought_question_max:
+            if team_bought_questions_till_last_night >= conf.bought_question_max:
                 return Response({
                     "message": "team maximum bought question exceeded!",
                     "data": [],
