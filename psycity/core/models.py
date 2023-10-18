@@ -1,8 +1,9 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.translation import gettext_lazy as _
-from core.utiles import PathAndRename
 from django.utils.html import mark_safe
+from core.utiles import PathAndRename
+from random import randint
 
 
 class BaseModel(models.Model):
@@ -22,7 +23,6 @@ class WarehouseBox(BaseModel):
     question = models.ForeignKey("Question", on_delete=models.CASCADE, related_name='warehouse_box_question')
     money = models.PositiveIntegerField()
 
-
 class BankDepositBox(BaseModel):
     SENSOR_STATE_CHOICE = [
         (0, 'Not Installed'),
@@ -30,6 +30,7 @@ class BankDepositBox(BaseModel):
     ]
 
     money = models.PositiveIntegerField(default=0)
+    password = models.IntegerField(default=randint(1000,9999))
     robbery_state = models.BooleanField(default=False)
     reported = models.BooleanField(default=False)
     rubbery_team = models.ForeignKey("Team",
@@ -218,10 +219,29 @@ class TeamQuestionRel(BaseModel):
 
 
 class EscapeRoom(BaseModel):
+    ESCAPE_ROOM_STATE = [
+        (0, "base_state"),
+        (1, "robbed"),
+        (2, "solving"),
+        (3, "solved"),
+        (4, "failed_to_solve")
+    ]
+
     no_valid_citizen = models.IntegerField()
     no_valid_police = models.IntegerField()
     no_valid_mafia = models.IntegerField()
-    bank_deposit_box = models.ForeignKey("BankDepositBox", on_delete=models.CASCADE, related_name='escaperoom_bank_deposit_box')
+    bank_deposit_box = models.ForeignKey("BankDepositBox",
+                                         on_delete=models.DO_NOTHING,
+                                         related_name='escape_room',
+                                         null=True,
+                                         blank=True)
+
+    state = models.IntegerField(choices=ESCAPE_ROOM_STATE, default=0)
+    solver_police = models.ForeignKey("Team",
+                                      models.DO_NOTHING,
+                                      null=True,
+                                      blank=True
+                                      )
 
 
 class Contract(BaseModel):

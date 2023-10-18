@@ -11,7 +11,8 @@ from core.models import (
     Player, 
     ConstantConfig, 
     BankDepositBox,
-    Contract
+    EscapeRoom,
+    Contract,
 )
 
 from datetime import timedelta
@@ -127,6 +128,49 @@ class DepositBoxSensorReportListSerializer(serializers.ModelSerializer):
             "robbery_state",
             "sensor_state",
         ]
+
+
+class EscapeRoomListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EscapeRoom
+        exclude = (
+            "bank_deposit_box",
+            "created_date",
+            "updated_date"
+            )
+        
+class EscapeRoomReserve(serializers.ModelSerializer):
+    team_id = serializers.IntegerField()
+
+    class Meta:
+        model = EscapeRoom
+        fields = ["team_id"]
+
+    def validate_team_id(self, attr):
+        team = get_object_or_404(Team,pk=attr)
+        print(team.name)
+        if team.team_role != "Police":
+            raise exceptions.ValidationError("Not a police Team")
+        return team
+    
+    def validate(self, attrs):
+        
+        if self.instance.state != 1:
+            raise exceptions.NotAcceptable("Room is not in robbed state.")
+        return attrs
+
+
+class EscapeRoomAfterPuzzleSerializer(serializers.ModelSerializer):
+    solved = serializers.BooleanField()
+
+    class Meta:
+        model = EscapeRoom
+        fields = ("solved",)
+    
+class EscapeRoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EscapeRoom
+        fields = []
 
 def cost_validation(cost, team):
     ...
