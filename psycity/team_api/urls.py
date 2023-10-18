@@ -1,7 +1,7 @@
 from django.urls import path, include
 
 from rest_framework.routers import DefaultRouter
-from .views import member, action
+from .views import member, action, contract
 
 member_router = DefaultRouter()
 member_router.register("role", member.RoleViewset, "role")
@@ -13,7 +13,11 @@ action_router = DefaultRouter()
 action_router.register("kill-homeless", action.KillHomelessViewSet, "kill_homeless")
 action_router.register("depositbox-sensor-report", action.DepositBoxSensor, "depositbox_sensor_report")
 action_router.register("discover_bank_robber", action.DiscoverBankRobber)
+contract_router = DefaultRouter()
+contract_router.register("register", contract.Register, "contract")
+
 urlpatterns = [
     path("member/", include(member_router.urls)),
-    path("action/", include(action_router.urls))
+    path("action/", include(action_router.urls)),
+    path("contract/", include(contract_router.urls))
 ]
