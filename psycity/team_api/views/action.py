@@ -342,4 +342,33 @@ class DiscoverBankRobber(
 
     @action(["post"], True)
     def report(self, request, *args, **kwargs):
-        ...
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update_report(serializer)
+        return Response(
+            data={
+                "message":"Reported successfully.",
+                "data": [],
+                "result": None
+            },
+            status=status.HTTP_200_OK
+        )
+
+    def perform_update_report(self, serializer):
+        room :EscapeRoom = serializer.instance
+        police = room.solver_police
+        mafia = room.bank_deposit_box.rubbery_team
+        amount = room.bank_deposit_box.money
+        conf = ConstantConfig.objects.last()
+        mafia_amount = amount * conf.penalty_percent // 100
+        police_amount = amount * conf.bonus_percent // 100
+        if mafia.wallet < mafia_amount:
+            mafia_amount -= mafia.wallet
+            mafia.bank_liabilities += mafia_amount
+            mafia.wallet = 0
+            mafia.save()
+        else:
+            mafia.wallet -= mafia_amount
+        police.wallet += police_amount
+        police.save()

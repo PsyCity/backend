@@ -166,3 +166,7 @@ class EscapeRoomAfterPuzzleSerializer(serializers.ModelSerializer):
         model = EscapeRoom
         fields = ("solved",)
     
+class EscapeRoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EscapeRoom
+        fields = []
