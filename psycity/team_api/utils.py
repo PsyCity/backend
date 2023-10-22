@@ -1,6 +1,7 @@
 from typing import Any
 from rest_framework.response import Response
-
+from rest_framework import exceptions
+from core.models import Team
 from drf_yasg import openapi
 
 
@@ -87,3 +88,12 @@ class ListModelMixin:
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+def cost_validation(cost, team:Team):
+    if team.wallet < cost:
+        raise exceptions.ValidationError(
+            f"Team {team.name} cant effort {cost} amount of money"
+        )
+        # log.warning(f"Team {team.name} cant effort {cost} amount of money")
+    return True
+    
