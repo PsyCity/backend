@@ -207,30 +207,28 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
         return team_id
     
     def contract_type_validation(self, attrs):
-        contract: Contract = attrs.get("contract_type")
-
-        if contract.contract_type == "question_ownership_transfer":
+        contract_type = attrs.get("contract_type")
+        
+        if contract_type == "question_ownership_transfer":
             second = attrs.get("second_party_team")
             cost_validation(attrs.get("cost"), second)
 
-        elif contract.contract_type == "bank_rubbery_sponsorship":
+        elif contract_type == "bank_rubbery_sponsorship":
             try:
-                mafia_team = attrs.get("first_party_team")
-                citizen_team = attrs.get("second_party_team")
+                citizen_team: Team = attrs.get("second_party_team")
 
             except:
                 raise exceptions.ValidationError("cant retrieve data.")
 
+            cost_validation(attrs.get("cost"), citizen_team)
 
-            
-
-        elif contract.contract_type == "bank_sensor_installation_sponsorship":
+        elif contract_type == "bank_sensor_installation_sponsorship":
             ...
 
-        elif contract.contract_type == "bodyguard_for_the_homeless":
+        elif contract_type == "bodyguard_for_the_homeless":
             raise exceptions.NotAcceptable("Not this endpoint")
 
-        elif contract.contract_type == "other":
+        elif contract_type == "other":
             raise exceptions.NotFound("Not Implemented in here :)")
 
 

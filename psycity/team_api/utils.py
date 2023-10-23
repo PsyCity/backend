@@ -91,7 +91,7 @@ class ListModelMixin:
 
 def cost_validation(cost, team:Team):
     if team.wallet < cost:
-        raise exceptions.ValidationError(
+        raise exceptions.NotAcceptable(
             f"Team {team.name} cant effort {cost} amount of money"
         )
         # log.warning(f"Team {team.name} cant effort {cost} amount of money")
