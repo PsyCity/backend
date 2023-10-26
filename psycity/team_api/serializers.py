@@ -14,7 +14,7 @@ from core.models import (
     EscapeRoom,
     Contract,
 )
-
+from team_api.utils import cost_validation
 from datetime import timedelta
 class TeamMemberSerializer(serializers.Serializer):
     todo        = serializers.ChoiceField(["add","delete"],
@@ -172,9 +172,6 @@ class EscapeRoomSerializer(serializers.ModelSerializer):
         model = EscapeRoom
         fields = []
 
-def cost_validation(cost, team):
-    ...
-    #TODO
 
 
 def required(value):
@@ -210,7 +207,30 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
         return team_id
     
     def contract_type_validation(self, attrs):
-        ...
+        contract_type = attrs.get("contract_type")
+        
+        if contract_type == "question_ownership_transfer":
+            second = attrs.get("second_party_team")
+            cost_validation(attrs.get("cost"), second)
+
+        elif contract_type == "bank_rubbery_sponsorship":
+            try:
+                citizen_team: Team = attrs.get("second_party_team")
+
+            except:
+                raise exceptions.ValidationError("cant retrieve data.")
+
+            cost_validation(attrs.get("cost"), citizen_team)
+
+        elif contract_type == "bank_sensor_installation_sponsorship":
+            ...
+
+        elif contract_type == "bodyguard_for_the_homeless":
+            raise exceptions.NotAcceptable("Not this endpoint")
+
+        elif contract_type == "other":
+            raise exceptions.NotFound("Not Implemented in here :)")
+
 
     def validate(self, attrs):
 
