@@ -2,6 +2,7 @@ from rest_framework.viewsets import GenericViewSet, mixins
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import exceptions
+from django.http import Http404
 from rest_framework.decorators import action
 
 from core.models import Team, Contract 
@@ -67,8 +68,14 @@ class Approvement(
     mixins.UpdateModelMixin
     ):
     http_method_names = ["patch"]
+
     serializer_class = ContractApprovementSerializer
-    queryset = Contract.objects.filter(first_party_agree=True, second_party_agree=False)
+    
+    queryset = Contract.objects.filter(
+        first_party_agree=True, 
+        second_party_agree=False,
+        state=1
+        )
 
     def partial_update(self, request, *args, **kwargs):
         
@@ -83,7 +90,7 @@ class Approvement(
                 status=status.HTTP_200_OK
             )
         
-        except Contract.DoesNotExist :
+        except Http404:
             return Response(
                 data={
                     "message": "Valid contract not found.",
@@ -102,19 +109,29 @@ class Approvement(
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-
+        except exceptions.NotAcceptable as e:
+            return Response(
+                data={
+                    "message": "Not Acceptable error.",
+                    "data": [e.detail],
+                    "result": None
+                },
+                status=status.HTTP_406_NOT_ACCEPTABLE
+            )
+        # except exceptions
         except Exception as e:
             return Response(
                 data={
                     "message": "Something went wrong.",
-                    "data": [e.__str__()],
+                    "data": [],
                     "result": None
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
     
-    def perform_update(self, serializer:ContractApprovementSerializer):
+    def perform_update(self, serializer):
         serializer.save(
-            second_party_agree=True
+            second_party_agree=True,
+            state=2
         )
+        

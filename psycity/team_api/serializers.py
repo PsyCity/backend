@@ -229,7 +229,7 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
             raise exceptions.NotAcceptable("Not this endpoint")
 
         elif contract_type == "other":
-            raise exceptions.NotFound("Not Implemented in here :)")
+            raise exceptions.NotAcceptable("Not Implemented in here :)")
 
 
     def validate(self, attrs):
@@ -250,14 +250,29 @@ class ContractApprovementSerializer(serializers.ModelSerializer):
         return team.pk
     
     def validate(self, attrs):
-        """
-        contract state
-        contract type
-        Not signed before
 
-        """
+        self.type_validation()
         team = Team.objects.get(pk=attrs["team"])
+        
         if self.instance.second_party_team != team:
-            raise exceptions.ValidationError("team is not contract team")
+            raise exceptions.ValidationError(
+                "team is not contract team"
+                )
         
         return super().validate(attrs)
+    
+    def type_validation(self):
+
+        valid_contract_type = [
+            "question_ownership_transfer",
+            "bank_rubbery_sponsorship",
+            "bank_sensor_installation_sponsorship"
+        ]
+        
+        contract = self.instance
+        
+        if contract.contract_type not in valid_contract_type:
+            raise exceptions.NotAcceptable(
+                f"Not valid endpoint for {contract.contract_type}."
+                )
+        
