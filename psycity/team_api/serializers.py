@@ -236,3 +236,28 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
 
         self.contract_type_validation(attrs)
         return attrs
+
+class ContractApprovementSerializer(serializers.ModelSerializer):
+    team = serializers.IntegerField()
+    class Meta:
+        model = Contract
+        fields = (
+            "team",
+        )
+    
+    def validate_team(self, pk):
+        team = Team.objects.get(pk=pk)
+        return team.pk
+    
+    def validate(self, attrs):
+        """
+        contract state
+        contract type
+        Not signed before
+
+        """
+        team = Team.objects.get(pk=attrs["team"])
+        if self.instance.second_party_team != team:
+            raise exceptions.ValidationError("team is not contract team")
+        
+        return super().validate(attrs)

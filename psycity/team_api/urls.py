@@ -15,6 +15,7 @@ action_router.register("depositbox-sensor-report", action.DepositBoxSensor, "dep
 action_router.register("discover_bank_robber", action.DiscoverBankRobber)
 contract_router = DefaultRouter()
 contract_router.register("register", contract.Register, "contract")
+contract_router.register("approvement", contract.Approvement, "contract")
 
 urlpatterns = [
     path("member/", include(member_router.urls)),

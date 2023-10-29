@@ -2,9 +2,10 @@ from rest_framework.viewsets import GenericViewSet, mixins
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import exceptions
+from rest_framework.decorators import action
 
-from core.models import Team 
-from team_api.serializers import ContractRegisterSerializer
+from core.models import Team, Contract 
+from team_api.serializers import ContractRegisterSerializer, ContractApprovementSerializer
 class Register(
     GenericViewSet,
     mixins.CreateModelMixin
@@ -33,6 +34,15 @@ class Register(
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
+        except exceptions.NotAcceptable as e:
+            return Response(
+                data={
+                    "message": "Not Acceptable error.",
+                    "data": [e.detail],
+                    "result": None
+                },
+                status=status.HTTP_406_NOT_ACCEPTABLE
+            )
 
         except Exception as e:
             return Response(
@@ -52,3 +62,59 @@ class Register(
             state=1
         )
     
+class Approvement(
+    GenericViewSet,
+    mixins.UpdateModelMixin
+    ):
+    http_method_names = ["patch"]
+    serializer_class = ContractApprovementSerializer
+    queryset = Contract.objects.filter(first_party_agree=True, second_party_agree=False)
+
+    def partial_update(self, request, *args, **kwargs):
+        
+        try:
+            super().partial_update(request, *args, **kwargs)
+            return Response(
+                data={
+                    "message": "signed successfully.",
+                    "data": [],
+                    "result": None
+                },
+                status=status.HTTP_200_OK
+            )
+        
+        except Contract.DoesNotExist :
+            return Response(
+                data={
+                    "message": "Valid contract not found.",
+                    "data": [],
+                    "result":None
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        except exceptions.ValidationError as e:
+            return Response(
+                data={
+                    "message" : "Validation error",
+                    "data": [e.detail],
+                    "result" : None
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+
+        except Exception as e:
+            return Response(
+                data={
+                    "message": "Something went wrong.",
+                    "data": [e.__str__()],
+                    "result": None
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    def perform_update(self, serializer:ContractApprovementSerializer):
+        serializer.save(
+            second_party_agree=True
+        )
