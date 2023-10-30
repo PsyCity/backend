@@ -3,6 +3,8 @@ from rest_framework.viewsets import (
     mixins
 )
 
+from team_api.utils import response
+
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import exceptions
@@ -24,47 +26,18 @@ class Register(
 
     serializer_class = ContractRegisterSerializer
 
+    @response
     def create(self, request, *args, **kwargs):
-        try:
-            r = super().create(request, *args, **kwargs)
-            return Response(
-                data={
-                    "message": "Contract created successfully.",
-                    "data": [],
-                    "result": r.data.get("id")
-                },
-                status=status.HTTP_201_CREATED
-            )
+        r = super().create(request, *args, **kwargs)
+        return Response(
+            data={
+                "message": "Contract created successfully.",
+                "data": [],
+                "result": r.data.get("id")
+            },
+            status=status.HTTP_201_CREATED
+        )
         
-        except exceptions.ValidationError as e:
-            return Response(
-                data={
-                    "message": "Validation error.",
-                    "data": e.detail,
-                    "result": None
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        except exceptions.NotAcceptable as e:
-            return Response(
-                data={
-                    "message": "Not Acceptable error.",
-                    "data": [e.detail],
-                    "result": None
-                },
-                status=status.HTTP_406_NOT_ACCEPTABLE
-            )
-
-        except Exception as e:
-            return Response(
-                data={
-                    "message": "Something went wrong.",
-                    "data" : [],
-                    "result": None
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
     def perform_create(self, serializer):
         serializer.save(
             first_party_agree=True,
@@ -87,58 +60,19 @@ class Approvement(
         state=1
         )
 
+    @response
     def partial_update(self, request, *args, **kwargs):
         
-        try:
-            super().partial_update(request, *args, **kwargs)
-            return Response(
-                data={
-                    "message": "signed successfully.",
-                    "data": [],
-                    "result": None
-                },
-                status=status.HTTP_200_OK
-            )
-        
-        except Http404:
-            return Response(
-                data={
-                    "message": "Valid contract not found.",
-                    "data": [],
-                    "result":None
-                },
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        except exceptions.ValidationError as e:
-            return Response(
-                data={
-                    "message" : "Validation error",
-                    "data": [e.detail],
-                    "result" : None
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        except exceptions.NotAcceptable as e:
-            return Response(
-                data={
-                    "message": "Not Acceptable error.",
-                    "data": [e.detail],
-                    "result": None
-                },
-                status=status.HTTP_406_NOT_ACCEPTABLE
-            )
-        # except exceptions
-        except Exception as e:
-            return Response(
-                data={
-                    "message": "Something went wrong.",
-                    "data": [],
-                    "result": None
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-    
+        super().partial_update(request, *args, **kwargs)
+        return Response(
+            data={
+                "message": "signed successfully.",
+                "data": [],
+                "result": None
+            },
+            status=status.HTTP_200_OK
+        )
+            
     def perform_update(self, serializer):
         serializer.save(
             second_party_agree=True,
@@ -165,27 +99,17 @@ class Pay(
     )
     http_method_names = ["patch"]
 
+    @response
     def partial_update(self, request, *args, **kwargs):
-        try:
-            super().partial_update(request, *args, **kwargs)
-            return Response(
-                data={
-                    "message": "Payed successfully.",
-                    "data":[],
-                    "result": None
-                },
-                status=status.HTTP_200_OK
-            )
-        
-        except Exception as e:
-            return Response(
-                data={
-                    "message": "Something went wrong.",
-                    "data":[e.__str__()],
-                    "result": None
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        super().partial_update(request, *args, **kwargs)
+        return Response(
+            data={
+                "message": "Payed successfully.",
+                "data":[],
+                "result": None
+            },
+            status=status.HTTP_200_OK
+        )
 
     def perform_update(self, serializer):
         serializer.save(
