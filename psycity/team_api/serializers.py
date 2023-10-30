@@ -276,3 +276,8 @@ class ContractApprovementSerializer(serializers.ModelSerializer):
                 f"Not valid endpoint for {contract.contract_type}."
                 )
         
+class ContractPaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contract
+        fields = []
+        

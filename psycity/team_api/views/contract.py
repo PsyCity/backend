@@ -1,12 +1,22 @@
-from rest_framework.viewsets import GenericViewSet, mixins
+from rest_framework.viewsets import (
+    GenericViewSet, 
+    mixins
+)
+
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import exceptions
 from django.http import Http404
 from rest_framework.decorators import action
 
-from core.models import Team, Contract 
-from team_api.serializers import ContractRegisterSerializer, ContractApprovementSerializer
+from core.models import Contract 
+from team_api.serializers import(
+    ContractRegisterSerializer,
+    ContractApprovementSerializer,
+    ContractPaySerializer,
+)
+
+
 class Register(
     GenericViewSet,
     mixins.CreateModelMixin
@@ -135,3 +145,51 @@ class Approvement(
             state=2
         )
         
+class Pay(
+    GenericViewSet,
+    mixins.UpdateModelMixin
+    ):
+    """
+    TODO:
+    transfer money,
+    validate:
+        cost_validation,
+        type_validation
+    """
+    serializer_class = ContractPaySerializer
+    queryset = Contract.objects.filter(
+        state=2,
+        first_party_agree=True,
+        second_party_agree=True,
+        archive=False
+    )
+    http_method_names = ["patch"]
+
+    def partial_update(self, request, *args, **kwargs):
+        try:
+            super().partial_update(request, *args, **kwargs)
+            return Response(
+                data={
+                    "message": "Payed successfully.",
+                    "data":[],
+                    "result": None
+                },
+                status=status.HTTP_200_OK
+            )
+        
+        except Exception as e:
+            return Response(
+                data={
+                    "message": "Something went wrong.",
+                    "data":[e.__str__()],
+                    "result": None
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def perform_update(self, serializer):
+        serializer.save(
+            state=3,
+            archive=True,
+        )
+        contract = serializer.instance
