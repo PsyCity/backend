@@ -8,8 +8,6 @@ from team_api.utils import response
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import exceptions
-from django.http import Http404
-from rest_framework.decorators import action
 
 from core.models import Contract 
 from team_api.serializers import(
@@ -83,13 +81,7 @@ class Pay(
     GenericViewSet,
     mixins.UpdateModelMixin
     ):
-    """
-    TODO:
-    transfer money,
-    validate:
-        cost_validation,
-        type_validation
-    """
+
     serializer_class = ContractPaySerializer
     queryset = Contract.objects.filter(
         state=2,
@@ -112,8 +104,21 @@ class Pay(
         )
 
     def perform_update(self, serializer):
+        contract = serializer.instance
+        self.pay(contract)
+
         serializer.save(
             state=3,
             archive=True,
         )
-        contract = serializer.instance
+    
+    def pay(self, contract:Contract):
+        try:
+            contract.first_party_team.wallet -= contract.cost
+            contract.first_party_team.save()
+            contract.second_party_team.wallet += contract.cost
+            contract.second_party_team.save()
+        except:
+            raise exceptions.APIException(
+                f"failed to transfer money between {contract.first_party_team} and {contract.second_party_team}."
+                )

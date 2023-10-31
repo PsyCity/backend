@@ -210,8 +210,8 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
         contract_type = attrs.get("contract_type")
         
         if contract_type == "question_ownership_transfer":
-            second = attrs.get("second_party_team")
-            cost_validation(attrs.get("cost"), second)
+            first = attrs.get("first_party_team")
+            cost_validation(attrs.get("cost"), first)
 
         elif contract_type == "bank_rubbery_sponsorship":
             try:
@@ -280,4 +280,31 @@ class ContractPaySerializer(serializers.ModelSerializer):
     class Meta:
         model = Contract
         fields = []
+    
+    def validate(self, attrs):
+        self.type_validation()
+        self.cost_validation()
+        return super().validate(attrs)
+
+
+    def cost_validation(self):
+        cost_validation(
+            team=self.instance.first_party_team,
+            cost=self.instance.cost
+        )
+
+    def type_validation(self):
+        
+        valid_contract_type = [
+            "question_ownership_transfer",
+            "bank_rubbery_sponsorship",
+            "bank_sensor_installation_sponsorship"
+        ]
+        
+        contract = self.instance
+        
+        if contract.contract_type not in valid_contract_type:
+            raise exceptions.NotAcceptable(
+                f"Not valid endpoint for {contract.contract_type}."
+                )
         
