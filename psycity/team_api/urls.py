@@ -16,6 +16,8 @@ action_router.register("discover_bank_robber", action.DiscoverBankRobber)
 
 contract_router = DefaultRouter()
 contract_router.register("register", contract.Register, "contract")
+contract_router.register("approvement", contract.Approvement, "contract")
+contract_router.register("pay", contract.Pay, "contract")
 
 money_router = DefaultRouter()
 money_router.register("transfer", money.TeamMoneyViewSet, "money")

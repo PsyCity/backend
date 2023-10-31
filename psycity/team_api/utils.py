@@ -1,8 +1,10 @@
-from typing import Any
+from django.http import Http404
 from rest_framework.response import Response
-from rest_framework import exceptions
+from rest_framework import exceptions, status
+from psycity.settings import DEBUG
 from core.models import Team
 from drf_yasg import openapi
+
 
 
 class ResponseStructure:
@@ -97,3 +99,45 @@ def cost_validation(cost, team:Team):
         # log.warning(f"Team {team.name} cant effort {cost} amount of money")
     return True
     
+def response(func):
+    def wrapper(request, *args, **kwargs):
+        try:
+            return func(request, *args, **kwargs)
+        
+        except exceptions.ValidationError as e:
+            return Response(
+                data={
+                    "message": "Validation Error.",
+                    "data": [e.detail]
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except exceptions.NotAcceptable as e:
+            return Response(
+                data={
+                    "message": "Request is not acceptable.",
+                    "data": [],
+                    "result": None
+                },
+                status=status.HTTP_406_NOT_ACCEPTABLE
+            )
+        
+        except Http404:
+            return Response(
+                data={
+                    "message": "Not Found.",
+                    "data": [],
+                    "result": None
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        except Exception as e:
+            return Response(
+                data={
+                    "message": "Something went wrong.",
+                    "data":[e.__str__() if DEBUG else None],
+                    "result": None
+                },
+            )
+    return wrapper
