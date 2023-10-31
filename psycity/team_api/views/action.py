@@ -2,10 +2,27 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, mixins
+from rest_framework.decorators import action
 from rest_framework import status
 from rest_framework import exceptions
-from team_api.serializers import KillHomelessSerializer, DepositBoxSensorReportListSerializer, serializers
-from core.models import Player, ConstantConfig, Contract, BankDepositBox
+
+from team_api.serializers import (
+    KillHomelessSerializer, 
+    DepositBoxSensorReportListSerializer, 
+    EscapeRoomAfterPuzzleSerializer,
+    EscapeRoomListSerializer,
+    EscapeRoomReserve,
+    serializers
+)
+
+from core.models import (
+    Player,
+    ConstantConfig, 
+    Contract,
+    BankDepositBox,
+    EscapeRoom
+)
+
 from team_api.utils import transfer_money
 from team_api.schema import deposit_list_schema
 
@@ -244,3 +261,114 @@ class DepositBoxSensor(GenericViewSet):
     def partial_update(self, request, *args, **kwargs):
         kwargs['partial'] = True
         return self.update(request, *args, **kwargs)
+
+
+
+class DiscoverBankRobber(
+    GenericViewSet,
+    mixins.ListModelMixin
+    ):
+    """
+    TODO: 
+    - [x] List EscapeRooms
+    - [x] reserve to solve
+    - [x] after puzzle
+    - [ ] report
+    - [ ] exception handlers
+    - [ ] define discord api
+    """
+
+    queryset = EscapeRoom.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return EscapeRoomListSerializer
+        elif self.action == "reserve_to_solve":
+            return EscapeRoomReserve 
+        elif self.action == "after_puzzle":
+            return EscapeRoomAfterPuzzleSerializer 
+        return serializers.Serializer
+    
+    @action(["post"], True)
+    def reserve_to_solve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update_reserve(serializer)
+        return Response(
+            data={
+                "message": "reserved",
+                "data": [],
+                "result": None
+            },
+            status=status.HTTP_200_OK
+        )
+    
+    def perform_update_reserve(self, serializer):
+        instance = serializer.instance
+        instance.state = 2
+        instance.solver_police = serializer.validated_data.get("team_id")
+        instance.no_valid_police -= 1
+        instance.save()
+
+    @action(["post"], True)
+    def after_puzzle(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        d = self.perform_update_solve(serializer)
+        return Response(
+            data={
+                "message": "ok",
+                "data": d,
+                "result":None
+            },
+            status=status.HTTP_200_OK
+        )
+
+    def perform_update_solve(self, serializer):
+        instance = serializer.instance
+        data = []
+        if serializer.validated_data["solved"]:
+            instance.state = 3
+            data = [{"box_id": instance.bank_deposit_box.id}]
+        else:
+            instance.state = 4
+
+        instance.save()
+        return data
+
+
+
+    @action(["post"], True)
+    def report(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update_report(serializer)
+        return Response(
+            data={
+                "message":"Reported successfully.",
+                "data": [],
+                "result": None
+            },
+            status=status.HTTP_200_OK
+        )
+
+    def perform_update_report(self, serializer):
+        room :EscapeRoom = serializer.instance
+        police = room.solver_police
+        mafia = room.bank_deposit_box.rubbery_team
+        amount = room.bank_deposit_box.money
+        conf = ConstantConfig.objects.last()
+        mafia_amount = amount * conf.penalty_percent // 100
+        police_amount = amount * conf.bonus_percent // 100
+        if mafia.wallet < mafia_amount:
+            mafia_amount -= mafia.wallet
+            mafia.bank_liabilities += mafia_amount
+            mafia.wallet = 0
+            mafia.save()
+        else:
+            mafia.wallet -= mafia_amount
+        police.wallet += police_amount
+        police.save()

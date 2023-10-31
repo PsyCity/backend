@@ -8,6 +8,7 @@ migrations/
 
 # file store
 psycity/data_dir/
+psycity/question_answer_file/
 
 # C extensions
 *.so

@@ -1,12 +1,21 @@
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 from rest_framework import serializers
 from rest_framework import exceptions
 
-from core.models import  PlayerRole, TeamJoinRequest, Team, Player, ConstantConfig, BankDepositBox
-
+from core.models import (
+    PlayerRole, 
+    TeamJoinRequest, 
+    Team, 
+    Player, 
+    ConstantConfig, 
+    BankDepositBox,
+    EscapeRoom,
+    Contract,
+)
+from team_api.utils import cost_validation
 from datetime import timedelta
-from django.utils import timezone
 class TeamMemberSerializer(serializers.Serializer):
     todo        = serializers.ChoiceField(["add","delete"],
                                           required=False,
@@ -130,3 +139,219 @@ class QuestionSolveSerializer(serializers.Serializer):
     question_id = serializers.IntegerField()
     answer_file = serializers.CharField()
     answer_file = serializers.FileField()
+
+class EscapeRoomListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EscapeRoom
+        exclude = (
+            "bank_deposit_box",
+            "created_date",
+            "updated_date"
+            )
+        
+class EscapeRoomReserve(serializers.ModelSerializer):
+    team_id = serializers.IntegerField()
+
+    class Meta:
+        model = EscapeRoom
+        fields = ["team_id"]
+
+    def validate_team_id(self, attr):
+        team = get_object_or_404(Team,pk=attr)
+        print(team.name)
+        if team.team_role != "Police":
+            raise exceptions.ValidationError("Not a police Team")
+        return team
+    
+    def validate(self, attrs):
+        
+        if self.instance.state != 1:
+            raise exceptions.NotAcceptable("Room is not in robbed state.")
+        return attrs
+
+
+class EscapeRoomAfterPuzzleSerializer(serializers.ModelSerializer):
+    solved = serializers.BooleanField()
+
+    class Meta:
+        model = EscapeRoom
+        fields = ("solved",)
+    
+class EscapeRoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EscapeRoom
+        fields = []
+
+
+
+def required(value):
+    if value is None:
+        raise serializers.ValidationError('This field is required')
+
+class ContractRegisterSerializer(serializers.ModelSerializer):
+    id = serializers.SerializerMethodField()
+    class Meta:
+        model = Contract
+        fields = (
+            "id",
+            "first_party_team",
+            "second_party_team",
+            "contract_type",
+            "cost",
+            "terms",
+        )
+
+    def base_team_validation(self, team_id):
+        required(team_id)
+        return team_id
+
+    def get_id(self, obj):
+        return obj.id
+    
+    def validate_first_party_team(self, team_id):
+        self.base_team_validation(team_id)
+        return team_id
+    
+    def validate_second_party_team(self, team_id):
+        self.base_team_validation(team_id)        
+        return team_id
+    
+    def contract_type_validation(self, attrs):
+        contract_type = attrs.get("contract_type")
+        
+        if contract_type == "question_ownership_transfer":
+            first = attrs.get("first_party_team")
+            cost_validation(attrs.get("cost"), first)
+
+        elif contract_type == "bank_rubbery_sponsorship":
+            try:
+                citizen_team: Team = attrs.get("second_party_team")
+
+            except:
+                raise exceptions.ValidationError("cant retrieve data.")
+
+            cost_validation(attrs.get("cost"), citizen_team)
+
+        elif contract_type == "bank_sensor_installation_sponsorship":
+            ...
+
+        elif contract_type == "bodyguard_for_the_homeless":
+            raise exceptions.NotAcceptable("Not this endpoint")
+
+        elif contract_type == "other":
+            raise exceptions.NotAcceptable("Not Implemented in here :)")
+
+
+    def validate(self, attrs):
+
+        self.contract_type_validation(attrs)
+        return attrs
+
+class ContractApprovementSerializer(serializers.ModelSerializer):
+    team = serializers.IntegerField()
+    class Meta:
+        model = Contract
+        fields = (
+            "team",
+        )
+    
+    def validate_team(self, pk):
+        team = Team.objects.get(pk=pk)
+        return team.pk
+    
+    def validate(self, attrs):
+
+        self.type_validation()
+        team = Team.objects.get(pk=attrs["team"])
+        
+        if self.instance.second_party_team != team:
+            raise exceptions.ValidationError(
+                "team is not contract team"
+                )
+        
+        return super().validate(attrs)
+    
+    def type_validation(self):
+
+        valid_contract_type = [
+            "question_ownership_transfer",
+            "bank_rubbery_sponsorship",
+            "bank_sensor_installation_sponsorship"
+        ]
+        
+        contract = self.instance
+        
+        if contract.contract_type not in valid_contract_type:
+            raise exceptions.NotAcceptable(
+                f"Not valid endpoint for {contract.contract_type}."
+                )
+        
+class ContractPaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contract
+        fields = []
+    
+    def validate(self, attrs):
+        self.type_validation()
+        self.cost_validation()
+        return super().validate(attrs)
+
+
+    def cost_validation(self):
+        cost_validation(
+            team=self.instance.first_party_team,
+            cost=self.instance.cost
+        )
+
+    def type_validation(self):
+        
+        valid_contract_type = [
+            "question_ownership_transfer",
+            "bank_rubbery_sponsorship",
+            "bank_sensor_installation_sponsorship"
+        ]
+        
+        contract = self.instance
+        
+        if contract.contract_type not in valid_contract_type:
+            raise exceptions.NotAcceptable(
+                f"Not valid endpoint for {contract.contract_type}."
+                )
+
+class TeamMoneySerializer(serializers.ModelSerializer):
+    amount = serializers.IntegerField()
+    team = serializers.IntegerField()
+
+    class Meta:
+        model = Team
+        fields = ["amount", "team"]
+
+    def validate_amount(self, amount):
+        if amount < 1:
+            raise exceptions.ValidationError("amount is less then 1.")
+        return amount
+
+
+    def validate_team(self, pk):
+        team = Team.objects.get(pk=pk)    
+        return team
+
+    def validate(self, attrs):
+        self.check_bank_wallet(**attrs)
+        self.check_bank_cooldown(attrs["team"])
+        return attrs
+
+    def check_bank_wallet(self, **kwargs):
+        team: Team = kwargs["team"]
+        if team.bank < kwargs["amount"]:
+            raise exceptions.NotAcceptable("Amount is more then team's bank.")
+
+    def check_bank_cooldown(self, team:Team):
+        conf = ConstantConfig.objects.last()
+        if not team.last_bank_action:
+            return
+        
+        t = team.last_bank_action + timedelta(minutes=conf.team_bank_transaction_cooldown)
+        if timezone.now() < t:
+            raise exceptions.NotAcceptable("cooldown has not passed.")
+        
