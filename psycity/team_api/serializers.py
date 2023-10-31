@@ -236,3 +236,41 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
 
         self.contract_type_validation(attrs)
         return attrs
+
+class TeamMoneySerializer(serializers.ModelSerializer):
+    amount = serializers.IntegerField()
+    team = serializers.IntegerField()
+
+    class Meta:
+        model = Team
+        fields = ["amount", "team"]
+
+    def validate_amount(self, amount):
+        if amount < 1:
+            raise exceptions.ValidationError("amount is less then 1.")
+        return amount
+
+
+    def validate_team(self, pk):
+        team = Team.objects.get(pk=pk)    
+        return team
+
+    def validate(self, attrs):
+        self.check_bank_wallet(**attrs)
+        self.check_bank_cooldown(attrs["team"])
+        return attrs
+
+    def check_bank_wallet(self, **kwargs):
+        team: Team = kwargs["team"]
+        if team.bank < kwargs["amount"]:
+            raise exceptions.NotAcceptable("Amount is more then team's bank.")
+
+    def check_bank_cooldown(self, team:Team):
+        conf = ConstantConfig.objects.last()
+        if not team.last_bank_action:
+            return
+        
+        t = team.last_bank_action + timedelta(minutes=conf.team_bank_transaction_cooldown)
+        if timezone.now() < t:
+            raise exceptions.NotAcceptable("cooldown has not passed.")
+        
