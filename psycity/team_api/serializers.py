@@ -338,7 +338,7 @@ class TeamMoneySerializer(serializers.ModelSerializer):
         if team.bank < kwargs["amount"]:
             raise exceptions.NotAcceptable("Amount is more then team's bank.")
 
-    def check_bank_cooldown(team:Team):
+    def check_bank_cooldown(self, team:Team):
         conf = ConstantConfig.objects.last()
         if not team.last_bank_action:
             return
