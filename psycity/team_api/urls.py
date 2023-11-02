@@ -20,7 +20,7 @@ contract_router.register("approvement", contract.Approvement, "contract")
 contract_router.register("pay", contract.Pay, "contract")
 
 money_router = DefaultRouter()
-money_router.register("transfer", money.TeamMoneyViewSet, "money")
+money_router.register("exchenge", money.TeamMoneyViewSet, "money")
 
 loan_router = DefaultRouter()
 loan_router.register("receive", loan.Receive, "loan")
@@ -31,5 +31,5 @@ urlpatterns = [
     path("action/", include(action_router.urls)),
     path("contract/", include(contract_router.urls)),
     path("money/", include(money_router.urls)),
-    path("loan/", include(loan_router.urls))
+    path("loan/", include(loan_router.urls)),
 ]
