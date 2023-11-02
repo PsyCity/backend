@@ -4,6 +4,9 @@ from rest_framework.viewsets import (
 )
 from rest_framework.response import Response
 from rest_framework import status
+
+from datetime import timezone
+
 from core.models import Team
 from team_api.serializers import LoanSerializer
 from team_api.utils import response
@@ -32,4 +35,8 @@ class Receive(
         )
     
     def perform_update(self, serializer):
-        serializer.save() #update time + pay there money
+        team: Team = serializer.instance
+        team.last_bank_action = timezone.now()
+        team.bank_liabilities += serializer.validated_data["amount"]
+        team.wallet += serializer.validated_data["amount"]
+        team.save()
