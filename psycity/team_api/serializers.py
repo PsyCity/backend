@@ -16,6 +16,8 @@ from core.models import (
 )
 from team_api.utils import cost_validation
 from datetime import timedelta
+
+
 class TeamMemberSerializer(serializers.Serializer):
     todo        = serializers.ChoiceField(["add","delete"],
                                           required=False,
@@ -336,12 +338,49 @@ class TeamMoneySerializer(serializers.ModelSerializer):
         if team.bank < kwargs["amount"]:
             raise exceptions.NotAcceptable("Amount is more then team's bank.")
 
-    def check_bank_cooldown(self, team:Team):
-        conf = ConstantConfig.objects.last()
+def check_bank_cooldown(team:Team):
+    conf = ConstantConfig.objects.last()
+    if not team.last_bank_action:
+        return
+    
+    t = team.last_bank_action + timedelta(minutes=conf.team_bank_transaction_cooldown)
+    if timezone.now() < t:
+        raise exceptions.NotAcceptable("cooldown has not passed.")
+
+
+
+class LoanSerializer(serializers.Serializer):
+    team_pk = serializers.IntegerField()
+    amount = serializers.IntegerField()
+
+    __conf = ConstantConfig.objects.last()
+    class Meta:
+        model = Team
+        fields = [
+            "team_pk",
+            "amount",
+            ]
+
+    def validate_amount(self, amount):
+        self.positive_amount(amount)
+        self.max_team_loan_amount_validation
+        return amount
+    
+    def bank_cooldown_validation(self):
+        team = self.instance        
         if not team.last_bank_action:
             return
-        
-        t = team.last_bank_action + timedelta(minutes=conf.team_bank_transaction_cooldown)
+
+        t = team.last_bank_action + timedelta(minutes=self.__conf.team_bank_transaction_cooldown)
         if timezone.now() < t:
             raise exceptions.NotAcceptable("cooldown has not passed.")
+
+
+    def max_team_loan_amount_validation(self, amount):
+        if amount > self.instance.max_bank_loan:
+            raise exceptions.ValidationError("amount is more then team's max loan amount.")
         
+    def positive_amount(self, amount):
+        if amount <=0:
+            raise exceptions.ValidationError("amount is less then or equal zero.")
+
