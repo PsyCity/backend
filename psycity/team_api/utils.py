@@ -139,5 +139,6 @@ def response(func):
                     "data":[e.__str__() if DEBUG else None],
                     "result": None
                 },
+                status=status.HTTP_400_BAD_REQUEST
             )
     return wrapper
