@@ -23,7 +23,8 @@ money_router = DefaultRouter()
 money_router.register("transfer", money.TeamMoneyViewSet, "money")
 
 loan_router = DefaultRouter()
-loan_router.register("receive", loan.Receive,"loan")
+loan_router.register("receive", loan.Receive, "loan")
+loan_router.register("repayment", loan.Repay, "loan")
 
 urlpatterns = [
     path("member/", include(member_router.urls)),

@@ -395,3 +395,15 @@ class LoanSerializer(serializers.Serializer):
         if amount <= 0:
             raise exceptions.ValidationError("amount is less then or equal zero.")
 
+
+class LoanRepaySerializer(LoanSerializer):
+    def validate(self, attrs):
+        self.bank_cooldown_validation(attrs["team"])
+        self.wallet_validation(attrs)
+        return attrs
+
+
+    def wallet_validation(self, attrs):
+        team :Team = attrs["team"]
+        if team.wallet < attrs["amount"]:
+            raise exceptions.NotAcceptable(detail="Not enough money in teams wallet.")
