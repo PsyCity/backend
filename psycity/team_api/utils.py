@@ -116,7 +116,7 @@ def response(func):
             return Response(
                 data={
                     "message": "Request is not acceptable.",
-                    "data": [],
+                    "data":[e.__str__() if DEBUG else None],
                     "result": None
                 },
                 status=status.HTTP_406_NOT_ACCEPTABLE
