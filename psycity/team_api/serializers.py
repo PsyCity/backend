@@ -386,7 +386,8 @@ class LoanSerializer(serializers.Serializer):
 
     def max_team_loan_amount_validation(self, amount, team:Team):
         max_amount = team.bank * self.__conf.team_loan_percent_max
-        
+        team.max_bank_loan = max_amount
+        team.save()
         if amount > max_amount:
             raise exceptions.ValidationError("amount is more then team's max loan amount.")
         
