@@ -20,7 +20,7 @@ contract_router.register("approvement", contract.Approvement, "contract")
 contract_router.register("pay", contract.Pay, "contract")
 
 money_router = DefaultRouter()
-money_router.register("transfer", money.TeamMoneyViewSet, "money")
+money_router.register("exchenge", money.TeamMoneyViewSet, "money")
 
 urlpatterns = [
     path("member/", include(member_router.urls)),
