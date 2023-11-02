@@ -350,24 +350,32 @@ class TeamMoneySerializer(serializers.ModelSerializer):
 
 
 class LoanSerializer(serializers.Serializer):
-    team_pk = serializers.IntegerField()
+    team = serializers.IntegerField()
     amount = serializers.IntegerField()
 
     __conf = ConstantConfig.objects.last()
-    class Meta:
-        model = Team
-        fields = [
-            "team_pk",
-            "amount",
-            ]
+
+
 
     def validate_amount(self, amount):
         self.positive_amount(amount)
-        self.max_team_loan_amount_validation
         return amount
     
-    def bank_cooldown_validation(self):
-        team = self.instance        
+    def validate_team(self, pk):
+        team = Team.objects.get(pk=pk)
+        return team
+
+
+    def validate(self, attrs):
+        self.bank_cooldown_validation(attrs["team"])
+        self.max_team_loan_amount_validation(attrs["amount"],
+                                             team=attrs["team"]
+                                             )
+        
+        return super().validate(attrs)
+    
+
+    def bank_cooldown_validation(self, team):
         if not team.last_bank_action:
             return
 
@@ -376,11 +384,13 @@ class LoanSerializer(serializers.Serializer):
             raise exceptions.NotAcceptable("cooldown has not passed.")
 
 
-    def max_team_loan_amount_validation(self, amount):
-        if amount > self.instance.max_bank_loan:
+    def max_team_loan_amount_validation(self, amount, team:Team):
+        max_amount = team.bank * self.__conf.team_loan_percent_max
+        
+        if amount > max_amount:
             raise exceptions.ValidationError("amount is more then team's max loan amount.")
         
     def positive_amount(self, amount):
-        if amount <=0:
+        if amount <= 0:
             raise exceptions.ValidationError("amount is less then or equal zero.")
 
