@@ -16,6 +16,8 @@ from core.models import (
 )
 from team_api.utils import cost_validation
 from datetime import timedelta
+
+
 class TeamMemberSerializer(serializers.Serializer):
     todo        = serializers.ChoiceField(["add","delete"],
                                           required=False,
@@ -344,4 +346,64 @@ class TeamMoneySerializer(serializers.ModelSerializer):
         t = team.last_bank_action + timedelta(minutes=conf.team_bank_transaction_cooldown)
         if timezone.now() < t:
             raise exceptions.NotAcceptable("cooldown has not passed.")
+
+
+
+class LoanSerializer(serializers.Serializer):
+    team = serializers.IntegerField()
+    amount = serializers.IntegerField()
+
+    __conf = ConstantConfig.objects.last()
+
+
+
+    def validate_amount(self, amount):
+        self.positive_amount(amount)
+        return amount
+    
+    def validate_team(self, pk):
+        team = Team.objects.get(pk=pk)
+        return team
+
+
+    def validate(self, attrs):
+        self.bank_cooldown_validation(attrs["team"])
+        self.max_team_loan_amount_validation(attrs["amount"],
+                                             team=attrs["team"]
+                                             )
         
+        return super().validate(attrs)
+    
+
+    def bank_cooldown_validation(self, team):
+        if not team.last_bank_action:
+            return
+
+        t = team.last_bank_action + timedelta(minutes=self.__conf.team_bank_transaction_cooldown)
+        if timezone.now() < t:
+            raise exceptions.NotAcceptable("cooldown has not passed.")
+
+
+    def max_team_loan_amount_validation(self, amount, team:Team):
+        max_amount = team.bank * self.__conf.team_loan_percent_max
+        team.max_bank_loan = max_amount
+        team.save()
+        if amount > max_amount:
+            raise exceptions.ValidationError("amount is more then team's max loan amount.")
+        
+    def positive_amount(self, amount):
+        if amount <= 0:
+            raise exceptions.ValidationError("amount is less then or equal zero.")
+
+
+class LoanRepaySerializer(LoanSerializer):
+    def validate(self, attrs):
+        self.bank_cooldown_validation(attrs["team"])
+        self.wallet_validation(attrs)
+        return attrs
+
+
+    def wallet_validation(self, attrs):
+        team :Team = attrs["team"]
+        if team.wallet < attrs["amount"]:
+            raise exceptions.NotAcceptable(detail="Not enough money in teams wallet.")
