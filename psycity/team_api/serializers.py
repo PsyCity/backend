@@ -13,6 +13,7 @@ from core.models import (
     BankDepositBox,
     EscapeRoom,
     Contract,
+    BankRobbery,
 )
 from team_api.utils import cost_validation
 from datetime import timedelta
@@ -407,3 +408,26 @@ class LoanRepaySerializer(LoanSerializer):
         team :Team = attrs["team"]
         if team.wallet < attrs["amount"]:
             raise exceptions.NotAcceptable(detail="Not enough money in teams wallet.")
+        
+class BankRobberyWaySerializer(serializers.Serializer):
+    contract_id = serializers.IntegerField()
+    team_id = serializers.IntegerField()
+
+    class Meta:
+        model = BankRobbery
+        fields = [
+            "mafia",
+            "contract"
+        ] 
+
+    def validate_contract_id(self, id):
+        contract = Contract.objects.get(pk=id)
+        if contract.contract_type != "bank_rubbery_sponsorship":
+            raise exceptions.ValidationError("Contract type is not bank_rubbery_sponsorship")
+        #TODO states of a contract
+        if contract.state != 2:
+            raise exceptions.ValidationError("Contract state is not valid.")
+
+    def validate_mafia(self, attr):
+        ...
+        

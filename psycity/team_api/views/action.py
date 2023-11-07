@@ -12,6 +12,7 @@ from team_api.serializers import (
     EscapeRoomAfterPuzzleSerializer,
     EscapeRoomListSerializer,
     EscapeRoomReserve,
+    BankRobberyWaySerializer,
     serializers
 )
 
@@ -23,7 +24,7 @@ from core.models import (
     EscapeRoom
 )
 
-from team_api.utils import transfer_money
+from team_api.utils import transfer_money, response
 from team_api.schema import deposit_list_schema
 
 
@@ -372,3 +373,29 @@ class DiscoverBankRobber(
             mafia.wallet -= mafia_amount
         police.wallet += police_amount
         police.save()
+
+class BankRobbery(
+    GenericViewSet,
+    mixins.CreateModelMixin
+    ):
+
+    serializer_class = BankRobberyWaySerializer
+
+
+    @response
+    def create(self, request, *args, **kwargs):
+        r = super().create(request, *args, **kwargs)
+        #NOTICE: Need to choose a Escape Room??
+        return Response(
+            data={
+                "message": "robbery approved.",
+                "data": [],
+                "result": r.data.get("id")
+            },
+            status=status.HTTP_200_OK
+        )
+    
+    def perform_commit(self, serializer):
+        serializer.save(
+            citizen=serializer.validated_data.get("second_party_team")
+        )
