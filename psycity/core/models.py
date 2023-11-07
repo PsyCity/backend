@@ -310,3 +310,27 @@ class PlayerRole(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name}"
+    
+
+class BankRobbery(BaseModel):
+    
+    mafia = models.ForeignKey(
+        "Team",
+        verbose_name=_("Mafia Team"),
+        on_delete=models.CASCADE,
+        related_name="bank_robbery_as_mafia"        
+        )
+    
+    citizen = models.ForeignKey(
+        "Team",
+        verbose_name=_("Citizen Team"),
+        on_delete=models.CASCADE,
+        related_name="bank_robbery_as_citizen"
+        )
+    
+    contract = models.ForeignKey(
+        "Contract",
+        verbose_name=_("bank robbery contract"),
+        on_delete=models.CASCADE
+        )
+    
