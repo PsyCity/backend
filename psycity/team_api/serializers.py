@@ -409,10 +409,7 @@ class LoanRepaySerializer(LoanSerializer):
         if team.wallet < attrs["amount"]:
             raise exceptions.NotAcceptable(detail="Not enough money in teams wallet.")
         
-class BankRobberyWaySerializer(serializers.Serializer):
-    contract_id = serializers.IntegerField()
-    team_id = serializers.IntegerField()
-
+class BankRobberyWaySerializer(serializers.ModelSerializer):
     class Meta:
         model = BankRobbery
         fields = [
@@ -424,10 +421,20 @@ class BankRobberyWaySerializer(serializers.Serializer):
         contract = Contract.objects.get(pk=id)
         if contract.contract_type != "bank_rubbery_sponsorship":
             raise exceptions.ValidationError("Contract type is not bank_rubbery_sponsorship")
-        #TODO states of a contract
+
         if contract.state != 2:
             raise exceptions.ValidationError("Contract state is not valid.")
 
-    def validate_mafia(self, attr):
-        ...
+    def validate_mafia(self, team:Team):
+        if team.team_role != "Mafia":
+            raise exceptions.ValidationError("Not a mafia team")
         
+        self.validate_mafia_max_escape_room(team)
+        
+        return team 
+
+    def validate(self, attrs):
+        return super().validate(attrs)
+        
+    def validate_mafia_max_escape_room(self, mafia:Team):
+        ...

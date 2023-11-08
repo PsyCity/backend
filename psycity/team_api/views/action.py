@@ -395,7 +395,17 @@ class BankRobbery(
             status=status.HTTP_200_OK
         )
     
-    def perform_commit(self, serializer):
-        serializer.save(
-            citizen=serializer.validated_data.get("second_party_team")
+    def perform_create(self, serializer):
+        citizen = serializer.validated_data.get("contract").second_party_team
+        self.add_to_mafia_efforts(serializer.validated_data["mafia"])
+
+        instance = serializer.save(
+            citizen=citizen
         )
+        self.consider_escape_room(instance)
+
+    def consider_escape_room(self, serializer):
+        ...
+
+    def add_to_mafia_efforts(self, mafia):
+        ...
