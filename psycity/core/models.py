@@ -171,7 +171,9 @@ class TeamFeature(BaseModel):
     team = models.ForeignKey(
         "Team",
         on_delete=models.CASCADE,
-        related_name="team_feature"
+        related_name="team_feature",
+        null=True,
+        blank=True,
         )
     mafia_last_night_report = models.IntegerField(default=0)
     mafia_opened_night_escape_rooms = models.IntegerField(default=0)
