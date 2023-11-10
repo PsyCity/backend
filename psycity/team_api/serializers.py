@@ -439,7 +439,7 @@ class BankRobberyWaySerializer(serializers.ModelSerializer):
         return super().validate(attrs)
         
     def validate_mafia_max_escape_room(self, mafia:Team):
-        profile = mafia.team_feature
+        profile = mafia.team_feature.first()
         conf = ConstantConfig.objects.last()
 
         if not profile.mafia_reserved_escape_room < conf.team_escape_room_max:

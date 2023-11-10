@@ -426,6 +426,6 @@ class BankRobberyViewSet(
         instance.save()
  
     def add_to_mafia_efforts(self, mafia):
-        profile = mafia.team_feature
+        profile = mafia.team_feature.first()
         profile.mafia_reserved_escape_room += 1
         profile.save()
