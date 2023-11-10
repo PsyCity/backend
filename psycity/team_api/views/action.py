@@ -21,13 +21,14 @@ from core.models import (
     ConstantConfig, 
     Contract,
     BankDepositBox,
-    EscapeRoom
+    EscapeRoom,
+    BankRobbery
 )
 
 from team_api.utils import transfer_money, response
 from team_api.schema import deposit_list_schema
 
-
+import random
 class KillHomelessViewSet(GenericViewSet):
 
     serializer_class = KillHomelessSerializer
@@ -374,7 +375,7 @@ class DiscoverBankRobber(
         police.wallet += police_amount
         police.save()
 
-class BankRobbery(
+class BankRobberyViewSet(
     GenericViewSet,
     mixins.CreateModelMixin
     ):
@@ -403,9 +404,28 @@ class BankRobbery(
             citizen=citizen
         )
         self.consider_escape_room(instance)
+        self.archive_contract(serializer)
 
-    def consider_escape_room(self, serializer):
-        ...
+    def archive_contract(self, serializer):
+        try:
+            contract :Contract  = serializer.validated_data["contract"]
+            contract.archive = True
+            contract.save()
+        except:
+            #LOG
+            raise exceptions.APIException("Failed to archive contract.")
 
+    def consider_escape_room(self, instance:BankRobbery):
+        #TODO : Do not use random :(
+        escape_rooms = EscapeRoom.objects.filter(state=0).all()
+        room = random.choice(escape_rooms)
+        instance.escape_room = room        
+        room.no_valid_mafia -= 1
+        room.state = 5
+        room.save()
+        instance.save()
+ 
     def add_to_mafia_efforts(self, mafia):
-        ...
+        profile = mafia.team_feature
+        profile.mafia_reserved_escape_room += 1
+        profile.save()
