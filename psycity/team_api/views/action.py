@@ -22,7 +22,8 @@ from core.models import (
     Contract,
     BankDepositBox,
     EscapeRoom,
-    BankRobbery
+    BankRobbery,
+    TeamFeature
 )
 
 from team_api.utils import transfer_money, response
@@ -383,7 +384,7 @@ class BankRobberyViewSet(
     serializer_class = BankRobberyWaySerializer
 
 
-    @response
+    # @response
     def create(self, request, *args, **kwargs):
         r = super().create(request, *args, **kwargs)
         #NOTICE: Need to choose a Escape Room??
@@ -398,12 +399,12 @@ class BankRobberyViewSet(
     
     def perform_create(self, serializer):
         citizen = serializer.validated_data.get("contract").second_party_team
-        self.add_to_mafia_efforts(serializer.validated_data["mafia"])
 
         instance = serializer.save(
             citizen=citizen
         )
         self.consider_escape_room(instance)
+        self.add_to_mafia_efforts(serializer.validated_data["mafia"])
         self.archive_contract(serializer)
 
     def archive_contract(self, serializer):
@@ -418,6 +419,10 @@ class BankRobberyViewSet(
     def consider_escape_room(self, instance:BankRobbery):
         #TODO : Do not use random :(
         escape_rooms = EscapeRoom.objects.filter(state=0).all()
+
+        if not escape_rooms:
+            raise exceptions.APIException("Lack off escape room.")
+            
         room = random.choice(escape_rooms)
         instance.escape_room = room        
         room.no_valid_mafia -= 1
@@ -426,6 +431,10 @@ class BankRobberyViewSet(
         instance.save()
  
     def add_to_mafia_efforts(self, mafia):
-        profile = mafia.team_feature.first()
+        try:
+            profile = mafia.team_feature.first()
+        except:
+            profile = TeamFeature.objects.create(team=mafia)
+            
         profile.mafia_reserved_escape_room += 1
         profile.save()

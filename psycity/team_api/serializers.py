@@ -8,6 +8,7 @@ from core.models import (
     PlayerRole, 
     TeamJoinRequest, 
     Team, 
+    TeamFeature,
     Player, 
     ConstantConfig, 
     BankDepositBox,
@@ -439,7 +440,11 @@ class BankRobberyWaySerializer(serializers.ModelSerializer):
         return super().validate(attrs)
         
     def validate_mafia_max_escape_room(self, mafia:Team):
-        profile = mafia.team_feature.first()
+        try:
+            profile = mafia.team_feature.first()
+        except:
+            profile = TeamFeature.objects.create(team=mafia)
+            
         conf = ConstantConfig.objects.last()
 
         if not profile.mafia_reserved_escape_room < conf.team_escape_room_max:
