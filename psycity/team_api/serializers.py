@@ -424,7 +424,9 @@ class BankRobberyWaySerializer(serializers.ModelSerializer):
 
         if contract.state != 2:
             raise exceptions.ValidationError("Contract state is not valid.")
-
+        if contract.archive:
+            raise exceptions.NotAcceptable("Contract is Archived.")
+            
     def validate_mafia(self, team:Team):
         if team.team_role != "Mafia":
             raise exceptions.ValidationError("Not a mafia team")
@@ -437,4 +439,8 @@ class BankRobberyWaySerializer(serializers.ModelSerializer):
         return super().validate(attrs)
         
     def validate_mafia_max_escape_room(self, mafia:Team):
-        ...
+        profile = mafia.team_feature
+        conf = ConstantConfig.objects.last()
+
+        if not profile.mafia_reserved_escape_room < conf.team_escape_room_max:
+            raise exceptions.NotAcceptable("team_escape_room limit")
