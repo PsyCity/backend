@@ -168,13 +168,19 @@ class Team(BaseModel):
 
 
 class TeamFeature(BaseModel):
-    mafia_last_night_report = models.IntegerField()
-    mafia_opened_night_escape_rooms = models.IntegerField()
-    police_opened_night_escape_rooms = models.IntegerField()
-    police_sensor_request_contracts = models.IntegerField()
-    police_in_analysis_boxes = models.IntegerField()
-    citizen_opened_night_escape_rooms = models.IntegerField()
-    citizen_theft_request_contracts = models.IntegerField()
+    team = models.ForeignKey(
+        "Team",
+        on_delete=models.CASCADE,
+        related_name="team_feature"
+        )
+    mafia_last_night_report = models.IntegerField(default=0)
+    mafia_opened_night_escape_rooms = models.IntegerField(default=0)
+    mafia_reserved_escape_room = models.IntegerField(default=0)
+    police_opened_night_escape_rooms = models.IntegerField(default=0)
+    police_sensor_request_contracts = models.IntegerField(default=0)
+    police_in_analysis_boxes = models.IntegerField(default=0)
+    citizen_opened_night_escape_rooms = models.IntegerField(default=0)
+    citizen_theft_request_contracts = models.IntegerField(default=0)
 
 class Question(BaseModel):
     LEVEL_CHOICE = [
@@ -224,7 +230,8 @@ class EscapeRoom(BaseModel):
         (1, "robbed"),
         (2, "solving"),
         (3, "solved"),
-        (4, "failed_to_solve")
+        (4, "failed_to_solve"),
+        (5, "reserved for robbery")
     ]
 
     no_valid_citizen = models.IntegerField()
@@ -332,5 +339,13 @@ class BankRobbery(BaseModel):
         "Contract",
         verbose_name=_("bank robbery contract"),
         on_delete=models.CASCADE
+        )
+    
+    escape_room = models.ForeignKey(
+        "EscapeRoom",
+        on_delete=models.CASCADE,
+        related_name="robbery",
+        blank=True,
+        null=True
         )
     
