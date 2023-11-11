@@ -13,6 +13,7 @@ from team_api.serializers import (
     EscapeRoomListSerializer,
     EscapeRoomReserve,
     BankRobberyWaySerializer,
+    BankRobberyListSerializer,
     serializers
 )
 
@@ -26,8 +27,8 @@ from core.models import (
     TeamFeature
 )
 
-from team_api.utils import transfer_money, response
-from team_api.schema import deposit_list_schema
+from team_api.utils import transfer_money, response, ListModelMixin
+from team_api.schema import deposit_list_schema, bank_robbery_list_schema
 
 import random
 class KillHomelessViewSet(GenericViewSet):
@@ -376,7 +377,7 @@ class DiscoverBankRobber(
         police.wallet += police_amount
         police.save()
 
-class BankRobberyViewSet(
+class BankRobberyWayViewSet(
     GenericViewSet,
     mixins.CreateModelMixin
     ):
@@ -438,3 +439,36 @@ class BankRobberyViewSet(
             
         profile.mafia_reserved_escape_room += 1
         profile.save()
+
+
+class BankRobberyViewSet(
+    GenericViewSet,
+    ListModelMixin    
+    ):
+
+    queryset = BankRobbery.objects.all()
+    serializer_class = BankRobberyListSerializer
+
+    @bank_robbery_list_schema
+    @response
+    def list(self, request, *args, **kwargs):
+        owner = request.GET["team_id"]
+        if not owner:
+            raise exceptions.ValidationError("Set team_id in url params.")
+
+        self.validate_owner(owner)
+        queryset = self.queryset.filter(
+            mafia=owner
+        ).all()
+        serializers = self.get_serializer(queryset, many=True)
+        return Response(
+            data={
+                "message": "SOME bullshit.",
+                "data": serializers.data,
+                "result": None
+            }
+        )
+
+
+    def validate_owner(self, owner_pk):
+        ...
