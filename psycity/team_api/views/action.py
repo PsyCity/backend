@@ -385,7 +385,7 @@ class BankRobberyWayViewSet(
     serializer_class = BankRobberyWaySerializer
 
 
-    # @response
+    @response
     def create(self, request, *args, **kwargs):
         r = super().create(request, *args, **kwargs)
         #NOTICE: Need to choose a Escape Room??
