@@ -449,3 +449,23 @@ class BankRobberyWaySerializer(serializers.ModelSerializer):
 
         if not profile.mafia_reserved_escape_room < conf.team_escape_room_max:
             raise exceptions.NotAcceptable("team_escape_room limit")
+        
+class BankRobberyListSerializer(serializers.ModelSerializer):
+
+    citizen_id = serializers.IntegerField(source="citizen.id")
+    citizen_name = serializers.CharField(source="citizen.name")
+    mafia_id = serializers.IntegerField(source="mafia.id")
+    mafia_name = serializers.CharField(source="mafia.name")
+    robbery_id = serializers.IntegerField(source="id")
+    
+    class Meta:
+        model = BankRobbery
+        # fields = "__all__" #for test
+        fields = [
+            "robbery_id",
+            "citizen_id",
+            "citizen_name",
+            "mafia_id",
+            "mafia_name",
+            "escape_room"
+            ]
