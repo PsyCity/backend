@@ -24,7 +24,8 @@ from core.models import (
     BankDepositBox,
     EscapeRoom,
     BankRobbery,
-    TeamFeature
+    TeamFeature,
+    Team
 )
 
 from team_api.utils import transfer_money, response, ListModelMixin
@@ -471,4 +472,11 @@ class BankRobberyViewSet(
 
 
     def validate_owner(self, owner_pk):
-        ...
+        try:
+            team = Team.objects.get(owner_pk)
+        except:
+            raise exceptions.NotFound("team not found")
+        
+        if team.team_role != "Mafia":
+            raise exceptions.NotAcceptable("Not mafia.")
+
