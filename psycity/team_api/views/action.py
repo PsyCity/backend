@@ -12,6 +12,8 @@ from team_api.serializers import (
     EscapeRoomAfterPuzzleSerializer,
     EscapeRoomListSerializer,
     EscapeRoomReserve,
+    BankRobberyWaySerializer,
+    BankRobberyListSerializer,
     serializers
 )
 
@@ -20,13 +22,16 @@ from core.models import (
     ConstantConfig, 
     Contract,
     BankDepositBox,
-    EscapeRoom
+    EscapeRoom,
+    BankRobbery,
+    TeamFeature,
+    Team
 )
 
-from team_api.utils import transfer_money
-from team_api.schema import deposit_list_schema
+from team_api.utils import transfer_money, response, ListModelMixin
+from team_api.schema import deposit_list_schema, bank_robbery_list_schema
 
-
+import random
 class KillHomelessViewSet(GenericViewSet):
 
     serializer_class = KillHomelessSerializer
@@ -372,3 +377,106 @@ class DiscoverBankRobber(
             mafia.wallet -= mafia_amount
         police.wallet += police_amount
         police.save()
+
+class BankRobberyWayViewSet(
+    GenericViewSet,
+    mixins.CreateModelMixin
+    ):
+
+    serializer_class = BankRobberyWaySerializer
+
+
+    @response
+    def create(self, request, *args, **kwargs):
+        r = super().create(request, *args, **kwargs)
+        #NOTICE: Need to choose a Escape Room??
+        return Response(
+            data={
+                "message": "robbery approved.",
+                "data": [],
+                "result": r.data.get("id")
+            },
+            status=status.HTTP_200_OK
+        )
+    
+    def perform_create(self, serializer):
+        citizen = serializer.validated_data.get("contract").second_party_team
+
+        instance = serializer.save(
+            citizen=citizen
+        )
+        self.consider_escape_room(instance)
+        self.add_to_mafia_efforts(serializer.validated_data["mafia"])
+        self.archive_contract(serializer)
+
+    def archive_contract(self, serializer):
+        try:
+            contract :Contract  = serializer.validated_data["contract"]
+            contract.archive = True
+            contract.save()
+        except:
+            #LOG
+            raise exceptions.APIException("Failed to archive contract.")
+
+    def consider_escape_room(self, instance:BankRobbery):
+        #TODO : Do not use random :(
+        escape_rooms = EscapeRoom.objects.filter(state=0).all()
+
+        if not escape_rooms:
+            raise exceptions.APIException("Lack off escape room.")
+            
+        room = random.choice(escape_rooms)
+        instance.escape_room = room        
+        room.no_valid_mafia -= 1
+        room.state = 5
+        room.save()
+        instance.save()
+ 
+    def add_to_mafia_efforts(self, mafia):
+        try:
+            profile = mafia.team_feature.first()
+        except:
+            profile = TeamFeature.objects.create(team=mafia)
+            
+        profile.mafia_reserved_escape_room += 1
+        profile.save()
+
+
+class BankRobberyViewSet(
+    GenericViewSet,
+    ListModelMixin    
+    ):
+
+    queryset = BankRobbery.objects.all()
+    serializer_class = BankRobberyListSerializer
+
+    @bank_robbery_list_schema
+    @response
+    def list(self, request, *args, **kwargs):
+        owner = request.GET["team_id"]
+        if not owner:
+            raise exceptions.ValidationError("Set team_id in url params.")
+
+        self.validate_owner(owner)
+        queryset = self.queryset.filter(
+            mafia=owner
+        ).all()
+        serializers = self.get_serializer(queryset, many=True)
+        return Response(
+            data={
+                "message": "SOME bullshit.",
+                "data": serializers.data,
+                "result": None
+            }
+        )
+
+
+    def validate_owner(self, owner_pk):
+        try:
+            team = Team.objects.get(owner_pk)
+        except:
+            raise exceptions.NotFound("team not found")
+        
+        if team.team_role != "Mafia":
+            raise exceptions.NotAcceptable("Not mafia.")
+

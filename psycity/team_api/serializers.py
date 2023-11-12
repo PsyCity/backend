@@ -8,11 +8,13 @@ from core.models import (
     PlayerRole, 
     TeamJoinRequest, 
     Team, 
+    TeamFeature,
     Player, 
     ConstantConfig, 
     BankDepositBox,
     EscapeRoom,
     Contract,
+    BankRobbery,
 )
 from team_api.utils import cost_validation
 from datetime import timedelta
@@ -407,3 +409,63 @@ class LoanRepaySerializer(LoanSerializer):
         team :Team = attrs["team"]
         if team.wallet < attrs["amount"]:
             raise exceptions.NotAcceptable(detail="Not enough money in teams wallet.")
+        
+class BankRobberyWaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BankRobbery
+        fields = [
+            "mafia",
+            "contract"
+        ] 
+
+    def validate_contract_id(self, id):
+        contract = Contract.objects.get(pk=id)
+        if contract.contract_type != "bank_rubbery_sponsorship":
+            raise exceptions.ValidationError("Contract type is not bank_rubbery_sponsorship")
+
+        if contract.state != 2:
+            raise exceptions.ValidationError("Contract state is not valid.")
+        if contract.archive:
+            raise exceptions.NotAcceptable("Contract is Archived.")
+            
+    def validate_mafia(self, team:Team):
+        if team.team_role != "Mafia":
+            raise exceptions.ValidationError("Not a mafia team")
+        
+        self.validate_mafia_max_escape_room(team)
+        
+        return team 
+
+    def validate(self, attrs):
+        return super().validate(attrs)
+        
+    def validate_mafia_max_escape_room(self, mafia:Team):
+        try:
+            profile = mafia.team_feature.first()
+        except:
+            profile = TeamFeature.objects.create(team=mafia)
+            
+        conf = ConstantConfig.objects.last()
+
+        if not profile.mafia_reserved_escape_room < conf.team_escape_room_max:
+            raise exceptions.NotAcceptable("team_escape_room limit")
+        
+class BankRobberyListSerializer(serializers.ModelSerializer):
+
+    citizen_id = serializers.IntegerField(source="citizen.id")
+    citizen_name = serializers.CharField(source="citizen.name")
+    mafia_id = serializers.IntegerField(source="mafia.id")
+    mafia_name = serializers.CharField(source="mafia.name")
+    robbery_id = serializers.IntegerField(source="id")
+    
+    class Meta:
+        model = BankRobbery
+        # fields = "__all__" #for test
+        fields = [
+            "robbery_id",
+            "citizen_id",
+            "citizen_name",
+            "mafia_id",
+            "mafia_name",
+            "escape_room"
+            ]

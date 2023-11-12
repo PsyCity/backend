@@ -13,6 +13,8 @@ action_router = DefaultRouter()
 action_router.register("kill-homeless", action.KillHomelessViewSet, "kill_homeless")
 action_router.register("depositbox-sensor-report", action.DepositBoxSensor, "depositbox_sensor_report")
 action_router.register("discover_bank_robber", action.DiscoverBankRobber)
+action_router.register("bank_robbery_way", action.BankRobberyWayViewSet, "bank_robbery_way")
+action_router.register("bank_robbery", action.BankRobberyViewSet, "bank_robbery")
 
 contract_router = DefaultRouter()
 contract_router.register("register", contract.Register, "contract")
