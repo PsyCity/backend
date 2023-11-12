@@ -469,3 +469,10 @@ class BankRobberyListSerializer(serializers.ModelSerializer):
             "mafia_name",
             "escape_room"
             ]
+
+
+class BankRobberyOpenSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BankRobbery
+        fields = []
