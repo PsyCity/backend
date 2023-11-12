@@ -4,7 +4,7 @@ from rest_framework import exceptions, status
 from psycity.settings import DEBUG
 from core.models import Team
 from drf_yasg import openapi
-
+from functools import wraps
 
 
 class ResponseStructure:
@@ -100,6 +100,7 @@ def cost_validation(cost, team:Team):
     return True
     
 def response(func):
+    @wraps(func)
     def wrapper(request, *args, **kwargs):
         try:
             return func(request, *args, **kwargs)
