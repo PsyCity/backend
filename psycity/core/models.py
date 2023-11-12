@@ -322,6 +322,14 @@ class PlayerRole(models.Model):
     
 
 class BankRobbery(BaseModel):
+    STATE_CHOICE=[
+        (1, "Created"),
+        (2, "Used"),
+        (3, "Solved")
+    ]
+    
+    state = models.IntegerField(choices=STATE_CHOICE ,default=1)
+
     
     mafia = models.ForeignKey(
         "Team",
