@@ -469,3 +469,15 @@ class BankRobberyListSerializer(serializers.ModelSerializer):
             "mafia_name",
             "escape_room"
             ]
+
+
+class BankRobberyOpenSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BankRobbery
+        fields = []
+
+    def validate(self, attrs):
+        if self.instance.state != 1:
+            raise exceptions.NotAcceptable(f"BankRobbery is on state {self.instance.state}")
+        return super().validate(attrs)

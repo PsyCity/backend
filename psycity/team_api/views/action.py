@@ -14,6 +14,7 @@ from team_api.serializers import (
     EscapeRoomReserve,
     BankRobberyWaySerializer,
     BankRobberyListSerializer,
+    BankRobberyOpenSerializer,
     serializers
 )
 
@@ -450,6 +451,15 @@ class BankRobberyViewSet(
     queryset = BankRobbery.objects.all()
     serializer_class = BankRobberyListSerializer
 
+    def get_serializer_class(self):
+        if self.action == "list":
+            return BankRobberyListSerializer
+        elif self.action == "open_escape_room":
+            return BankRobberyOpenSerializer
+        return serializers.Serializer
+
+        
+
     @bank_robbery_list_schema
     @response
     def list(self, request, *args, **kwargs):
@@ -473,10 +483,37 @@ class BankRobberyViewSet(
 
     def validate_owner(self, owner_pk):
         try:
-            team = Team.objects.get(owner_pk)
+            team = Team.objects.get(pk=owner_pk)
         except:
             raise exceptions.NotFound("team not found")
         
         if team.team_role != "Mafia":
             raise exceptions.NotAcceptable("Not mafia.")
 
+    @action(
+            methods=["patch"],
+            detail=True
+            )
+    @response
+    def open_escape_room(self, request, *args, **kwargs):
+        instance: BankRobbery = self.get_object()
+        
+        serializer = self.get_serializer(instance,
+                                         data=request.data,
+                                         partial=True
+                                         )
+        
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(
+            data={
+                "message": "good luck.",
+                "data": [],
+                "result":None
+            }
+        )
+    
+    def perform_update(self, serializer):
+        serializer.save(
+            state=2
+        )
