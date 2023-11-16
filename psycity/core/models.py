@@ -359,3 +359,4 @@ class BankRobbery(BaseModel):
         null=True
         )
     
+    opening_time = models.DateTimeField(blank=True, null=True)
