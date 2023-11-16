@@ -15,6 +15,7 @@ from team_api.serializers import (
     BankRobberyWaySerializer,
     BankRobberyListSerializer,
     BankRobberyOpenSerializer,
+    BankRobberyOpenDepositBoxSerializer,
     serializers
 )
 
@@ -456,6 +457,8 @@ class BankRobberyViewSet(
             return BankRobberyListSerializer
         elif self.action == "open_escape_room":
             return BankRobberyOpenSerializer
+        elif self.action == "open_deposit_box":
+            return BankRobberyOpenDepositBoxSerializer
         return serializers.Serializer
 
         
@@ -515,5 +518,38 @@ class BankRobberyViewSet(
     
     def perform_update(self, serializer):
         serializer.save(
-            state=2
+            state=2,
+            #TODO: set opening time
         )
+
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="deposit_box"
+    )
+    @response
+    def open_deposit_box(self, request, bpk=None, *args, **kwargs):
+        instance: BankRobbery = self.get_object()
+        
+        serializer = self.get_serializer(
+            instance,
+            data=request.data
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.is_acceptable()
+        self.perform_open_box(serializer)
+        self.sensor_report(serializer)
+        return Response(
+            data={
+                "message": "Box Opened successfully.",
+                "data" : [],
+                "result": None
+            }
+        )
+
+
+    def perform_open_box(self, serializer):
+        ...
+
+    def sensor_report(self, serializer):
+        ...

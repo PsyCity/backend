@@ -460,7 +460,6 @@ class BankRobberyListSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = BankRobbery
-        # fields = "__all__" #for test
         fields = [
             "robbery_id",
             "citizen_id",
@@ -481,3 +480,26 @@ class BankRobberyOpenSerializer(serializers.ModelSerializer):
         if self.instance.state != 1:
             raise exceptions.NotAcceptable(f"BankRobbery is on state {self.instance.state}")
         return super().validate(attrs)
+    
+class BankRobberyOpenDepositBoxSerializer(serializers.ModelSerializer):
+    deposit_box = serializers.IntegerField()
+    class Meta:
+        model = BankRobbery
+        fields = ["deposit_box"]
+
+    def deadline_validation(self, escape_room):
+        ...
+    
+    def validate_deposit_box(self, pk):
+        try:
+            box = BankDepositBox.objects.get(pk=pk)
+        except:
+            raise exceptions.NotFound("Box not found.")
+        return box
+    
+    def check_deposit_box(self, box:BankDepositBox):
+        
+        return box
+    
+    def is_acceptable(self):
+        self.check_deposit_box(self.validated_data["deposit_box"])
