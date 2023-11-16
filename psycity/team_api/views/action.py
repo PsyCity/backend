@@ -486,7 +486,7 @@ class BankRobberyViewSet(
 
     def validate_owner(self, owner_pk):
         try:
-            team = Team.objects.get(owner_pk)
+            team = Team.objects.get(pk=owner_pk)
         except:
             raise exceptions.NotFound("team not found")
         
