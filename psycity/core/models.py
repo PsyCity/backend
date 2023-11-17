@@ -325,7 +325,8 @@ class BankRobbery(BaseModel):
     STATE_CHOICE=[
         (1, "Created"),
         (2, "Used"),
-        (3, "Solved")
+        (3, "Solved"),
+        (4, "Failed")
     ]
     
     state = models.IntegerField(choices=STATE_CHOICE ,default=1)
