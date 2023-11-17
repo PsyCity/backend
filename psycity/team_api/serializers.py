@@ -462,6 +462,7 @@ class BankRobberyListSerializer(serializers.ModelSerializer):
         model = BankRobbery
         fields = [
             "robbery_id",
+            "state",
             "citizen_id",
             "citizen_name",
             "mafia_id",
