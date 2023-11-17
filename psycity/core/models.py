@@ -239,6 +239,7 @@ class EscapeRoom(BaseModel):
     no_valid_citizen = models.IntegerField()
     no_valid_police = models.IntegerField()
     no_valid_mafia = models.IntegerField()
+    solve_time = models.PositiveIntegerField(_("time to solve :min"))
     bank_deposit_box = models.ForeignKey("BankDepositBox",
                                          on_delete=models.DO_NOTHING,
                                          related_name='escape_room',
@@ -359,5 +360,4 @@ class BankRobbery(BaseModel):
         blank=True,
         null=True
         )
-    
     opening_time = models.DateTimeField(blank=True, null=True)
