@@ -486,9 +486,6 @@ class BankRobberyOpenDepositBoxSerializer(serializers.ModelSerializer):
     class Meta:
         model = BankRobbery
         fields = ["deposit_box"]
-
-    def deadline_validation(self, escape_room):
-        ...
     
     def validate_deposit_box(self, pk):
         try:
@@ -498,8 +495,21 @@ class BankRobberyOpenDepositBoxSerializer(serializers.ModelSerializer):
         return box
     
     def check_deposit_box(self, box:BankDepositBox):
-        
-        return box
+
+        if box.robbery_state:
+            raise exceptions.NotAcceptable("Money has been stolen from the box.")
+        if box.money == 0 :
+            raise exceptions.NotAcceptable("Empty box. try another one.")    
+    
+
+
+    def deadline_check(self):
+        solve_time = self.instance.escape_room.solve_time
+        if timezone.now() < (self.instance.opening_time + timedelta(minutes=solve_time)):
+            self.save(state=4)
+            raise exceptions.NotAcceptable("Expired escape room.")
+        return True
     
     def is_acceptable(self):
+        self.deadline_check()
         self.check_deposit_box(self.validated_data["deposit_box"])
