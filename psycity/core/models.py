@@ -361,3 +361,4 @@ class BankRobbery(BaseModel):
         null=True
         )
     opening_time = models.DateTimeField(blank=True, null=True)
+    robbery_amount = models.IntegerField(_("Amount of box money"), blank=True, null=True)
