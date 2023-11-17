@@ -2,7 +2,7 @@ from django.http import Http404
 from rest_framework.response import Response
 from rest_framework import exceptions, status
 from psycity.settings import DEBUG
-from core.models import Team
+from core.models import Team, BankDepositBox
 from drf_yasg import openapi
 from functools import wraps
 
@@ -143,3 +143,17 @@ def response(func):
                 status=status.HTTP_400_BAD_REQUEST
             )
     return wrapper
+
+
+def find_boxes(box: BankDepositBox) -> set:
+    
+    if parent:=box.parent_box:
+        boxes = list(parent.bankdispositbox_parent_box.all())
+        boxes.append(parent)
+    elif childs:=box.bankdispositbox_parent_box.all():
+        boxes = list(childs)
+        boxes.append(box)
+    else:
+        boxes = [box]
+
+    return set(boxes)
