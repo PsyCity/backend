@@ -506,7 +506,7 @@ class BankRobberyOpenDepositBoxSerializer(serializers.ModelSerializer):
 
     def deadline_check(self):
         solve_time = self.instance.escape_room.solve_time
-        if timezone.now() < (self.instance.opening_time + timedelta(minutes=solve_time)):
+        if timezone.now() > (self.instance.opening_time + timedelta(minutes=solve_time)):
             self.save(state=4)
             raise exceptions.NotAcceptable("Expired escape room.")
         return True
