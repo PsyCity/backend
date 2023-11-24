@@ -219,7 +219,7 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
 
         elif contract_type == "bank_rubbery_sponsorship":
             try:
-                citizen_team: Team = attrs.get("second_party_team")
+                citizen_team: Team = attrs.get("first_party_team")
 
             except:
                 raise exceptions.ValidationError("cant retrieve data.")
@@ -418,8 +418,7 @@ class BankRobberyWaySerializer(serializers.ModelSerializer):
             "contract"
         ] 
 
-    def validate_contract_id(self, id):
-        contract = Contract.objects.get(pk=id)
+    def validate_contract(self, contract):
         if contract.contract_type != "bank_rubbery_sponsorship":
             raise exceptions.ValidationError("Contract type is not bank_rubbery_sponsorship")
 
@@ -427,7 +426,8 @@ class BankRobberyWaySerializer(serializers.ModelSerializer):
             raise exceptions.ValidationError("Contract state is not valid.")
         if contract.archive:
             raise exceptions.NotAcceptable("Contract is Archived.")
-            
+        return contract
+    
     def validate_mafia(self, team:Team):
         if team.team_role != "Mafia":
             raise exceptions.ValidationError("Not a mafia team")
@@ -440,9 +440,9 @@ class BankRobberyWaySerializer(serializers.ModelSerializer):
         return super().validate(attrs)
         
     def validate_mafia_max_escape_room(self, mafia:Team):
-        try:
-            profile = mafia.team_feature.first()
-        except:
+        
+        profile = mafia.team_feature.first()
+        if not profile:
             profile = TeamFeature.objects.create(team=mafia)
             
         conf = ConstantConfig.objects.last()

@@ -435,10 +435,9 @@ class BankRobberyWayViewSet(
         instance.save()
  
     def add_to_mafia_efforts(self, mafia):
-        try:
-            profile = mafia.team_feature.first()
-        except:
-            profile = TeamFeature.objects.create(team=mafia)
+        
+        profile = mafia.team_feature.first()
+        
             
         profile.mafia_reserved_escape_room += 1
         profile.save()
