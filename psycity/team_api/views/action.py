@@ -476,7 +476,7 @@ class BankRobberyViewSet(
         serializers = self.get_serializer(queryset, many=True)
         return Response(
             data={
-                "message": "SOME bullshit.",
+                "message": "Team Bank Robberies",
                 "data": serializers.data,
                 "result": None
             }
