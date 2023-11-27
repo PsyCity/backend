@@ -553,7 +553,7 @@ class BankRobberyViewSet(
         boxes = self.perform_on_boxes(serializer, boxes)
         box = self.select_box(boxes, box)
         #box is a random box. kind of random
-        self.attach_box_and_room(box, serializer)
+        self.attach_box_and_room(box, serializer.instance.escape_room)
         self.transfer_money(serializer, box)
         self.sensor_report(boxes)
 
