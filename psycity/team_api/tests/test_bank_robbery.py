@@ -99,12 +99,13 @@ class Base(
             response.content
         )
 
-    def open_deposit_box(self, rob_id):
+    def open_deposit_box(self, rob_id, password=None):
         c = Client()
         response = c.post(
             path=f"/api/v1/team/action/bank_robbery/{rob_id}/deposit_box/",
             data={
-                "deposit_box": self.box.pk
+                "deposit_box": self.box.pk,
+                "password": password or self.box.password
             }
         )
         self.assertEqual(
