@@ -484,9 +484,15 @@ class BankRobberyOpenSerializer(serializers.ModelSerializer):
     
 class BankRobberyOpenDepositBoxSerializer(serializers.ModelSerializer):
     deposit_box = serializers.IntegerField()
+    password    = serializers.IntegerField()
+
     class Meta:
         model = BankRobbery
-        fields = ["deposit_box"]
+        fields = [
+            "deposit_box",
+            "password"
+            ]
+    
     
     def validate_deposit_box(self, pk):
         try:
@@ -495,6 +501,7 @@ class BankRobberyOpenDepositBoxSerializer(serializers.ModelSerializer):
             raise exceptions.NotFound("Box not found.")
         return box
     
+    
     def check_deposit_box(self, box:BankDepositBox):
 
         if box.robbery_state:
@@ -502,6 +509,12 @@ class BankRobberyOpenDepositBoxSerializer(serializers.ModelSerializer):
         if box.money == 0 :
             raise exceptions.NotAcceptable("Empty box. try another one.")    
     
+
+
+    def check_password(self, password):
+        if password != self.validated_data["deposit_box"].password:
+            raise exceptions.NotAcceptable("Password Not match")
+        
 
 
     def deadline_check(self):
@@ -514,3 +527,4 @@ class BankRobberyOpenDepositBoxSerializer(serializers.ModelSerializer):
     def is_acceptable(self):
         self.deadline_check()
         self.check_deposit_box(self.validated_data["deposit_box"])
+        self.check_password(self.validated_data["password"])
