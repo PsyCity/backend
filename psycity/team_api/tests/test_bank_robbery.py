@@ -155,6 +155,31 @@ class TestBankRobbery(Base):
         rob_id = self.list()
         self.open_escape_room(rob_id)
         self.open_deposit_box(rob_id)
+        self.check_db(rob_id)
+
+    def check_db(self, rob_id):
+        robbery = BankRobbery.objects.get(
+            pk=rob_id
+        )
+
+        escape_room = EscapeRoom.objects.get(pk=self.escape_room.pk)
+        depo = BankDepositBox.objects.get(pk=self.box.pk)
+
+        self.assertEqual(
+            escape_room,
+            robbery.escape_room ,
+            "EscapeRoom, DB"
+        )
+        self.assertEqual(
+            escape_room.state,
+            1,
+            escape_room.state
+        )
+        self.assertEqual(
+            escape_room.bank_deposit_box,
+            depo,
+            "Bank"            
+        )
 
     def test_list(self):
         ...
