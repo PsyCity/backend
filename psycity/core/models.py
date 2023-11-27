@@ -239,6 +239,7 @@ class EscapeRoom(BaseModel):
     no_valid_citizen = models.IntegerField()
     no_valid_police = models.IntegerField()
     no_valid_mafia = models.IntegerField()
+    solve_time = models.PositiveIntegerField(_("time to solve :min"))
     bank_deposit_box = models.ForeignKey("BankDepositBox",
                                          on_delete=models.DO_NOTHING,
                                          related_name='escape_room',
@@ -325,7 +326,8 @@ class BankRobbery(BaseModel):
     STATE_CHOICE=[
         (1, "Created"),
         (2, "Used"),
-        (3, "Solved")
+        (3, "Solved"),
+        (4, "Failed")
     ]
     
     state = models.IntegerField(choices=STATE_CHOICE ,default=1)
@@ -358,4 +360,5 @@ class BankRobbery(BaseModel):
         blank=True,
         null=True
         )
-    
+    opening_time = models.DateTimeField(blank=True, null=True)
+    robbery_amount = models.IntegerField(_("Amount of box money"), blank=True, null=True)

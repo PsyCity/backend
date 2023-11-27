@@ -15,6 +15,7 @@ from team_api.serializers import (
     BankRobberyWaySerializer,
     BankRobberyListSerializer,
     BankRobberyOpenSerializer,
+    BankRobberyOpenDepositBoxSerializer,
     serializers
 )
 
@@ -29,7 +30,7 @@ from core.models import (
     Team
 )
 
-from team_api.utils import transfer_money, response, ListModelMixin
+from team_api.utils import transfer_money, response, ListModelMixin, find_boxes
 from team_api.schema import deposit_list_schema, bank_robbery_list_schema
 
 import random
@@ -434,10 +435,9 @@ class BankRobberyWayViewSet(
         instance.save()
  
     def add_to_mafia_efforts(self, mafia):
-        try:
-            profile = mafia.team_feature.first()
-        except:
-            profile = TeamFeature.objects.create(team=mafia)
+        
+        profile = mafia.team_feature.first()
+        
             
         profile.mafia_reserved_escape_room += 1
         profile.save()
@@ -456,6 +456,8 @@ class BankRobberyViewSet(
             return BankRobberyListSerializer
         elif self.action == "open_escape_room":
             return BankRobberyOpenSerializer
+        elif self.action == "open_deposit_box":
+            return BankRobberyOpenDepositBoxSerializer
         return serializers.Serializer
 
         
@@ -474,7 +476,7 @@ class BankRobberyViewSet(
         serializers = self.get_serializer(queryset, many=True)
         return Response(
             data={
-                "message": "SOME bullshit.",
+                "message": "Team Bank Robberies",
                 "data": serializers.data,
                 "result": None
             }
@@ -515,5 +517,100 @@ class BankRobberyViewSet(
     
     def perform_update(self, serializer):
         serializer.save(
-            state=2
+            state=2,
+            opening_time=timezone.now()
         )
+
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="deposit_box"
+    )
+    @response
+    def open_deposit_box(self, request, bpk=None, *args, **kwargs):
+        instance: BankRobbery = self.get_object()
+        
+        serializer = self.get_serializer(
+            instance,
+            data=request.data
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.is_acceptable()
+        self.perform_open_box(serializer)
+        return Response(
+            data={
+                "message": "Box Opened successfully.",
+                "data" : [],
+                "result": None
+            }
+        )
+
+
+    def perform_open_box(self, serializer):
+        box = serializer.validated_data["deposit_box"]
+        #box is selected box
+        boxes = find_boxes(box)
+        boxes = self.perform_on_boxes(serializer, boxes)
+        box = self.select_box(boxes, box)
+        #box is a random box. kind of random
+        self.attach_box_and_room(box, serializer.instance.escape_room)
+        self.transfer_money(serializer, box)
+        self.sensor_report(boxes)
+
+
+    def perform_on_boxes(self, serializer, boxes):
+        """do any perform on all boxes together"""
+        mafia :Team = serializer.instance.mafia
+
+        for b in boxes:
+            b.robbery_state = True
+            b.rubbery_team = mafia
+            b.save()
+        return boxes
+
+    def select_box(self, boxes, box):
+        """
+        select a box with no sensor if available 
+        """
+        sensor_not_installed = list(filter(lambda b: not b.sensor_state, boxes))
+        if sensor_not_installed:
+            box = random.choices(sensor_not_installed)[0]
+        return box
+
+
+    def sensor_report(self, boxes):
+        """NOTICE : this one needs API from Client side"""
+        ...
+
+
+    def attach_box_and_room(self,
+                            box:BankDepositBox,
+                            room:EscapeRoom
+                            ): 
+        room.bank_deposit_box = box
+        room.state = 1
+        room.save()
+
+
+    def transfer_money(self, serializer, box):
+        """
+        transfer money to citizen and pay the contract
+        """
+
+        robbery: BankRobbery = serializer.instance
+        citizen :Team = robbery.citizen
+        contract:Contract = robbery.contract
+        mafia: Team = robbery.mafia
+
+        citizen.wallet += box.money
+        robbery.robbery_amount = box.money
+        box.money = 0
+        mafia.wallet += contract.cost
+        contract.state = 3
+        contract.archive = True
+
+        robbery.save()
+        citizen.save()
+        contract.save()
+        box.save()
+        mafia.save()

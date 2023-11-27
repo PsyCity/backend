@@ -219,7 +219,7 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
 
         elif contract_type == "bank_rubbery_sponsorship":
             try:
-                citizen_team: Team = attrs.get("second_party_team")
+                citizen_team: Team = attrs.get("first_party_team")
 
             except:
                 raise exceptions.ValidationError("cant retrieve data.")
@@ -418,8 +418,7 @@ class BankRobberyWaySerializer(serializers.ModelSerializer):
             "contract"
         ] 
 
-    def validate_contract_id(self, id):
-        contract = Contract.objects.get(pk=id)
+    def validate_contract(self, contract):
         if contract.contract_type != "bank_rubbery_sponsorship":
             raise exceptions.ValidationError("Contract type is not bank_rubbery_sponsorship")
 
@@ -427,7 +426,8 @@ class BankRobberyWaySerializer(serializers.ModelSerializer):
             raise exceptions.ValidationError("Contract state is not valid.")
         if contract.archive:
             raise exceptions.NotAcceptable("Contract is Archived.")
-            
+        return contract
+    
     def validate_mafia(self, team:Team):
         if team.team_role != "Mafia":
             raise exceptions.ValidationError("Not a mafia team")
@@ -440,9 +440,9 @@ class BankRobberyWaySerializer(serializers.ModelSerializer):
         return super().validate(attrs)
         
     def validate_mafia_max_escape_room(self, mafia:Team):
-        try:
-            profile = mafia.team_feature.first()
-        except:
+        
+        profile = mafia.team_feature.first()
+        if not profile:
             profile = TeamFeature.objects.create(team=mafia)
             
         conf = ConstantConfig.objects.last()
@@ -460,9 +460,9 @@ class BankRobberyListSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = BankRobbery
-        # fields = "__all__" #for test
         fields = [
             "robbery_id",
+            "state",
             "citizen_id",
             "citizen_name",
             "mafia_id",
@@ -481,3 +481,50 @@ class BankRobberyOpenSerializer(serializers.ModelSerializer):
         if self.instance.state != 1:
             raise exceptions.NotAcceptable(f"BankRobbery is on state {self.instance.state}")
         return super().validate(attrs)
+    
+class BankRobberyOpenDepositBoxSerializer(serializers.ModelSerializer):
+    deposit_box = serializers.IntegerField()
+    password    = serializers.IntegerField()
+
+    class Meta:
+        model = BankRobbery
+        fields = [
+            "deposit_box",
+            "password"
+            ]
+    
+    
+    def validate_deposit_box(self, pk):
+        try:
+            box = BankDepositBox.objects.get(pk=pk)
+        except:
+            raise exceptions.NotFound("Box not found.")
+        return box
+    
+    
+    def check_deposit_box(self, box:BankDepositBox):
+
+        if box.robbery_state:
+            raise exceptions.NotAcceptable("Money has been stolen from the box.")
+        if box.money == 0 :
+            raise exceptions.NotAcceptable("Empty box. try another one.")    
+    
+
+
+    def check_password(self, password):
+        if password != self.validated_data["deposit_box"].password:
+            raise exceptions.NotAcceptable("Password Not match")
+        
+
+
+    def deadline_check(self):
+        solve_time = self.instance.escape_room.solve_time
+        if timezone.now() > (self.instance.opening_time + timedelta(minutes=solve_time)):
+            self.save(state=4)
+            raise exceptions.NotAcceptable("Expired escape room.")
+        return True
+    
+    def is_acceptable(self):
+        self.deadline_check()
+        self.check_deposit_box(self.validated_data["deposit_box"])
+        self.check_password(self.validated_data["password"])

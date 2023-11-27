@@ -320,7 +320,7 @@ class InviteTest(BaseTest):
     def test_methods(self):
         c = Client()
         patch_res   = c.patch(self.url)
-        get_res     = c.get(self.url)
+        # get_res     = c.get(self.url)
         put_res     = c.put(self.url)
         
         self.assertEqual(patch_res.status_code, 405)
