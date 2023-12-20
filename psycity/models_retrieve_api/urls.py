@@ -22,6 +22,9 @@ router.register(prefix="players",
                 viewset=views.PlayerViewSet,
                 basename="players"
                 )
+router.register(prefix="warehouse_boxes",
+                viewset=views.WarehouseViewSet
+                )
 
 urlpatterns = [
     path("", include(router.urls))

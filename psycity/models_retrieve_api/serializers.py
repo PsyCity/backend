@@ -4,6 +4,8 @@ from core.models import (
     Team,
     Question,
     Contract,
+    WarehouseBox,
+    WarehouseQuestions,
     Player,
 )
 class TeamListSerializer(ModelSerializer):
@@ -108,3 +110,31 @@ class PlayerRetrieveSerializer(ModelSerializer):
     class Meta:
         model = Player
         fields = "__all__"
+
+
+class WarehouseBoxListSerializer(
+    ModelSerializer
+    ):
+
+    class Meta:
+        model = WarehouseBox
+        fields = "id", "is_lock" 
+
+class WarehouseQuestionSerializer(
+    ModelSerializer
+    ):
+    class Meta:
+        model   = WarehouseQuestions
+        fields  = "text",
+
+class WarehouseBoxRetrieveSerializer(
+    ModelSerializer
+    ):
+    question = WarehouseQuestionSerializer()
+    class Meta:
+        model   = WarehouseBox
+        fields  = (
+            "id",
+            "is_lock",
+            "question"
+        )
