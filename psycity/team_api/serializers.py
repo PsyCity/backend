@@ -528,3 +528,6 @@ class BankRobberyOpenDepositBoxSerializer(serializers.ModelSerializer):
         self.deadline_check()
         self.check_deposit_box(self.validated_data["deposit_box"])
         self.check_password(self.validated_data["password"])
+
+class DepositBoxRobberySerializer(serializers.Serializer):
+    answer = serializers.CharField()
