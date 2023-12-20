@@ -15,13 +15,30 @@ class BaseModel(models.Model):
 
 
 class WarehouseBox(BaseModel):
+    
     is_lock = models.BooleanField(default=True)
-    unlocker = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='warehouse_box_unlocker')
+    unlocker = models.ForeignKey("Player",
+                                 on_delete=models.CASCADE,
+                                 related_name='warehouse_box_unlocker',
+                                 blank=True,
+                                 null=True
+                                 )
+    
     sensor_state = models.BooleanField(default=False)
-    sensor_hacker = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='warehouse_box_sensor_hacker')
+    sensor_hacker = models.ForeignKey("Player",
+                                      on_delete=models.CASCADE,
+                                      related_name='warehouse_box_sensor_hacker',
+                                      blank=True,
+                                      null=True
+                                      )
     expiration_date = models.DateTimeField(auto_now_add=False)
-    question = models.ForeignKey("Question", on_delete=models.CASCADE, related_name='warehouse_box_question')
-    money = models.PositiveIntegerField()
+
+    question = models.ForeignKey("WarehouseQuestions",
+                                 on_delete=models.CASCADE,
+                                 related_name='warehouse_box_question'
+                                 )
+    
+    money = models.PositiveIntegerField(default=0)
 
 class BankDepositBox(BaseModel):
     SENSOR_STATE_CHOICE = [
@@ -362,3 +379,9 @@ class BankRobbery(BaseModel):
         )
     opening_time = models.DateTimeField(blank=True, null=True)
     robbery_amount = models.IntegerField(_("Amount of box money"), blank=True, null=True)
+
+
+
+
+class WarehouseQuestions(BaseModel):
+    text = models.TextField(_("Question text"))
