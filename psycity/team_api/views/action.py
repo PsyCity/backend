@@ -16,6 +16,7 @@ from team_api.serializers import (
     BankRobberyListSerializer,
     BankRobberyOpenSerializer,
     BankRobberyOpenDepositBoxSerializer,
+    DepositBoxRobberySerializer,
     serializers
 )
 
@@ -614,3 +615,59 @@ class BankRobberyViewSet(
         contract.save()
         box.save()
         mafia.save()
+
+class WarehouseDepositBoxRobberyViewSet(
+    GenericViewSet
+    ):
+
+    serializer_class = DepositBoxRobberySerializer
+
+    @action(
+            methods=["POST"],
+            detail=True
+    )
+    def solve(
+        self,
+        request,
+        *args, **kwargs
+    ):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        result_of_answer = self.check_answer(serializer)
+        if result_of_answer:
+            self.right_answer()
+            return Response(
+                data={
+                    "message": "Successfully Answered!",
+                    "data": [],
+                    "result": None
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        else:
+            self.wrong_answer()
+            return Response(
+                data={
+                    "message": "Wrong answer :(",
+                    "data" : [],
+                    "result": None
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+    def check_answer(self,
+                     serializer: DepositBoxRobberySerializer
+                     )-> bool:
+        #TODO: Check the answer
+        return True
+    
+    def right_answer(self) -> None:
+        #TODO: performs in case of right answer
+        #Call api
+        ...
+    
+    def wrong_answer(self) -> None:
+        #TODO: performs on wrong answer
+        ...
