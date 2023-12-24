@@ -299,7 +299,7 @@ class InviteTest(BaseTest):
 
         self.assertEqual(
             res.status_code,
-            404,
+            400,
             res.content)
 
 
@@ -311,7 +311,7 @@ class InviteTest(BaseTest):
 
         self.assertEqual(
             res.status_code,
-            404,
+            400,
             res.content
         )
 
