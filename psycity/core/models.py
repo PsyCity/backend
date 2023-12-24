@@ -15,8 +15,17 @@ class BaseModel(models.Model):
 
 
 class WarehouseBox(BaseModel):
-    
-    is_lock = models.BooleanField(default=True)
+    BOX_STATUS = (
+        (0, "Lock"),
+        (1, "Robbed"),
+        (2, "Empty by citizen")
+    )
+    lock_state = models.IntegerField(_("Lock State"),
+                                     choices=BOX_STATUS,
+                                     default=0)
+
+    sensor_state = models.BooleanField(default=False)
+
     unlocker = models.ForeignKey("Player",
                                  on_delete=models.CASCADE,
                                  related_name='warehouse_box_unlocker',
@@ -24,7 +33,6 @@ class WarehouseBox(BaseModel):
                                  null=True
                                  )
     
-    sensor_state = models.BooleanField(default=False)
     sensor_hacker = models.ForeignKey("Player",
                                       on_delete=models.CASCADE,
                                       related_name='warehouse_box_sensor_hacker',
@@ -33,12 +41,25 @@ class WarehouseBox(BaseModel):
                                       )
     expiration_date = models.DateTimeField(auto_now_add=False)
 
-    question = models.ForeignKey("WarehouseQuestions",
+    lock_question = models.ForeignKey("WarehouseQuestions",
                                  on_delete=models.CASCADE,
-                                 related_name='warehouse_box_question'
+                                 related_name='warehouse_box_question',
+                                 null=True
                                  )
-    
+    box_question    = models.ForeignKey("Question",
+                                        verbose_name=_("question inside the box"),
+                                        on_delete=models.CASCADE
+                                        )
+       
     money = models.PositiveIntegerField(default=0)
+    
+    @property
+    def is_lock(self):
+        return self.lock_state==0
+    
+    @property
+    def worth(self):
+        return self.box_question.price + self.money
 
 class BankDepositBox(BaseModel):
     SENSOR_STATE_CHOICE = [
@@ -384,4 +405,5 @@ class BankRobbery(BaseModel):
 
 
 class WarehouseQuestions(BaseModel):
-    text = models.TextField(_("Question text"))
+    text    = models.TextField(_("Question text"))
+    answer  = models.TextField(_("Question answer")) 
