@@ -35,5 +35,6 @@ jobs:
 
     - name: Run Tests
       run: |
+        cd psycity
         python manage.py test
 
