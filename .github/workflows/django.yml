@@ -27,4 +27,8 @@ jobs:
         pip install -r requirements.txt
     - name: Run Tests
       run: |
+        mv psycity/psycity/settings.py.sample psycity/psycity/settings.py
+        python psycity/manage.py makemigrations
+        python psycity/manage.py migrate
         python psycity/manage.py test
+
