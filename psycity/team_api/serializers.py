@@ -379,6 +379,7 @@ class LoanSerializer(serializers.Serializer):
         conf = ConstantConfig.objects.last()
         if not team.last_bank_action:
             return
+          
         t = team.last_bank_action + timedelta(minutes=conf.team_bank_transaction_cooldown)
         if timezone.now() < t:
             raise exceptions.NotAcceptable("cooldown has not passed.")
