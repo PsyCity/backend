@@ -130,11 +130,11 @@ class WarehouseQuestionSerializer(
 class WarehouseBoxRetrieveSerializer(
     ModelSerializer
     ):
-    question = WarehouseQuestionSerializer()
+    lock_question = WarehouseQuestionSerializer()
     class Meta:
         model   = WarehouseBox
         fields  = (
             "id",
             "is_lock",
-            "question"
+            "lock_question"
         )
