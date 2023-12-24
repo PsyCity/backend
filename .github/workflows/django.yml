@@ -28,7 +28,8 @@ jobs:
     - name: Run Tests
       run: |
         mv psycity/psycity/settings.py.sample psycity/psycity/settings.py
-        python psycity/manage.py makemigrations
-        python psycity/manage.py migrate
-        python psycity/manage.py test
+        cd psycity
+        python manage.py makemigrations
+        python manage.py migrate
+        python manage.py test
 
