@@ -15,6 +15,7 @@ from core.models import (
     EscapeRoom,
     Contract,
     BankRobbery,
+    WarehouseBox
 )
 from team_api.utils import cost_validation
 from datetime import timedelta
@@ -355,8 +356,6 @@ class LoanSerializer(serializers.Serializer):
     team = serializers.IntegerField()
     amount = serializers.IntegerField()
 
-    __conf = ConstantConfig.objects.last()
-
 
 
     def validate_amount(self, amount):
@@ -380,14 +379,15 @@ class LoanSerializer(serializers.Serializer):
     def bank_cooldown_validation(self, team):
         if not team.last_bank_action:
             return
-
-        t = team.last_bank_action + timedelta(minutes=self.__conf.team_bank_transaction_cooldown)
+        conf = ConstantConfig.objects.last()
+        t = team.last_bank_action + timedelta(minutes=conf.team_bank_transaction_cooldown)
         if timezone.now() < t:
             raise exceptions.NotAcceptable("cooldown has not passed.")
 
 
     def max_team_loan_amount_validation(self, amount, team:Team):
-        max_amount = team.bank * self.__conf.team_loan_percent_max
+        conf = ConstantConfig.objects.last()
+        max_amount = team.bank * conf.team_loan_percent_max
         team.max_bank_loan = max_amount
         team.save()
         if amount > max_amount:
@@ -529,5 +529,20 @@ class BankRobberyOpenDepositBoxSerializer(serializers.ModelSerializer):
         self.check_deposit_box(self.validated_data["deposit_box"])
         self.check_password(self.validated_data["password"])
 
-class DepositBoxRobberySerializer(serializers.Serializer):
-    answer = serializers.CharField()
+class DepositBoxSolveSerializer(serializers.ModelSerializer):
+    answer  = serializers.CharField()
+    team    = serializers.IntegerField()
+    class Meta:
+        model   = WarehouseBox
+        fields  = "answer", "team_id"
+
+    def validate(self, attrs):
+        if not self.instance.is_lock:
+            raise exceptions.NotAcceptable(
+                "The box is empty!"
+            )
+        return super().validate(attrs)
+    
+    def validate_team(self, pk):
+        team = Team.objects.get(pk=pk)
+        return team
