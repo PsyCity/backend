@@ -357,7 +357,6 @@ class LoanSerializer(serializers.Serializer):
     amount = serializers.IntegerField()
 
 
-
     def validate_amount(self, amount):
         self.positive_amount(amount)
         return amount
@@ -377,9 +376,9 @@ class LoanSerializer(serializers.Serializer):
     
 
     def bank_cooldown_validation(self, team):
+        conf = ConstantConfig.objects.last()
         if not team.last_bank_action:
             return
-        conf = ConstantConfig.objects.last()
         t = team.last_bank_action + timedelta(minutes=conf.team_bank_transaction_cooldown)
         if timezone.now() < t:
             raise exceptions.NotAcceptable("cooldown has not passed.")
