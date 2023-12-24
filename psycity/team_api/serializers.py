@@ -534,7 +534,7 @@ class DepositBoxSolveSerializer(serializers.ModelSerializer):
     team    = serializers.IntegerField()
     class Meta:
         model   = WarehouseBox
-        fields  = "answer", "team_id"
+        fields  = "answer", "team"
 
     def validate(self, attrs):
         if not self.instance.is_lock:
