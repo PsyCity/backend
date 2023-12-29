@@ -19,7 +19,7 @@ from core.models import (
 )
 from team_api.utils import cost_validation
 from datetime import timedelta
-
+from abc import ABC, abstractmethod
 
 class TeamMemberSerializer(serializers.Serializer):
     todo        = serializers.ChoiceField(["add","delete"],
@@ -536,6 +536,16 @@ class DepositBoxSolveSerializer(serializers.ModelSerializer):
         model   = WarehouseBox
         fields  = "answer", "team"
 
+    @abstractmethod
+    def validate(self, attrs):
+        return attrs
+
+    @abstractmethod
+    def validate_team(self, pk):
+        ...
+class DepositBoxRobberySerializer(DepositBoxSolveSerializer):
+    
+    
     def validate(self, attrs):
         if not self.instance.is_lock:
             raise exceptions.NotAcceptable(
@@ -544,5 +554,19 @@ class DepositBoxSolveSerializer(serializers.ModelSerializer):
         return super().validate(attrs)
     
     def validate_team(self, pk):
-        team = Team.objects.get(pk=pk)
+        team = Team.objects.get(pk=pk)  #TODO: team is mafia
         return team
+    
+class DepositBoxHackSerializer(DepositBoxSolveSerializer):
+
+    def validate(self, attrs):
+        if not (self.instance.lock_state == 1):
+            raise exceptions.NotAcceptable(
+                "Oops!, not a valid box."
+            )
+        return super().validate(attrs)
+    
+    def validate_team(self, pk):
+        team = Team.objects.get(pk=pk)  #TODO: team is Police
+        return team
+    
