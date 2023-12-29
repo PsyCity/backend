@@ -33,7 +33,7 @@ class WarehouseBox(BaseModel):
                                  null=True
                                  )
     
-    sensor_hacker = models.ForeignKey("Player",
+    sensor_hacker = models.ForeignKey("Team",
                                       on_delete=models.CASCADE,
                                       related_name='warehouse_box_sensor_hacker',
                                       blank=True,
