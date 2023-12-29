@@ -691,17 +691,17 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
     def right_answer(self, serializer: DepositBoxRobberySerializer) -> None:
         #transfer money and question to team
         #check sensor
-        # if sensor -> do this
-        #else ->this
         serializer.save(
-            lock_state=1
+            lock_state=1,
         )
         box: WarehouseBox = serializer.instance
+        box.unlocker = serializer.validated_data["team"]
+        box.save()
         team: Team = serializer.validated_data["team"]
         team.wallet += box.money
         team.save()
-        #TODO: set them as unlocker
-        #TODO: transfer question
+        box.box_question.last_owner = team
+        box.box_question.save()
         
         if box.sensor_state:
             self.take_back_some_money(team=team, serializer=serializer)
@@ -744,14 +744,27 @@ class WarehouseDepositBoxHackViewSet(WarehouseDepositBoxBaseViewSet):
 
     def right_answer(self, serializer: DepositBoxRobberySerializer) -> None:
         box: WarehouseBox = serializer.instance
-        if box.sensor_state:
-            ...
-        else:
-            # well done
-            # team = hacker
+        if not box.is_lock:
             self.operations_on_mafia(serializer)
+            self.operations_on_police(serializer)
+            # well done
+            
+        self.operations_on_box(serializer)
 
-    def operations_on_mafia(self, serializer)-> None:
+    def operations_on_box(self, serializer)-> None:
+        box : WarehouseBox = serializer.instance
+        box.sensor_state = True
+        box.sensor_hacker = serializer.validated_data["team"]
+        box.save()
+
+    def operations_on_police(self, serializer):
+        box : WarehouseBox = serializer.instance
+        police :Team = serializer.validated_data["team"]
+        conf = ConstantConfig.objects.last()
+        bonus = box.worth * conf.bonus_percent //100
+        police.wallet += bonus
+        police.save()
+    def operations_on_mafia(self, serializer):
         conf = ConstantConfig.objects.last()
         box : WarehouseBox = serializer.instance
         mafia : Team = box.unlocker
@@ -763,6 +776,7 @@ class WarehouseDepositBoxHackViewSet(WarehouseDepositBoxBaseViewSet):
             mafia.bank_liabilities += mafia.wallet * (-1)
             mafia.wallet = 0
         mafia.save()
+
 
     def call_API(self, sensor):
         #TODO 
