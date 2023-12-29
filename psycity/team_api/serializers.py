@@ -560,9 +560,13 @@ class DepositBoxRobberySerializer(DepositBoxSolveSerializer):
 class DepositBoxHackSerializer(DepositBoxSolveSerializer):
 
     def validate(self, attrs):
-        if not (self.instance.lock_state == 1):
+        if self.instance.lock_state == 2:
             raise exceptions.NotAcceptable(
                 "Oops!, not a valid box."
+            )
+        if self.instance.sensor_state:
+            raise exceptions.NotAcceptable(
+                "Already hacked"
             )
         return super().validate(attrs)
     
