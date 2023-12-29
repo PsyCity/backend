@@ -29,7 +29,7 @@ jobs:
     - name: Migrate
       run: |
         cp psycity/psycity/settings.py.sample psycity/psycity/base_settings.py
-        echo "from base_settings import *\n\n" > psycity/psycity/settings.py
+        echo "from base_settings import *" > psycity/psycity/settings.py
         cat psycity/psycity/sqlite.py.sample >> psycity/psycity/settings.py
         cd psycity
         python manage.py makemigrations
