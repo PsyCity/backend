@@ -26,7 +26,7 @@ class WarehouseBox(BaseModel):
 
     sensor_state = models.BooleanField(default=False)
 
-    unlocker = models.ForeignKey("Player",
+    unlocker = models.ForeignKey("Team",
                                  on_delete=models.CASCADE,
                                  related_name='warehouse_box_unlocker',
                                  blank=True,
