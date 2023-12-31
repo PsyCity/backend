@@ -691,11 +691,10 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
     def right_answer(self, serializer: DepositBoxRobberySerializer) -> None:
         #transfer money and question to team
         #check sensor
-        serializer.save(
-            lock_state=1,
-        )
+
         box: WarehouseBox = serializer.instance
         box.unlocker = serializer.validated_data["team"]
+        box.lock_state = 1
         box.save()
         team: Team = serializer.validated_data["team"]
         team.wallet += box.money
@@ -739,7 +738,7 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
 class WarehouseDepositBoxHackViewSet(WarehouseDepositBoxBaseViewSet):
 
     serializer_class = DepositBoxHackSerializer
-    queryset = WarehouseBox.objects.filter(lock_state=1).all() 
+    queryset = WarehouseBox.objects.all() 
 
 
     def right_answer(self, serializer: DepositBoxRobberySerializer) -> None:
@@ -764,6 +763,7 @@ class WarehouseDepositBoxHackViewSet(WarehouseDepositBoxBaseViewSet):
         bonus = box.worth * conf.bonus_percent //100
         police.wallet += bonus
         police.save()
+
     def operations_on_mafia(self, serializer):
         conf = ConstantConfig.objects.last()
         box : WarehouseBox = serializer.instance
