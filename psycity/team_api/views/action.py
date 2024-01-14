@@ -16,6 +16,7 @@ from team_api.serializers import (
     BankRobberyListSerializer,
     BankRobberyOpenSerializer,
     BankRobberyOpenDepositBoxSerializer,
+    BankSensorInstallWaySerializer,
     serializers
 )
 
@@ -614,3 +615,39 @@ class BankRobberyViewSet(
         contract.save()
         box.save()
         mafia.save()
+
+
+
+class BankSensorInstallWay(
+    GenericViewSet,
+    mixins.CreateModelMixin
+):
+    serializer_class = BankSensorInstallWaySerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.is_acceptable()
+        room = self.choose_room()
+        self.perform_create(serializer, room)
+
+        return Response(
+            data={
+                "message":"",
+                "data": [],
+                "result": serializer.instance.pk
+            },
+            status=status.HTTP_201_CREATED
+            )
+
+    def perform_create(self, serializer, room):
+        self.perform_on_team()
+        self.perform_on_room(room)
+        return super().perform_create(serializer)
+
+    def perform_on_team(self):
+        #TODO
+        ...
+    
+    def perform_on_room(self, room):...
+        #TODO
