@@ -362,3 +362,14 @@ class BankRobbery(BaseModel):
         )
     opening_time = models.DateTimeField(blank=True, null=True)
     robbery_amount = models.IntegerField(_("Amount of box money"), blank=True, null=True)
+
+
+class BankSensorInstall(models.Model):
+
+    contract    = models.ForeignKey("Contract", on_delete=models.DO_NOTHING)
+    citizen     = models.ForeignKey("Team", on_delete=models.DO_NOTHING)
+    
+    class Meta:
+        verbose_name = _("bank sensor install request")
+        verbose_name_plural = _("bank sensor install requests")
+
