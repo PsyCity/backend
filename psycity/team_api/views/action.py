@@ -640,14 +640,28 @@ class BankSensorInstallWay(
             status=status.HTTP_201_CREATED
             )
 
-    def perform_create(self, serializer, room):
-        self.perform_on_team()
-        self.perform_on_room(room)
-        return super().perform_create(serializer)
+    def choose_room(self) -> EscapeRoom :
+        escape_rooms = EscapeRoom.objects.filter(state=0).all()
 
-    def perform_on_team(self):
-        #TODO
-        ...
+        if not escape_rooms:
+            raise exceptions.APIException("Lack off escape room.")
+
+        #filter rooms to make sure 
+        #check no_valid_citizen
+        room = random.choice(escape_rooms)
+        room.no_valid_citizen -= 1
+        room.save()
+        return room
     
-    def perform_on_room(self, room):...
-        #TODO
+    def perform_create(self, serializer, room):
+        self.perform_on_team(serializer)
+        serializer.save(room=room)
+
+
+    def perform_on_team(self,
+                        serializer: BankSensorInstallWaySerializer
+                        ):
+        team : Team = serializer.validated_data["team"]
+        profile = team.team_feature.first()
+        profile.citizen_opened_night_escape_rooms += 1
+        profile.save()
