@@ -545,23 +545,14 @@ class BankSensorInstallWaySerializer(
 
     def is_valid(self, *, raise_exception=False):
         return super().is_valid(raise_exception=raise_exception)
-    
-    def is_acceptable(self):
-        self.check_room_usage_of_team()
-        self.check_contract_and_team()
 
     def validate_contract(self, contract):
-        #TODO
-        # contract = Contract.objects.get(pk=contract)
         if contract.contract_type != "bank_sensor_installation_sponsorship":
             raise exceptions.ValidationError("Not a valid type contract")
+        if BankSensorInstall.objects.filter(contract=contract).last():
+            raise exceptions.NotAcceptable("Contract used")
 
         return contract
-
-    def check_contract_and_team(self):
-        team : Team = self.validated_data["team"]
-        contract :Contract = self.validated_data["contract"]
-        assert contract.second_party_team == team
 
     def validate_team(self, team) ->Team:
         team = Team.objects.get(pk=team)
@@ -569,6 +560,15 @@ class BankSensorInstallWaySerializer(
             return team
         raise exceptions.ValidationError("Not Citizen!")
     
+    def is_acceptable(self):
+        self.check_room_usage_of_team()
+        self.check_contract_and_team()
+
+    def check_contract_and_team(self):
+        team : Team = self.validated_data["team"]
+        contract :Contract = self.validated_data["contract"]
+        if contract.second_party_team != team:
+            raise exceptions.NotAcceptable("OOPS!!, team is not contract's second_party_team ")
 
     def check_room_usage_of_team(self):
         citizen : Team= self.validated_data["team"]
@@ -588,7 +588,6 @@ class BankSensorInstallWaySerializer(
         kwargs["citizen"] = self.validated_data["team"]
         kwargs["contract"] = self.validated_data["contract"]
         self.instance = self.create(kwargs)
-        # print("\n[CHECK]\n")
         assert self.instance is not None, (
             '`create()` did not return an object instance.'
         )
