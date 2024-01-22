@@ -17,6 +17,7 @@ from team_api.serializers import (
     BankRobberyOpenSerializer,
     BankRobberyOpenDepositBoxSerializer,
     DepositBoxSolveSerializer,
+    BankSensorInstallWaySerializer,
     serializers
 )
 
@@ -720,3 +721,51 @@ class WarehouseDepositBoxRobberyViewSet(
         else:
             msg = "robbed"
         #TODO
+
+class BankSensorInstallWay(
+    GenericViewSet,
+    mixins.CreateModelMixin
+):
+    serializer_class = BankSensorInstallWaySerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.is_acceptable()
+        room = self.choose_room()
+        self.perform_create(serializer, room)
+
+        return Response(
+            data={
+                "message":"",
+                "data": [],
+                "result": serializer.instance.pk
+            },
+            status=status.HTTP_201_CREATED
+            )
+
+    def choose_room(self) -> EscapeRoom :
+        escape_rooms = EscapeRoom.objects.filter(state=0).all()
+
+        if not escape_rooms:
+            raise exceptions.APIException("Lack off escape room.")
+
+        #filter rooms to make sure 
+        #check no_valid_citizen
+        room = random.choice(escape_rooms)
+        room.no_valid_citizen -= 1
+        room.save()
+        return room
+    
+    def perform_create(self, serializer, room):
+        self.perform_on_team(serializer)
+        serializer.save(room=room)
+
+
+    def perform_on_team(self,
+                        serializer: BankSensorInstallWaySerializer
+                        ):
+        team : Team = serializer.validated_data["team"]
+        profile = team.team_feature.first()
+        profile.citizen_opened_night_escape_rooms += 1
+        profile.save()

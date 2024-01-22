@@ -15,7 +15,8 @@ from core.models import (
     EscapeRoom,
     Contract,
     BankRobbery,
-    WarehouseBox
+    WarehouseBox,
+    BankSensorInstall,
 )
 from team_api.utils import cost_validation
 from datetime import timedelta
@@ -228,7 +229,12 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
             cost_validation(attrs.get("cost"), citizen_team)
 
         elif contract_type == "bank_sensor_installation_sponsorship":
-            ...
+            try:
+                citizen_team :Team = attrs.get("first_party_team")
+            except:
+                raise exceptions.NotAcceptable("cant create!!")
+
+            cost_validation(attrs.get("cost"), citizen_team)
 
         elif contract_type == "bodyguard_for_the_homeless":
             raise exceptions.NotAcceptable("Not this endpoint")
@@ -238,7 +244,6 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
 
 
     def validate(self, attrs):
-
         self.contract_type_validation(attrs)
         return attrs
 
@@ -546,3 +551,64 @@ class DepositBoxSolveSerializer(serializers.ModelSerializer):
     def validate_team(self, pk):
         team = Team.objects.get(pk=pk)
         return team
+
+
+class BankSensorInstallWaySerializer(
+    serializers.ModelSerializer
+):
+    team = serializers.IntegerField()
+
+    class Meta:
+        model = BankSensorInstall
+        fields = "contract", "team"
+
+    def is_valid(self, *, raise_exception=False):
+        return super().is_valid(raise_exception=raise_exception)
+
+    def validate_contract(self, contract):
+        if contract.contract_type != "bank_sensor_installation_sponsorship":
+            raise exceptions.ValidationError("Not a valid type contract")
+        if BankSensorInstall.objects.filter(contract=contract).last():
+            raise exceptions.NotAcceptable("Contract used")
+
+        return contract
+
+    def validate_team(self, team) ->Team:
+        team = Team.objects.get(pk=team)
+        if team.team_role == "Citizen":
+            return team
+        raise exceptions.ValidationError("Not Citizen!")
+    
+    def is_acceptable(self):
+        self.check_room_usage_of_team()
+        self.check_contract_and_team()
+
+    def check_contract_and_team(self):
+        team : Team = self.validated_data["team"]
+        contract :Contract = self.validated_data["contract"]
+        if contract.second_party_team != team:
+            raise exceptions.NotAcceptable("OOPS!!, team is not contract's second_party_team ")
+
+    def check_room_usage_of_team(self):
+        citizen : Team= self.validated_data["team"]
+
+        profile = citizen.team_feature.first()
+        if not profile:
+            profile = TeamFeature.objects.create(team=citizen)
+            
+        conf = ConstantConfig.objects.last()
+
+        if not profile.citizen_opened_night_escape_rooms < conf.team_escape_room_max:
+            raise exceptions.NotAcceptable("team_escape_room limit")
+        
+
+    def save(self, **kwargs):
+
+        kwargs["citizen"] = self.validated_data["team"]
+        kwargs["contract"] = self.validated_data["contract"]
+        self.instance = self.create(kwargs)
+        assert self.instance is not None, (
+            '`create()` did not return an object instance.'
+        )
+        return self.instance
+
