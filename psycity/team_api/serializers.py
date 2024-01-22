@@ -15,6 +15,7 @@ from core.models import (
     EscapeRoom,
     Contract,
     BankRobbery,
+    WarehouseBox,
     BankSensorInstall,
 )
 from team_api.utils import cost_validation
@@ -383,7 +384,7 @@ class LoanSerializer(serializers.Serializer):
         conf = ConstantConfig.objects.last()
         if not team.last_bank_action:
             return
-
+          
         t = team.last_bank_action + timedelta(minutes=conf.team_bank_transaction_cooldown)
         if timezone.now() < t:
             raise exceptions.NotAcceptable("cooldown has not passed.")
@@ -532,6 +533,24 @@ class BankRobberyOpenDepositBoxSerializer(serializers.ModelSerializer):
         self.deadline_check()
         self.check_deposit_box(self.validated_data["deposit_box"])
         self.check_password(self.validated_data["password"])
+
+class DepositBoxSolveSerializer(serializers.ModelSerializer):
+    answer  = serializers.CharField()
+    team    = serializers.IntegerField()
+    class Meta:
+        model   = WarehouseBox
+        fields  = "answer", "team"
+
+    def validate(self, attrs):
+        if not self.instance.is_lock:
+            raise exceptions.NotAcceptable(
+                "The box is empty!"
+            )
+        return super().validate(attrs)
+    
+    def validate_team(self, pk):
+        team = Team.objects.get(pk=pk)
+        return team
 
 
 class BankSensorInstallWaySerializer(

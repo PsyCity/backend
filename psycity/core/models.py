@@ -15,13 +15,51 @@ class BaseModel(models.Model):
 
 
 class WarehouseBox(BaseModel):
-    is_lock = models.BooleanField(default=True)
-    unlocker = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='warehouse_box_unlocker')
+    BOX_STATUS = (
+        (0, "Lock"),
+        (1, "Robbed"),
+        (2, "Empty by citizen")
+    )
+    lock_state = models.IntegerField(_("Lock State"),
+                                     choices=BOX_STATUS,
+                                     default=0)
+
     sensor_state = models.BooleanField(default=False)
-    sensor_hacker = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='warehouse_box_sensor_hacker')
+
+    unlocker = models.ForeignKey("Player",
+                                 on_delete=models.CASCADE,
+                                 related_name='warehouse_box_unlocker',
+                                 blank=True,
+                                 null=True
+                                 )
+    
+    sensor_hacker = models.ForeignKey("Player",
+                                      on_delete=models.CASCADE,
+                                      related_name='warehouse_box_sensor_hacker',
+                                      blank=True,
+                                      null=True
+                                      )
     expiration_date = models.DateTimeField(auto_now_add=False)
-    question = models.ForeignKey("Question", on_delete=models.CASCADE, related_name='warehouse_box_question')
-    money = models.PositiveIntegerField()
+
+    lock_question = models.ForeignKey("WarehouseQuestions",
+                                 on_delete=models.CASCADE,
+                                 related_name='warehouse_box_question',
+                                 null=True
+                                 )
+    box_question    = models.ForeignKey("Question",
+                                        verbose_name=_("question inside the box"),
+                                        on_delete=models.CASCADE
+                                        )
+       
+    money = models.PositiveIntegerField(default=0)
+    
+    @property
+    def is_lock(self):
+        return self.lock_state==0
+    
+    @property
+    def worth(self):
+        return self.box_question.price + self.money
 
 class BankDepositBox(BaseModel):
     SENSOR_STATE_CHOICE = [
@@ -364,6 +402,12 @@ class BankRobbery(BaseModel):
     robbery_amount = models.IntegerField(_("Amount of box money"), blank=True, null=True)
 
 
+
+
+class WarehouseQuestions(BaseModel):
+    text    = models.TextField(_("Question text"))
+    answer  = models.TextField(_("Question answer")) 
+
 class BankSensorInstall(BaseModel):
 
     contract    = models.ForeignKey("Contract", on_delete=models.DO_NOTHING)
@@ -376,4 +420,3 @@ class BankSensorInstall(BaseModel):
     class Meta:
         verbose_name = _("bank sensor install request")
         verbose_name_plural = _("bank sensor install requests")
-

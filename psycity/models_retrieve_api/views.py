@@ -1,10 +1,12 @@
 from rest_framework.viewsets import GenericViewSet, mixins
 from rest_framework.response import Response
+from rest_framework import exceptions
 
 from core.models import (
     Team,
     Question,
     Contract,
+    WarehouseBox,
     Player
 )
 
@@ -20,8 +22,12 @@ from models_retrieve_api.serializers import (
 
     PlayerListSerializer,
     PlayerRetrieveSerializer,
+
+    WarehouseBoxListSerializer,
+    WarehouseBoxRetrieveSerializer
 )
 
+from team_api.utils import response
 
 class ListModelMixin:
     """
@@ -82,3 +88,37 @@ class PlayerViewSet(
         if self.action == "list":
             return PlayerListSerializer
         return PlayerRetrieveSerializer
+    
+class WarehouseViewSet(
+    ListModelMixin,
+    mixins.RetrieveModelMixin,
+    GenericViewSet
+):
+    queryset = WarehouseBox.objects.all()
+    
+    def get_serializer_class(self):
+        if self.action == "list":
+            return WarehouseBoxListSerializer
+        
+        elif self.action == "retrieve":
+            return WarehouseBoxRetrieveSerializer
+        else:
+            raise exceptions.MethodNotAllowed(
+                "Serializer not defined for this method"
+                )
+
+    def get_queryset(self):
+        if self.action == "list":
+            return self.queryset
+        elif self.action == "retrieve":
+            return self.queryset.select_related()
+        return super().get_queryset()
+
+    @response
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @response    
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+    
