@@ -362,3 +362,18 @@ class BankRobbery(BaseModel):
         )
     opening_time = models.DateTimeField(blank=True, null=True)
     robbery_amount = models.IntegerField(_("Amount of box money"), blank=True, null=True)
+
+
+class BankSensorInstall(BaseModel):
+
+    contract    = models.ForeignKey("Contract", on_delete=models.DO_NOTHING)
+    citizen     = models.ForeignKey("Team", on_delete=models.DO_NOTHING)
+    room        = models.ForeignKey("EscapeRoom",
+                                    verbose_name=_("selected room for citizen"),
+                                    on_delete=models.CASCADE,
+                                    null=True)
+    
+    class Meta:
+        verbose_name = _("bank sensor install request")
+        verbose_name_plural = _("bank sensor install requests")
+
