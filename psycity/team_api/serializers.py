@@ -19,7 +19,7 @@ from core.models import (
 )
 from team_api.utils import cost_validation
 from datetime import timedelta
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, ABCMeta
 
 class TeamMemberSerializer(serializers.Serializer):
     todo        = serializers.ChoiceField(["add","delete"],
@@ -529,12 +529,26 @@ class BankRobberyOpenDepositBoxSerializer(serializers.ModelSerializer):
         self.check_deposit_box(self.validated_data["deposit_box"])
         self.check_password(self.validated_data["password"])
 
-class DepositBoxSolveSerializer(serializers.ModelSerializer):
+
+class ModelSerializerAndABCMetaClass(
+    type(serializers.ModelSerializer),
+    ABCMeta
+    ): ...
+
+
+class DepositBoxSolveSerializer(
+    ABC,
+    serializers.ModelSerializer,
+    metaclass=ModelSerializerAndABCMetaClass
+    ):
+
     answer  = serializers.CharField()
     team    = serializers.IntegerField()
+    
     class Meta:
         model   = WarehouseBox
         fields  = "answer", "team"
+
 
     @abstractmethod
     def validate(self, attrs):
@@ -543,6 +557,8 @@ class DepositBoxSolveSerializer(serializers.ModelSerializer):
     @abstractmethod
     def validate_team(self, pk):
         ...
+
+        
 class DepositBoxRobberySerializer(DepositBoxSolveSerializer):
     
     
