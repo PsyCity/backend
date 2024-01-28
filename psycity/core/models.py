@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.translation import gettext_lazy as _
@@ -16,11 +17,23 @@ class BaseModel(models.Model):
 
 class WarehouseBox(BaseModel):
     is_lock = models.BooleanField(default=True)
-    unlocker = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='warehouse_box_unlocker')
+    unlocker = models.ForeignKey("Player",
+                                 on_delete=models.CASCADE,
+                                 related_name='warehouse_box_unlocker',
+                                 null=True
+                                 )
+    question = models.ForeignKey("Question",
+                                 on_delete=models.CASCADE,
+                                 related_name='warehouse_box_question',
+                                 null=True
+                                 )
+    sensor_hacker = models.ForeignKey("Player",
+                                      on_delete=models.CASCADE,
+                                      related_name='warehouse_box_sensor_hacker',
+                                      null=True
+                                      )
     sensor_state = models.BooleanField(default=False)
-    sensor_hacker = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='warehouse_box_sensor_hacker')
     expiration_date = models.DateTimeField(auto_now_add=False)
-    question = models.ForeignKey("Question", on_delete=models.CASCADE, related_name='warehouse_box_question')
     money = models.PositiveIntegerField()
 
 class BankDepositBox(BaseModel):
@@ -30,7 +43,7 @@ class BankDepositBox(BaseModel):
     ]
 
     money = models.PositiveIntegerField(default=0)
-    password = models.IntegerField(default=randint(1000,9999))
+    password = models.IntegerField()
     robbery_state = models.BooleanField(default=False)
     reported = models.BooleanField(default=False)
     rubbery_team = models.ForeignKey("Team",
@@ -52,6 +65,10 @@ class BankDepositBox(BaseModel):
     is_copy = models.BooleanField(default=False)
     parent_box = models.ForeignKey('self', on_delete=models.CASCADE, related_name="bankdispositbox_parent_box", null=True, blank=True)
 
+    def save(self, *args, **kwargs) -> None:
+        if self.password is None:
+            self.password = randint(1000, 9999)
+        return super().save(*args, **kwargs)
 
 
 class ConstantConfig(BaseModel):
@@ -366,13 +383,30 @@ class BankRobbery(BaseModel):
 
 class BankSensorInstall(BaseModel):
 
+    STATE_CHOICE=[
+        (1, "Created"),
+        (2, "Used"),
+        (3, "Solved"),
+        (4, "Failed")
+    ]
+    
+    state       = models.IntegerField(choices=STATE_CHOICE ,default=1)
     contract    = models.ForeignKey("Contract", on_delete=models.DO_NOTHING)
-    citizen     = models.ForeignKey("Team", on_delete=models.DO_NOTHING)
+    police      = models.ForeignKey("Team",
+                                    on_delete=models.DO_NOTHING,
+                                    related_name="bank_sensor_police"
+                                    )
+    citizen     = models.ForeignKey("Team",
+                                    on_delete=models.DO_NOTHING,
+                                    related_name="bank_sensor_citizen",
+                                    )
     room        = models.ForeignKey("EscapeRoom",
                                     verbose_name=_("selected room for citizen"),
                                     on_delete=models.CASCADE,
-                                    null=True)
-    
+                                    null=True
+                                    )
+    opening_time = models.DateTimeField(blank=True, null=True)
+
     class Meta:
         verbose_name = _("bank sensor install request")
         verbose_name_plural = _("bank sensor install requests")
