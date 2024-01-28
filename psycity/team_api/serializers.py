@@ -453,7 +453,8 @@ class BankRobberyWaySerializer(serializers.ModelSerializer):
 
         if not profile.mafia_reserved_escape_room < conf.team_escape_room_max:
             raise exceptions.NotAcceptable("team_escape_room limit")
-        
+
+
 class BankRobberyListSerializer(serializers.ModelSerializer):
 
     citizen_id = serializers.IntegerField(source="citizen.id")
@@ -462,6 +463,7 @@ class BankRobberyListSerializer(serializers.ModelSerializer):
     mafia_name = serializers.CharField(source="mafia.name")
     robbery_id = serializers.IntegerField(source="id")
     
+
     class Meta:
         model = BankRobbery
         fields = [
@@ -475,17 +477,24 @@ class BankRobberyListSerializer(serializers.ModelSerializer):
             ]
 
 
-class BankRobberyOpenSerializer(serializers.ModelSerializer):
+class BankPenetrationOpenSerializer(serializers.ModelSerializer):
 
+    obj_name = ""
+
+    def validate(self, attrs):
+        if self.instance.state != 1:
+            raise exceptions.NotAcceptable(f"{self.obj_name} is on state {self.instance.state}")
+        return super().validate(attrs)
+    
+    
+class BankRobberyOpenSerializer(BankPenetrationOpenSerializer):
+    obj_name = "BankRobbery"
     class Meta:
         model = BankRobbery
         fields = []
 
-    def validate(self, attrs):
-        if self.instance.state != 1:
-            raise exceptions.NotAcceptable(f"BankRobbery is on state {self.instance.state}")
-        return super().validate(attrs)
-    
+
+
 class BankRobberyOpenDepositBoxSerializer(serializers.ModelSerializer):
     deposit_box = serializers.IntegerField()
     password    = serializers.IntegerField()
@@ -496,15 +505,13 @@ class BankRobberyOpenDepositBoxSerializer(serializers.ModelSerializer):
             "deposit_box",
             "password"
             ]
-    
-    
+        
     def validate_deposit_box(self, pk):
         try:
             box = BankDepositBox.objects.get(pk=pk)
         except:
             raise exceptions.NotFound("Box not found.")
         return box
-    
     
     def check_deposit_box(self, box:BankDepositBox):
 
@@ -513,13 +520,9 @@ class BankRobberyOpenDepositBoxSerializer(serializers.ModelSerializer):
         if box.money == 0 :
             raise exceptions.NotAcceptable("Empty box. try another one.")    
     
-
-
     def check_password(self, password):
         if password != self.validated_data["deposit_box"].password:
             raise exceptions.NotAcceptable("Password Not match")
-        
-
 
     def deadline_check(self):
         solve_time = self.instance.escape_room.solve_time
@@ -551,7 +554,6 @@ class BankSensorInstallWaySerializer(
             raise exceptions.ValidationError("Not a valid type contract")
         if BankSensorInstall.objects.filter(contract=contract).last():
             raise exceptions.NotAcceptable("Contract used")
-
         return contract
 
     def validate_team(self, team) ->Team:
@@ -572,11 +574,9 @@ class BankSensorInstallWaySerializer(
 
     def check_room_usage_of_team(self):
         citizen : Team= self.validated_data["team"]
-
         profile = citizen.team_feature.first()
         if not profile:
             profile = TeamFeature.objects.create(team=citizen)
-            
         conf = ConstantConfig.objects.last()
 
         if not profile.citizen_opened_night_escape_rooms < conf.team_escape_room_max:
@@ -587,9 +587,40 @@ class BankSensorInstallWaySerializer(
 
         kwargs["citizen"] = self.validated_data["team"]
         kwargs["contract"] = self.validated_data["contract"]
+        assert self.validated_data["contract"].first_party_team.team_role == "Police"
+        kwargs["police"] = self.validated_data["contract"].first_party_team
         self.instance = self.create(kwargs)
         assert self.instance is not None, (
             '`create()` did not return an object instance.'
         )
         return self.instance
+
+
+class BankSensorInstallationListSerializer(serializers.ModelSerializer):
+
+    citizen_id  = serializers.IntegerField(source="citizen.id")
+    citizen_name = serializers.CharField(source="citizen.name")
+    police_id   = serializers.IntegerField(source="police.id")
+    police_name  = serializers.CharField(source="police.name")
+    request_id  = serializers.IntegerField(source="id")
+
+    class Meta:
+        model = BankSensorInstall
+        fields = [
+            "request_id",
+            "state",
+            "citizen_id",
+            "citizen_name",
+            "police_id",
+            "police_name",
+            "room"
+            ]
+        
+class BankSensorInstallationOpenSerializer(
+    BankPenetrationOpenSerializer
+    ):
+    obj_name = "Installation request"
+    class Meta:
+        model = BankSensorInstall
+        fields = []
 
