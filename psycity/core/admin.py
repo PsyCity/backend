@@ -18,5 +18,5 @@ admin.site.register(models.Question, QuestionAdmin)
 admin.site.register(models.TeamJoinRequest)
 admin.site.register(models.PlayerRole)
 admin.site.register(models.BankRobbery)
+admin.site.register(models.WarehouseQuestions)
 admin.site.register(models.BankSensorInstall)
-

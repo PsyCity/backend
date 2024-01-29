@@ -17,6 +17,7 @@ from team_api.serializers import (
     BankRobberyOpenSerializer,
     BankSensorInstallationOpenSerializer,
     BankRobberyOpenDepositBoxSerializer,
+    DepositBoxSolveSerializer,
     BankSensorInstallWaySerializer,
     BankSensorInstallationListSerializer,
     BankSensorInstallOpenDepositBox,
@@ -30,6 +31,7 @@ from core.models import (
     BankDepositBox,
     EscapeRoom,
     BankRobbery,
+    WarehouseBox,
     TeamFeature,
     BankSensorInstall,
     Team,
@@ -528,7 +530,109 @@ class BankRobberyViewSet(
         box.save()
         mafia.save()
 
+class WarehouseDepositBoxRobberyViewSet(
+    GenericViewSet
+    ):
 
+    serializer_class = DepositBoxSolveSerializer
+    queryset = WarehouseBox.objects.filter(lock_state=0).all() 
+    @action(
+            methods=["POST"],
+            detail=True
+    )
+    @response
+    def solve(
+        self,
+        request,
+        *args, **kwargs
+    ):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance,
+                                         data=request.data,
+                                         partial=True)
+        
+        serializer.is_valid(raise_exception=True)
+        result_of_answer = self.check_answer(serializer)
+        if result_of_answer:
+            self.right_answer(serializer)
+            return Response(
+                data={
+                    "message": "Successfully Answered!",
+                    "data": [],
+                    "result": None
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        else:
+            self.wrong_answer()
+            return Response(
+                data={
+                    "message": "Wrong answer :(",
+                    "data" : [],
+                    "result": None
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+    def check_answer(self,
+                     serializer: DepositBoxSolveSerializer
+                     )-> bool:
+        player_answer   = serializer.validated_data["answer"].strip()
+        real_answer     =  serializer.instance.lock_question.answer
+        return player_answer == real_answer
+    
+    def right_answer(self,
+                     serializer: DepositBoxSolveSerializer
+                     ) -> None:
+        #transfer money and question to team
+        #check sensor
+        # if sensor -> do this
+        #else ->this
+        serializer.save(
+            lock_state=1
+        )
+        box: WarehouseBox = serializer.instance
+        team: Team = serializer.validated_data["team"]
+        team.wallet += box.money
+        team.save()
+        #TODO transfer question
+        if box.sensor_state:
+            self.take_back_some_money(team=team, serializer=serializer)
+        
+        self.call_API(box.sensor_state)
+            
+    def wrong_answer(self) -> None:
+        # i think there is nothing to do
+        ...
+
+    def take_back_some_money(
+            self,
+            box : WarehouseBox,
+            team: Team
+            )   -> None:
+        try:
+            conf = ConstantConfig.objects.last()
+        except:
+            #LOGGER :((
+            raise exceptions.APIException(
+                "Config instance not found"
+            )
+        
+        cost = box.worth * conf.penalty_percent //100
+        team.wallet -= cost
+        if team.wallet < 0:
+            team.bank_liabilities += team.wallet * (-1)
+            team.wallet = 0
+        team.save()
+
+    def call_API(self, sensor):
+        if sensor:
+            msg = "robbed and sensor activated"
+        else:
+            msg = "robbed"
+        #TODO
 
 class BankSensorInstallWay(
     GenericViewSet,

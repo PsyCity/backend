@@ -16,6 +16,7 @@ action_router.register("discover_bank_robber", action.DiscoverBankRobber)
 action_router.register("bank_robbery_way", action.BankRobberyWayViewSet, "bank_robbery_way")
 action_router.register("bank_robbery", action.BankRobberyViewSet, "bank_robbery")
 action_router.register("bank_sensor_installation", action.BankSensorInstallViewSet, "bank_sensor_installation")
+action_router.register("warehouse", action.WarehouseDepositBoxRobberyViewSet, "warehouse_robbery")
 action_router.register("bank-sensor-install-way", action.BankSensorInstallWay, "Bank_sensor_install")
 
 contract_router = DefaultRouter()
