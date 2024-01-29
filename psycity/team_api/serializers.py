@@ -17,9 +17,9 @@ from core.models import (
     BankRobbery,
     BankSensorInstall,
 )
-from team_api.utils import cost_validation
+from team_api.utils import cost_validation, ModelSerializerAndABCMetaClass
 from datetime import timedelta
-
+from abc import ABC, abstractmethod
 
 class TeamMemberSerializer(serializers.Serializer):
     todo        = serializers.ChoiceField(["add","delete"],
@@ -494,9 +494,51 @@ class BankRobberyOpenSerializer(BankPenetrationOpenSerializer):
         fields = []
 
 
-
-class BankRobberyOpenDepositBoxSerializer(serializers.ModelSerializer):
+class BankPenetrationOpenDepositBoxSerializer(   
+    ABC,
+    serializers.ModelSerializer,
+    metaclass=ModelSerializerAndABCMetaClass
+    ):
     deposit_box = serializers.IntegerField()
+    
+
+    def validate_deposit_box(self, pk):
+        try:
+            box = BankDepositBox.objects.get(pk=pk)
+        except:
+            raise exceptions.NotFound("Box not found.")
+        return box
+    
+
+    def check_deposit_box(self, box:BankDepositBox):
+        if box.robbery_state:
+            raise exceptions.NotAcceptable("Money has been stolen from the box.")
+
+    def __deadline_check(self):
+        room = self.query()
+        solve_time = room.solve_time
+        if timezone.now() > (self.instance.opening_time + timedelta(minutes=solve_time)):
+            self.save(state=4)
+            raise exceptions.NotAcceptable("Expired escape room.")
+        return True
+    
+    @abstractmethod
+    def query(self):
+        ...
+
+    def check_password(self):
+        ...
+
+    def is_acceptable(self):
+        self.__deadline_check()
+        self.check_deposit_box(self.validated_data["deposit_box"])
+        self.check_password(self.validated_data["password"])
+
+
+
+class BankRobberyOpenDepositBoxSerializer(
+    BankPenetrationOpenDepositBoxSerializer
+    ):
     password    = serializers.IntegerField()
 
     class Meta:
@@ -506,36 +548,34 @@ class BankRobberyOpenDepositBoxSerializer(serializers.ModelSerializer):
             "password"
             ]
         
-    def validate_deposit_box(self, pk):
-        try:
-            box = BankDepositBox.objects.get(pk=pk)
-        except:
-            raise exceptions.NotFound("Box not found.")
-        return box
-    
-    def check_deposit_box(self, box:BankDepositBox):
 
-        if box.robbery_state:
-            raise exceptions.NotAcceptable("Money has been stolen from the box.")
+    def check_deposit_box(self, box: BankDepositBox):
+        super().check_deposit_box(box)
         if box.money == 0 :
-            raise exceptions.NotAcceptable("Empty box. try another one.")    
+            raise exceptions.NotAcceptable("Empty box. try another one.")
     
     def check_password(self, password):
         if password != self.validated_data["deposit_box"].password:
             raise exceptions.NotAcceptable("Password Not match")
 
-    def deadline_check(self):
-        solve_time = self.instance.escape_room.solve_time
-        if timezone.now() > (self.instance.opening_time + timedelta(minutes=solve_time)):
-            self.save(state=4)
-            raise exceptions.NotAcceptable("Expired escape room.")
-        return True
-    
-    def is_acceptable(self):
-        self.deadline_check()
-        self.check_deposit_box(self.validated_data["deposit_box"])
-        self.check_password(self.validated_data["password"])
+    def query(self) -> EscapeRoom:
+        return self.instance.escape_room
 
+
+class BankSensorInstallOpenDepositBox(
+    BankPenetrationOpenDepositBoxSerializer
+    ):
+    class Meta:
+        model  = BankSensorInstall
+        fields = "deposit_box",
+
+    def check_deposit_box(self, box: BankDepositBox):
+        super().check_deposit_box(box)
+        if box.sensor_state == 1:
+            raise exceptions.NotAcceptable("Sensor is already installed. Try another one")
+        
+    def query(self):
+        return self.instance.room
 
 class BankSensorInstallWaySerializer(
     serializers.ModelSerializer
