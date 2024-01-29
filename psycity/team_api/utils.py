@@ -1,10 +1,12 @@
 from django.http import Http404
 from rest_framework.response import Response
+from rest_framework import serializers
 from rest_framework import exceptions, status
 from psycity.settings import DEBUG
 from core.models import Team, BankDepositBox
 from drf_yasg import openapi
 from functools import wraps
+from abc import ABCMeta
 
 
 class ResponseStructure:
@@ -157,3 +159,9 @@ def find_boxes(box: BankDepositBox) -> set:
         boxes = [box]
 
     return set(boxes)
+
+
+class ModelSerializerAndABCMetaClass(
+    type(serializers.ModelSerializer),
+    ABCMeta
+    ): ...
