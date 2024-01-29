@@ -19,6 +19,7 @@ from team_api.serializers import (
     BankRobberyOpenDepositBoxSerializer,
     BankSensorInstallWaySerializer,
     BankSensorInstallationListSerializer,
+    BankSensorInstallOpenDepositBox,
     serializers,
 )
 
@@ -460,7 +461,8 @@ class BankRobberyViewSet(
     def query(self, owner):
         return self.queryset.filter(mafia=owner).all()
 
-    def perform_open_box(self, serializer):
+
+    def perform_on_box(self, serializer):
         box = serializer.validated_data["deposit_box"]
         # box is selected box
         boxes = find_boxes(box)
@@ -469,7 +471,7 @@ class BankRobberyViewSet(
         # box is a random box. kind of random
         self.attach_box_and_room(box, serializer.instance.escape_room)
         self.transfer_money(serializer, box)
-        self.sensor_report(boxes)
+        self.notify(boxes)
 
     def perform_on_boxes(self, serializer, boxes):
         """do any perform on all boxes together"""
@@ -490,9 +492,9 @@ class BankRobberyViewSet(
             box = random.choices(sensor_not_installed)[0]
         return box
 
-    def sensor_report(self, boxes):
-        """NOTICE : this one needs API from Client side"""
-        ...
+    def notify(self, boxes):
+        return super().notify()
+
 
 
     def attach_box_and_room(self,
@@ -592,10 +594,32 @@ class BankSensorInstallViewSet(
         elif self.action == "open_escape_room":
             return BankSensorInstallationOpenSerializer
         elif self.action == "open_deposit_box":
-            return BankRobberyOpenDepositBoxSerializer
+            return BankSensorInstallOpenDepositBox
         return serializers.Serializer
 
     def query(self, owner):
         return self.queryset.filter(citizen=owner).all() 
 
+    def perform_on_box(self,
+                       serializer : BankSensorInstallOpenDepositBox
+                       )-> None:
+        box : BankDepositBox = serializer.validated_data["deposit_box"]
+        installation : BankSensorInstall = serializer.instance
 
+        box.save(
+            sensor_owner=installation.police,
+            sensor_state=1
+            )
+        self.notify()
+        self.transfer_money(installation)
+
+    def transfer_money(self,
+                       installation :BankSensorInstall
+                       ) -> None:
+        # FIXME
+        # I'm not sure about what should I have to do, the document did not mention about this part.
+        # as when you see this ,you know I'm not a part of the team anymore.
+        # so you should write this function on your own to specify what will happen to the contract between police and citizen  
+        # Best regards,
+        # Amin Masoudi 
+        ...

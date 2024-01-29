@@ -44,7 +44,6 @@ class BankPenetrationBaseViewSet(ABC,
         
     @abstractmethod
     def query(self, owner):
-        #for mafia robbery = self.queryset.filter(mafia=owner).all()
         ...
 
     def __validate_owner(self, owner_pk):
@@ -103,7 +102,7 @@ class BankPenetrationBaseViewSet(ABC,
         serializer = self.get_serializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.is_acceptable()
-        self.perform_open_box(serializer)
+        self.perform_on_box(serializer)
         return Response(
             data={
                 "message": f"{self.success_message_deposit} successfully.",
@@ -111,66 +110,12 @@ class BankPenetrationBaseViewSet(ABC,
                 "result": None}
         )
 
-    # def perform_open_box(self, serializer):
-    #     box = serializer.validated_data["deposit_box"]
-    #     # box is selected box
-    #     boxes = find_boxes(box)
-    #     boxes = self.perform_on_boxes(serializer, boxes)
-    #     box = self.select_box(boxes, box)
-    #     # box is a random box. kind of random
-    #     self.attach_box_and_room(box, serializer.instance.escape_room)
-    #     self.transfer_money(serializer, box)
-    #     self.sensor_report(boxes)
+    @abstractmethod
+    def perform_on_box(self, serializer): 
+        ...
 
-    # def perform_on_boxes(self, serializer, boxes):
-    #     """do any perform on all boxes together"""
-    #     mafia: Team = serializer.instance.mafia
+    def notify(self):
+        # LOGGER
+        # Client_API
 
-    #     for b in boxes:
-    #         b.robbery_state = True
-    #         b.rubbery_team = mafia
-    #         b.save()
-    #     return boxes
-
-    # def select_box(self, boxes, box):
-    #     """
-    #     select a box with no sensor if available
-    #     """
-    #     sensor_not_installed = list(filter(lambda b: not b.sensor_state, boxes))
-    #     if sensor_not_installed:
-    #         box = random.choices(sensor_not_installed)[0]
-    #     return box
-
-    # def sensor_report(self, boxes):
-    #     """NOTICE : this one needs API from Client side"""
-    #     ...
-
-    # def attach_box_and_room(self, box: BankDepositBox, room: EscapeRoom):
-    #     room.bank_deposit_box = box
-    #     room.state = 1
-    #     room.save()
-
-    # def transfer_money(self, serializer, box):
-    #     """
-    #     transfer money to citizen and pay the contract
-    #     """
-
-    #     robbery: BankRobbery = serializer.instance
-    #     citizen: Team = robbery.citizen
-    #     contract: Contract = robbery.contract
-    #     mafia: Team = robbery.mafia
-
-    #     citizen.wallet += box.money
-    #     robbery.robbery_amount = box.money
-    #     box.money = 0
-    #     mafia.wallet += contract.cost
-    #     contract.state = 3
-    #     contract.archive = True
-
-    #     robbery.save()
-    #     citizen.save()
-    #     contract.save()
-    #     box.save()
-    #     mafia.save()
-
-
+        print("Client API is not implemented!!") 
