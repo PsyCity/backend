@@ -20,7 +20,7 @@ from core.models import (
 )
 from team_api.utils import cost_validation
 from datetime import timedelta
-
+from abc import ABC, abstractmethod, ABCMeta
 
 class TeamMemberSerializer(serializers.Serializer):
     todo        = serializers.ChoiceField(["add","delete"],
@@ -534,13 +534,39 @@ class BankRobberyOpenDepositBoxSerializer(serializers.ModelSerializer):
         self.check_deposit_box(self.validated_data["deposit_box"])
         self.check_password(self.validated_data["password"])
 
-class DepositBoxSolveSerializer(serializers.ModelSerializer):
+
+class ModelSerializerAndABCMetaClass(
+    type(serializers.ModelSerializer),
+    ABCMeta
+    ): ...
+
+
+class DepositBoxSolveSerializer(
+    ABC,
+    serializers.ModelSerializer,
+    metaclass=ModelSerializerAndABCMetaClass
+    ):
+
     answer  = serializers.CharField()
     team    = serializers.IntegerField()
+    
     class Meta:
         model   = WarehouseBox
         fields  = "answer", "team"
 
+
+    @abstractmethod
+    def validate(self, attrs):
+        return attrs
+
+    @abstractmethod
+    def validate_team(self, pk):
+        ...
+
+        
+class DepositBoxRobberySerializer(DepositBoxSolveSerializer):
+    
+    
     def validate(self, attrs):
         if not self.instance.is_lock:
             raise exceptions.NotAcceptable(
@@ -549,7 +575,24 @@ class DepositBoxSolveSerializer(serializers.ModelSerializer):
         return super().validate(attrs)
     
     def validate_team(self, pk):
-        team = Team.objects.get(pk=pk)
+        team = Team.objects.get(pk=pk)  #TODO: team is mafia
+        return team
+    
+class DepositBoxHackSerializer(DepositBoxSolveSerializer):
+
+    def validate(self, attrs):
+        if self.instance.lock_state == 2:
+            raise exceptions.NotAcceptable(
+                "Oops!, not a valid box."
+            )
+        if self.instance.sensor_state:
+            raise exceptions.NotAcceptable(
+                "Already hacked"
+            )
+        return super().validate(attrs)
+    
+    def validate_team(self, pk):
+        team = Team.objects.get(pk=pk)  #TODO: team is Police
         return team
 
 
