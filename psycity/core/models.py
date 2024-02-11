@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.translation import gettext_lazy as _
@@ -15,6 +16,7 @@ class BaseModel(models.Model):
 
 
 class WarehouseBox(BaseModel):
+
     BOX_STATUS = (
         (0, "Lock"),
         (1, "Robbed"),
@@ -61,6 +63,7 @@ class WarehouseBox(BaseModel):
     def worth(self):
         return self.box_question.price + self.money
 
+
 class BankDepositBox(BaseModel):
     SENSOR_STATE_CHOICE = [
         (0, 'Not Installed'),
@@ -68,7 +71,7 @@ class BankDepositBox(BaseModel):
     ]
 
     money = models.PositiveIntegerField(default=0)
-    password = models.IntegerField(default=randint(1000,9999))
+    password = models.IntegerField()
     robbery_state = models.BooleanField(default=False)
     reported = models.BooleanField(default=False)
     rubbery_team = models.ForeignKey("Team",
@@ -90,6 +93,10 @@ class BankDepositBox(BaseModel):
     is_copy = models.BooleanField(default=False)
     parent_box = models.ForeignKey('self', on_delete=models.CASCADE, related_name="bankdispositbox_parent_box", null=True, blank=True)
 
+    def save(self, *args, **kwargs) -> None:
+        if self.password is None:
+            self.password = randint(1000, 9999)
+        return super().save(*args, **kwargs)
 
 
 class ConstantConfig(BaseModel):
@@ -410,13 +417,30 @@ class WarehouseQuestions(BaseModel):
 
 class BankSensorInstall(BaseModel):
 
+    STATE_CHOICE=[
+        (1, "Created"),
+        (2, "Used"),
+        (3, "Solved"),
+        (4, "Failed")
+    ]
+    
+    state       = models.IntegerField(choices=STATE_CHOICE ,default=1)
     contract    = models.ForeignKey("Contract", on_delete=models.DO_NOTHING)
-    citizen     = models.ForeignKey("Team", on_delete=models.DO_NOTHING)
+    police      = models.ForeignKey("Team",
+                                    on_delete=models.DO_NOTHING,
+                                    related_name="bank_sensor_police"
+                                    )
+    citizen     = models.ForeignKey("Team",
+                                    on_delete=models.DO_NOTHING,
+                                    related_name="bank_sensor_citizen",
+                                    )
     room        = models.ForeignKey("EscapeRoom",
                                     verbose_name=_("selected room for citizen"),
                                     on_delete=models.CASCADE,
-                                    null=True)
-    
+                                    null=True
+                                    )
+    opening_time = models.DateTimeField(blank=True, null=True)
+
     class Meta:
         verbose_name = _("bank sensor install request")
         verbose_name_plural = _("bank sensor install requests")
