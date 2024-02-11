@@ -17,10 +17,11 @@ from team_api.serializers import (
     BankRobberyOpenSerializer,
     BankSensorInstallationOpenSerializer,
     BankRobberyOpenDepositBoxSerializer,
-    DepositBoxSolveSerializer,
     BankSensorInstallWaySerializer,
     BankSensorInstallationListSerializer,
     BankSensorInstallOpenDepositBox,
+    DepositBoxHackSerializer,
+    DepositBoxRobberySerializer,
     serializers,
 )
 
@@ -36,7 +37,7 @@ from core.models import (
     BankSensorInstall,
     Team,
 )
-
+from abc import ABC, abstractmethod
 from team_api.utils import (
     ListModelMixin,
     transfer_money,
@@ -45,7 +46,6 @@ from team_api.utils import (
     )
 
 from team_api.views.base_actions import BankPenetrationBaseViewSet
-
 from team_api.schema import deposit_list_schema, bank_robbery_list_schema
 
 import random
@@ -530,18 +530,13 @@ class BankRobberyViewSet(
         box.save()
         mafia.save()
 
-class WarehouseDepositBoxRobberyViewSet(
+class WarehouseDepositBoxBaseViewSet(
+    ABC,
     GenericViewSet
     ):
 
-    serializer_class = DepositBoxSolveSerializer
-    queryset = WarehouseBox.objects.filter(lock_state=0).all() 
-    @action(
-            methods=["POST"],
-            detail=True
-    )
     @response
-    def solve(
+    def update(
         self,
         request,
         *args, **kwargs
@@ -577,36 +572,53 @@ class WarehouseDepositBoxRobberyViewSet(
 
 
     def check_answer(self,
-                     serializer: DepositBoxSolveSerializer
+                     serializer: DepositBoxRobberySerializer
                      )-> bool:
         player_answer   = serializer.validated_data["answer"].strip()
         real_answer     =  serializer.instance.lock_question.answer
         return player_answer == real_answer
     
+    @abstractmethod
     def right_answer(self,
-                     serializer: DepositBoxSolveSerializer
+                     serializer: DepositBoxRobberySerializer
                      ) -> None:
+        ...
+
+
+    def wrong_answer(self) -> None:
+        # i think there is nothing to do
+        ...
+
+    @abstractmethod
+    def call_API(self, sensor):
+        ...
+
+
+class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
+
+    serializer_class = DepositBoxRobberySerializer
+    queryset = WarehouseBox.objects.filter(lock_state=0).all() 
+
+
+    def right_answer(self, serializer: DepositBoxRobberySerializer) -> None:
         #transfer money and question to team
         #check sensor
-        # if sensor -> do this
-        #else ->this
-        serializer.save(
-            lock_state=1
-        )
+
         box: WarehouseBox = serializer.instance
+        box.unlocker = serializer.validated_data["team"]
+        box.lock_state = 1
+        box.save()
         team: Team = serializer.validated_data["team"]
         team.wallet += box.money
         team.save()
-        #TODO transfer question
+        box.box_question.last_owner = team
+        box.box_question.save()
+        
         if box.sensor_state:
             self.take_back_some_money(team=team, serializer=serializer)
         
         self.call_API(box.sensor_state)
             
-    def wrong_answer(self) -> None:
-        # i think there is nothing to do
-        ...
-
     def take_back_some_money(
             self,
             box : WarehouseBox,
@@ -626,7 +638,7 @@ class WarehouseDepositBoxRobberyViewSet(
             team.bank_liabilities += team.wallet * (-1)
             team.wallet = 0
         team.save()
-
+    
     def call_API(self, sensor):
         if sensor:
             msg = "robbed and sensor activated"
@@ -682,7 +694,7 @@ class BankSensorInstallWay(
         profile.citizen_opened_night_escape_rooms += 1
         profile.save()
 
-
+        
 class BankSensorInstallViewSet(
     BankPenetrationBaseViewSet
 ):
@@ -726,4 +738,52 @@ class BankSensorInstallViewSet(
         # so you should write this function on your own to specify what will happen to the contract between police and citizen  
         # Best regards,
         # Amin Masoudi 
+        ...
+            
+        
+class WarehouseDepositBoxHackViewSet(WarehouseDepositBoxBaseViewSet):
+
+    serializer_class = DepositBoxHackSerializer
+    queryset = WarehouseBox.objects.all() 
+
+
+    def right_answer(self, serializer: DepositBoxRobberySerializer) -> None:
+        box: WarehouseBox = serializer.instance
+        if not box.is_lock:
+            self.operations_on_mafia(serializer)
+            self.operations_on_police(serializer)
+            # well done
+            
+        self.operations_on_box(serializer)
+
+    def operations_on_box(self, serializer)-> None:
+        box : WarehouseBox = serializer.instance
+        box.sensor_state = True
+        box.sensor_hacker = serializer.validated_data["team"]
+        box.save()
+
+    def operations_on_police(self, serializer):
+        box : WarehouseBox = serializer.instance
+        police :Team = serializer.validated_data["team"]
+        conf = ConstantConfig.objects.last()
+        bonus = box.worth * conf.bonus_percent //100
+        police.wallet += bonus
+        police.save()
+
+    def operations_on_mafia(self, serializer):
+        conf = ConstantConfig.objects.last()
+        box : WarehouseBox = serializer.instance
+        mafia : Team = box.unlocker
+
+        cost = box.worth * conf.penalty_percent //100
+
+        mafia.wallet -= cost
+        if mafia.wallet < 0:
+            mafia.bank_liabilities += mafia.wallet * (-1)
+            mafia.wallet = 0
+        mafia.save()
+
+
+    def call_API(self, sensor):
+        #TODO 
         ...
