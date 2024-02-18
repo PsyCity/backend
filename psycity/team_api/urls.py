@@ -1,7 +1,7 @@
 from django.urls import path, include
 
 from rest_framework.routers import DefaultRouter
-from .views import member, action, contract, money, question
+from .views import member, action, contract, money, loan, question
 
 member_router = DefaultRouter()
 member_router.register("role", member.RoleViewset, "role")
@@ -13,6 +13,13 @@ action_router = DefaultRouter()
 action_router.register("kill-homeless", action.KillHomelessViewSet, "kill_homeless")
 action_router.register("depositbox-sensor-report", action.DepositBoxSensor, "depositbox_sensor_report")
 action_router.register("discover_bank_robber", action.DiscoverBankRobber)
+action_router.register("bank_robbery_way", action.BankRobberyWayViewSet, "bank_robbery_way")
+action_router.register("bank_robbery", action.BankRobberyViewSet, "bank_robbery")
+action_router.register("bank_sensor_installation", action.BankSensorInstallViewSet, "bank_sensor_installation")
+action_router.register("warehouse", action.WarehouseDepositBoxRobberyViewSet, "warehouse_robbery")
+action_router.register("bank-sensor-install-way", action.BankSensorInstallWay, "Bank_sensor_install")
+action_router.register("depositbox-robbery", action.WarehouseDepositBoxRobberyViewSet, "warehouse_robbery")
+action_router.register("depositbox-sensor-hack", action.WarehouseDepositBoxHackViewSet, "warehouse_hack")
 
 contract_router = DefaultRouter()
 contract_router.register("register", contract.Register, "contract")
@@ -20,7 +27,11 @@ contract_router.register("approvement", contract.Approvement, "contract")
 contract_router.register("pay", contract.Pay, "contract")
 
 money_router = DefaultRouter()
-money_router.register("transfer", money.TeamMoneyViewSet, "money")
+money_router.register("exchenge", money.TeamMoneyViewSet, "money")
+
+loan_router = DefaultRouter()
+loan_router.register("receive", loan.Receive, "loan")
+loan_router.register("repayment", loan.Repay, "loan")
 
 urlpatterns = [
     path("member/", include(member_router.urls)),
@@ -28,4 +39,5 @@ urlpatterns = [
     path("contract/", include(contract_router.urls)),
     path("money/", include(money_router.urls)),
     path("question/buy/", question.QuestionBuyView.as_view(), name="team_question_buy"),
+    path("loan/", include(loan_router.urls)),
 ]

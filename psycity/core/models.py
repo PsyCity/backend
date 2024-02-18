@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.translation import gettext_lazy as _
@@ -15,13 +16,53 @@ class BaseModel(models.Model):
 
 
 class WarehouseBox(BaseModel):
-    is_lock = models.BooleanField(default=True)
-    unlocker = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='warehouse_box_unlocker')
+
+    BOX_STATUS = (
+        (0, "Lock"),
+        (1, "Robbed"),
+        (2, "Empty by citizen")
+    )
+    lock_state = models.IntegerField(_("Lock State"),
+                                     choices=BOX_STATUS,
+                                     default=0)
+
     sensor_state = models.BooleanField(default=False)
-    sensor_hacker = models.ForeignKey("Player", on_delete=models.CASCADE, related_name='warehouse_box_sensor_hacker')
+
+    unlocker = models.ForeignKey("Team",
+                                 on_delete=models.CASCADE,
+                                 related_name='warehouse_box_unlocker',
+                                 blank=True,
+                                 null=True
+                                 )
+    
+    sensor_hacker = models.ForeignKey("Team",
+                                      on_delete=models.CASCADE,
+                                      related_name='warehouse_box_sensor_hacker',
+                                      blank=True,
+                                      null=True
+                                      )
     expiration_date = models.DateTimeField(auto_now_add=False)
-    question = models.ForeignKey("Question", on_delete=models.CASCADE, related_name='warehouse_box_question')
-    money = models.PositiveIntegerField()
+
+    lock_question = models.ForeignKey("WarehouseQuestions",
+                                 on_delete=models.CASCADE,
+                                 related_name='warehouse_box_question',
+                                 null=True
+                                 )
+    box_question    = models.ForeignKey("Question",
+                                        verbose_name=_("question inside the box"),
+                                        on_delete=models.CASCADE
+                                        )
+       
+    money = models.PositiveIntegerField(default=0)
+    
+    @property
+    def is_lock(self):
+        return self.lock_state==0
+    
+    @property
+    def worth(self):
+        return self.box_question.price + self.money
+
 
 class BankDepositBox(BaseModel):
     SENSOR_STATE_CHOICE = [
@@ -30,7 +71,7 @@ class BankDepositBox(BaseModel):
     ]
 
     money = models.PositiveIntegerField(default=0)
-    password = models.IntegerField(default=randint(1000,9999))
+    password = models.IntegerField()
     robbery_state = models.BooleanField(default=False)
     reported = models.BooleanField(default=False)
     rubbery_team = models.ForeignKey("Team",
@@ -52,6 +93,10 @@ class BankDepositBox(BaseModel):
     is_copy = models.BooleanField(default=False)
     parent_box = models.ForeignKey('self', on_delete=models.CASCADE, related_name="bankdispositbox_parent_box", null=True, blank=True)
 
+    def save(self, *args, **kwargs) -> None:
+        if self.password is None:
+            self.password = randint(1000, 9999)
+        return super().save(*args, **kwargs)
 
 
 class ConstantConfig(BaseModel):
@@ -60,40 +105,40 @@ class ConstantConfig(BaseModel):
         (1, "Day")
     ]
     game_current_state = models.IntegerField(choices=GAME_STATUS)
-    wallet_init_value = models.IntegerField()
-    question_level_0_value = models.IntegerField()
-    question_level_1_value = models.IntegerField()
-    question_level_2_value = models.IntegerField()
-    question_solve_interest_percent = models.PositiveIntegerField()
-    bought_question_max = models.PositiveIntegerField()
-    contract_tax = models.PositiveIntegerField()
-    inflation_coefficient = models.FloatField()
-    delay_factor = models.FloatField()
-    question_level_0_max_try = models.PositiveIntegerField()
-    question_level_1_max_try = models.PositiveIntegerField()
-    question_level_2_max_try = models.PositiveIntegerField()
-    question_code_max_try = models.IntegerField()
-    question_level_0_early_solve_time = models.PositiveIntegerField()
-    question_level_1_early_solve_time = models.PositiveIntegerField()
-    question_level_2_early_solve_time = models.PositiveIntegerField()
-    deposit_interest_percent = models.PositiveIntegerField()
-    deposit_interest_day_time = models.PositiveIntegerField()
-    deposit_interest_night_time = models.PositiveIntegerField()
-    loan_interest_percent = models.PositiveIntegerField()
-    loan_interest_day_time = models.PositiveIntegerField()
-    loan_interest_night_time = models.PositiveIntegerField()
-    bonus_percent = models.PositiveIntegerField()
-    penalty_percent = models.PositiveIntegerField()
-    subsidy_percentage = models.PositiveIntegerField()
-    mafia_prison_per_report_time = models.PositiveIntegerField()
-    assassination_attempt_cooldown_time = models.PositiveIntegerField()
-    team_bank_transaction_cooldown = models.PositiveIntegerField()
-    team_total_bank_value = models.PositiveIntegerField()
-    team_loan_percent_max = models.PositiveIntegerField()
-    team_escape_room_max = models.PositiveIntegerField()
-    bank_robbery_contract_sponsorship_max = models.PositiveIntegerField()
-    police_sensor_contract_sponsorship_max = models.PositiveIntegerField()
-    escape_room_solve_time = models.PositiveIntegerField()
+    wallet_init_value = models.IntegerField(default=900)
+    question_level_0_value = models.IntegerField(default=200)
+    question_level_1_value = models.IntegerField(default=400)
+    question_level_2_value = models.IntegerField(default=800)
+    question_solve_interest_percent = models.PositiveIntegerField(default=200)
+    bought_question_max = models.PositiveIntegerField(default=12)
+    contract_tax = models.PositiveIntegerField(default=50)
+    # inflation_coefficient = models.FloatField()
+    delay_factor = models.FloatField(default=0.7)
+    question_level_0_max_try = models.PositiveIntegerField(default=1)
+    question_level_1_max_try = models.PositiveIntegerField(default=2)
+    question_level_2_max_try = models.PositiveIntegerField(default=3)
+    question_code_max_try = models.IntegerField(default=1000)
+    question_level_0_early_solve_time = models.PositiveIntegerField(default=40)
+    question_level_1_early_solve_time = models.PositiveIntegerField(default=80)
+    question_level_2_early_solve_time = models.PositiveIntegerField(default=150)
+    deposit_interest_percent = models.PositiveIntegerField(default=3)
+    deposit_interest_day_time = models.PositiveIntegerField(default=20)
+    deposit_interest_night_time = models.PositiveIntegerField(default=90)
+    loan_interest_percent = models.PositiveIntegerField(default=3)
+    loan_interest_day_time = models.PositiveIntegerField(default=20)
+    loan_interest_night_time = models.PositiveIntegerField(default=90)
+    bonus_percent = models.PositiveIntegerField(default=10)
+    penalty_percent = models.PositiveIntegerField(default=10)
+    subsidy_percentage = models.PositiveIntegerField(default=33) #TODO: changed
+    mafia_prison_per_report_time = models.PositiveIntegerField(default=5)
+    assassination_attempt_cooldown_time = models.PositiveIntegerField(default=90)
+    team_bank_transaction_cooldown = models.PositiveIntegerField(default=30)
+    # team_total_bank_value = models.PositiveIntegerField()
+    team_loan_percent_max = models.PositiveIntegerField(default=20)
+    team_escape_room_max = models.PositiveIntegerField(default=2)
+    bank_robbery_contract_sponsorship_max = models.PositiveIntegerField(default=2)
+    police_sensor_contract_sponsorship_max = models.PositiveIntegerField(default=5)
+    # escape_room_solve_time = models.PositiveIntegerField()
 
 
 class Player(BaseModel):
@@ -168,13 +213,21 @@ class Team(BaseModel):
 
 
 class TeamFeature(BaseModel):
-    mafia_last_night_report = models.IntegerField()
-    mafia_opened_night_escape_rooms = models.IntegerField()
-    police_opened_night_escape_rooms = models.IntegerField()
-    police_sensor_request_contracts = models.IntegerField()
-    police_in_analysis_boxes = models.IntegerField()
-    citizen_opened_night_escape_rooms = models.IntegerField()
-    citizen_theft_request_contracts = models.IntegerField()
+    team = models.ForeignKey(
+        "Team",
+        on_delete=models.CASCADE,
+        related_name="team_feature",
+        null=True,
+        blank=True,
+        )
+    mafia_last_night_report = models.IntegerField(default=0)
+    mafia_opened_night_escape_rooms = models.IntegerField(default=0)
+    mafia_reserved_escape_room = models.IntegerField(default=0)
+    police_opened_night_escape_rooms = models.IntegerField(default=0)
+    police_sensor_request_contracts = models.IntegerField(default=0)
+    police_in_analysis_boxes = models.IntegerField(default=0)
+    citizen_opened_night_escape_rooms = models.IntegerField(default=0)
+    citizen_theft_request_contracts = models.IntegerField(default=0)
 
 class Question(BaseModel):
     LEVEL_CHOICE = [
@@ -224,12 +277,14 @@ class EscapeRoom(BaseModel):
         (1, "robbed"),
         (2, "solving"),
         (3, "solved"),
-        (4, "failed_to_solve")
+        (4, "failed_to_solve"),
+        (5, "reserved for robbery")
     ]
 
     no_valid_citizen = models.IntegerField()
     no_valid_police = models.IntegerField()
     no_valid_mafia = models.IntegerField()
+    solve_time = models.PositiveIntegerField(_("time to solve :min"))
     bank_deposit_box = models.ForeignKey("BankDepositBox",
                                          on_delete=models.DO_NOTHING,
                                          related_name='escape_room',
@@ -310,3 +365,82 @@ class PlayerRole(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name}"
+    
+
+class BankRobbery(BaseModel):
+    STATE_CHOICE=[
+        (1, "Created"),
+        (2, "Used"),
+        (3, "Solved"),
+        (4, "Failed")
+    ]
+    
+    state = models.IntegerField(choices=STATE_CHOICE ,default=1)
+
+    
+    mafia = models.ForeignKey(
+        "Team",
+        verbose_name=_("Mafia Team"),
+        on_delete=models.CASCADE,
+        related_name="bank_robbery_as_mafia"        
+        )
+    
+    citizen = models.ForeignKey(
+        "Team",
+        verbose_name=_("Citizen Team"),
+        on_delete=models.CASCADE,
+        related_name="bank_robbery_as_citizen"
+        )
+    
+    contract = models.ForeignKey(
+        "Contract",
+        verbose_name=_("bank robbery contract"),
+        on_delete=models.CASCADE
+        )
+    
+    escape_room = models.ForeignKey(
+        "EscapeRoom",
+        on_delete=models.CASCADE,
+        related_name="robbery",
+        blank=True,
+        null=True
+        )
+    opening_time = models.DateTimeField(blank=True, null=True)
+    robbery_amount = models.IntegerField(_("Amount of box money"), blank=True, null=True)
+
+
+
+
+class WarehouseQuestions(BaseModel):
+    text    = models.TextField(_("Question text"))
+    answer  = models.TextField(_("Question answer")) 
+
+class BankSensorInstall(BaseModel):
+
+    STATE_CHOICE=[
+        (1, "Created"),
+        (2, "Used"),
+        (3, "Solved"),
+        (4, "Failed")
+    ]
+    
+    state       = models.IntegerField(choices=STATE_CHOICE ,default=1)
+    contract    = models.ForeignKey("Contract", on_delete=models.DO_NOTHING)
+    police      = models.ForeignKey("Team",
+                                    on_delete=models.DO_NOTHING,
+                                    related_name="bank_sensor_police"
+                                    )
+    citizen     = models.ForeignKey("Team",
+                                    on_delete=models.DO_NOTHING,
+                                    related_name="bank_sensor_citizen",
+                                    )
+    room        = models.ForeignKey("EscapeRoom",
+                                    verbose_name=_("selected room for citizen"),
+                                    on_delete=models.CASCADE,
+                                    null=True
+                                    )
+    opening_time = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = _("bank sensor install request")
+        verbose_name_plural = _("bank sensor install requests")

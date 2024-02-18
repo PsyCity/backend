@@ -8,14 +8,21 @@ from core.models import (
     PlayerRole, 
     TeamJoinRequest, 
     Team, 
+    TeamFeature,
     Player, 
     ConstantConfig, 
     BankDepositBox,
     EscapeRoom,
     Contract,
+    BankRobbery,
+    WarehouseBox,
+    BankSensorInstall,
 )
-from team_api.utils import cost_validation
+from team_api.utils import cost_validation, ModelSerializerAndABCMetaClass
 from datetime import timedelta
+from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, ABCMeta
+
 class TeamMemberSerializer(serializers.Serializer):
     todo        = serializers.ChoiceField(["add","delete"],
                                           required=False,
@@ -225,7 +232,7 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
 
         elif contract_type == "bank_rubbery_sponsorship":
             try:
-                citizen_team: Team = attrs.get("second_party_team")
+                citizen_team: Team = attrs.get("first_party_team")
 
             except:
                 raise exceptions.ValidationError("cant retrieve data.")
@@ -233,7 +240,12 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
             cost_validation(attrs.get("cost"), citizen_team)
 
         elif contract_type == "bank_sensor_installation_sponsorship":
-            ...
+            try:
+                citizen_team :Team = attrs.get("first_party_team")
+            except:
+                raise exceptions.NotAcceptable("cant create!!")
+
+            cost_validation(attrs.get("cost"), citizen_team)
 
         elif contract_type == "bodyguard_for_the_homeless":
             raise exceptions.NotAcceptable("Not this endpoint")
@@ -243,7 +255,6 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
 
 
     def validate(self, attrs):
-
         self.contract_type_validation(attrs)
         return attrs
 
@@ -354,4 +365,374 @@ class TeamMoneySerializer(serializers.ModelSerializer):
         t = team.last_bank_action + timedelta(minutes=conf.team_bank_transaction_cooldown)
         if timezone.now() < t:
             raise exceptions.NotAcceptable("cooldown has not passed.")
+
+
+class LoanSerializer(serializers.Serializer):
+    team = serializers.IntegerField()
+    amount = serializers.IntegerField()
+
+
+    def validate_amount(self, amount):
+        self.positive_amount(amount)
+        return amount
+    
+    def validate_team(self, pk):
+        team = Team.objects.get(pk=pk)
+        return team
+
+
+    def validate(self, attrs):
+        self.bank_cooldown_validation(attrs["team"])
+        self.max_team_loan_amount_validation(attrs["amount"],
+                                             team=attrs["team"]
+                                             )
         
+        return super().validate(attrs)
+    
+
+    def bank_cooldown_validation(self, team):
+        conf = ConstantConfig.objects.last()
+        if not team.last_bank_action:
+            return
+          
+        t = team.last_bank_action + timedelta(minutes=conf.team_bank_transaction_cooldown)
+        if timezone.now() < t:
+            raise exceptions.NotAcceptable("cooldown has not passed.")
+
+
+    def max_team_loan_amount_validation(self, amount, team:Team):
+        conf = ConstantConfig.objects.last()
+        max_amount = team.bank * conf.team_loan_percent_max
+        team.max_bank_loan = max_amount
+        team.save()
+        if amount > max_amount:
+            raise exceptions.ValidationError("amount is more then team's max loan amount.")
+        
+    def positive_amount(self, amount):
+        if amount <= 0:
+            raise exceptions.ValidationError("amount is less then or equal zero.")
+
+
+class LoanRepaySerializer(LoanSerializer):
+    def validate(self, attrs):
+        self.bank_cooldown_validation(attrs["team"])
+        self.wallet_validation(attrs)
+        return attrs
+
+
+    def wallet_validation(self, attrs):
+        team :Team = attrs["team"]
+        if team.wallet < attrs["amount"]:
+            raise exceptions.NotAcceptable(detail="Not enough money in teams wallet.")
+        
+class BankRobberyWaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BankRobbery
+        fields = [
+            "mafia",
+            "contract"
+        ] 
+
+    def validate_contract(self, contract):
+        if contract.contract_type != "bank_rubbery_sponsorship":
+            raise exceptions.ValidationError("Contract type is not bank_rubbery_sponsorship")
+
+        if contract.state != 2:
+            raise exceptions.ValidationError("Contract state is not valid.")
+        if contract.archive:
+            raise exceptions.NotAcceptable("Contract is Archived.")
+        return contract
+    
+    def validate_mafia(self, team:Team):
+        if team.team_role != "Mafia":
+            raise exceptions.ValidationError("Not a mafia team")
+        
+        self.validate_mafia_max_escape_room(team)
+        
+        return team 
+
+    def validate(self, attrs):
+        return super().validate(attrs)
+        
+    def validate_mafia_max_escape_room(self, mafia:Team):
+        
+        profile = mafia.team_feature.first()
+        if not profile:
+            profile = TeamFeature.objects.create(team=mafia)
+            
+        conf = ConstantConfig.objects.last()
+
+        if not profile.mafia_reserved_escape_room < conf.team_escape_room_max:
+            raise exceptions.NotAcceptable("team_escape_room limit")
+
+
+class BankRobberyListSerializer(serializers.ModelSerializer):
+
+    citizen_id = serializers.IntegerField(source="citizen.id")
+    citizen_name = serializers.CharField(source="citizen.name")
+    mafia_id = serializers.IntegerField(source="mafia.id")
+    mafia_name = serializers.CharField(source="mafia.name")
+    robbery_id = serializers.IntegerField(source="id")
+    
+
+    class Meta:
+        model = BankRobbery
+        fields = [
+            "robbery_id",
+            "state",
+            "citizen_id",
+            "citizen_name",
+            "mafia_id",
+            "mafia_name",
+            "escape_room"
+            ]
+
+
+class BankPenetrationOpenSerializer(serializers.ModelSerializer):
+
+    obj_name = ""
+
+    def validate(self, attrs):
+        if self.instance.state != 1:
+            raise exceptions.NotAcceptable(f"{self.obj_name} is on state {self.instance.state}")
+        return super().validate(attrs)
+    
+    
+class BankRobberyOpenSerializer(BankPenetrationOpenSerializer):
+    obj_name = "BankRobbery"
+    class Meta:
+        model = BankRobbery
+        fields = []
+
+
+class BankPenetrationOpenDepositBoxSerializer(   
+    ABC,
+    serializers.ModelSerializer,
+    metaclass=ModelSerializerAndABCMetaClass
+    ):
+    deposit_box = serializers.IntegerField()
+    
+
+    def validate_deposit_box(self, pk):
+        try:
+            box = BankDepositBox.objects.get(pk=pk)
+        except:
+            raise exceptions.NotFound("Box not found.")
+        return box
+    
+
+    def check_deposit_box(self, box:BankDepositBox):
+        if box.robbery_state:
+            raise exceptions.NotAcceptable("Money has been stolen from the box.")
+
+    def __deadline_check(self):
+        room = self.query()
+        solve_time = room.solve_time
+        if timezone.now() > (self.instance.opening_time + timedelta(minutes=solve_time)):
+            self.save(state=4)
+            raise exceptions.NotAcceptable("Expired escape room.")
+        return True
+    
+    @abstractmethod
+    def query(self):
+        ...
+
+    def check_password(self):
+        ...
+
+    def is_acceptable(self):
+        self.__deadline_check()
+        self.check_deposit_box(self.validated_data["deposit_box"])
+        self.check_password(self.validated_data["password"])
+
+
+class ModelSerializerAndABCMetaClass(
+    type(serializers.ModelSerializer),
+    ABCMeta
+    ): ...
+
+
+class DepositBoxSolveSerializer(
+    ABC,
+    serializers.ModelSerializer,
+    metaclass=ModelSerializerAndABCMetaClass
+    ):
+
+    answer  = serializers.CharField()
+    team    = serializers.IntegerField()
+    
+    class Meta:
+        model   = WarehouseBox
+        fields  = "answer", "team"
+
+
+    @abstractmethod
+    def validate(self, attrs):
+        return attrs
+
+    @abstractmethod
+    def validate_team(self, pk):
+        ...
+
+        
+class DepositBoxRobberySerializer(DepositBoxSolveSerializer):
+    
+    
+    def validate(self, attrs):
+        if not self.instance.is_lock:
+            raise exceptions.NotAcceptable(
+                "The box is empty!"
+            )
+        return super().validate(attrs)
+    
+    def validate_team(self, pk):
+        team = Team.objects.get(pk=pk)  #TODO: team is mafia
+        return team
+    
+class DepositBoxHackSerializer(DepositBoxSolveSerializer):
+
+    def validate(self, attrs):
+        if self.instance.lock_state == 2:
+            raise exceptions.NotAcceptable(
+                "Oops!, not a valid box."
+            )
+        if self.instance.sensor_state:
+            raise exceptions.NotAcceptable(
+                "Already hacked"
+            )
+        return super().validate(attrs)
+    
+    def validate_team(self, pk):
+        team = Team.objects.get(pk=pk)  #TODO: team is Police
+        return team
+
+
+
+class BankRobberyOpenDepositBoxSerializer(
+    BankPenetrationOpenDepositBoxSerializer
+    ):
+    password    = serializers.IntegerField()
+
+    class Meta:
+        model = BankRobbery
+        fields = [
+            "deposit_box",
+            "password"
+            ]
+        
+
+    def check_deposit_box(self, box: BankDepositBox):
+        super().check_deposit_box(box)
+        if box.money == 0 :
+            raise exceptions.NotAcceptable("Empty box. try another one.")
+    
+    def check_password(self, password):
+        if password != self.validated_data["deposit_box"].password:
+            raise exceptions.NotAcceptable("Password Not match")
+
+    def query(self) -> EscapeRoom:
+        return self.instance.escape_room
+
+
+class BankSensorInstallOpenDepositBox(
+    BankPenetrationOpenDepositBoxSerializer
+    ):
+    class Meta:
+        model  = BankSensorInstall
+        fields = "deposit_box",
+
+    def check_deposit_box(self, box: BankDepositBox):
+        super().check_deposit_box(box)
+        if box.sensor_state == 1:
+            raise exceptions.NotAcceptable("Sensor is already installed. Try another one")
+        
+    def query(self):
+        return self.instance.room
+
+class BankSensorInstallWaySerializer(
+    serializers.ModelSerializer
+):
+    team = serializers.IntegerField()
+
+    class Meta:
+        model = BankSensorInstall
+        fields = "contract", "team"
+
+    def is_valid(self, *, raise_exception=False):
+        return super().is_valid(raise_exception=raise_exception)
+
+    def validate_contract(self, contract):
+        if contract.contract_type != "bank_sensor_installation_sponsorship":
+            raise exceptions.ValidationError("Not a valid type contract")
+        if BankSensorInstall.objects.filter(contract=contract).last():
+            raise exceptions.NotAcceptable("Contract used")
+        return contract
+
+    def validate_team(self, team) ->Team:
+        team = Team.objects.get(pk=team)
+        if team.team_role == "Citizen":
+            return team
+        raise exceptions.ValidationError("Not Citizen!")
+    
+    def is_acceptable(self):
+        self.check_room_usage_of_team()
+        self.check_contract_and_team()
+
+    def check_contract_and_team(self):
+        team : Team = self.validated_data["team"]
+        contract :Contract = self.validated_data["contract"]
+        if contract.second_party_team != team:
+            raise exceptions.NotAcceptable("OOPS!!, team is not contract's second_party_team ")
+
+    def check_room_usage_of_team(self):
+        citizen : Team= self.validated_data["team"]
+        profile = citizen.team_feature.first()
+        if not profile:
+            profile = TeamFeature.objects.create(team=citizen)
+        conf = ConstantConfig.objects.last()
+
+        if not profile.citizen_opened_night_escape_rooms < conf.team_escape_room_max:
+            raise exceptions.NotAcceptable("team_escape_room limit")
+        
+
+    def save(self, **kwargs):
+
+        kwargs["citizen"] = self.validated_data["team"]
+        kwargs["contract"] = self.validated_data["contract"]
+        assert self.validated_data["contract"].first_party_team.team_role == "Police"
+        kwargs["police"] = self.validated_data["contract"].first_party_team
+        self.instance = self.create(kwargs)
+        assert self.instance is not None, (
+            '`create()` did not return an object instance.'
+        )
+        return self.instance
+
+
+class BankSensorInstallationListSerializer(serializers.ModelSerializer):
+
+    citizen_id  = serializers.IntegerField(source="citizen.id")
+    citizen_name = serializers.CharField(source="citizen.name")
+    police_id   = serializers.IntegerField(source="police.id")
+    police_name  = serializers.CharField(source="police.name")
+    request_id  = serializers.IntegerField(source="id")
+
+    class Meta:
+        model = BankSensorInstall
+        fields = [
+            "request_id",
+            "state",
+            "citizen_id",
+            "citizen_name",
+            "police_id",
+            "police_name",
+            "room"
+            ]
+        
+class BankSensorInstallationOpenSerializer(
+    BankPenetrationOpenSerializer
+    ):
+    obj_name = "Installation request"
+    class Meta:
+        model = BankSensorInstall
+        fields = []
+

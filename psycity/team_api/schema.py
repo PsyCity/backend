@@ -63,3 +63,13 @@ invite_list_schema = swagger_auto_schema(
         )
     ]
 )
+
+bank_robbery_list_schema = swagger_auto_schema(
+    manual_parameters=[
+        openapi.Parameter(
+            "team_id",
+            openapi.IN_QUERY,
+            type=openapi.TYPE_INTEGER
+        )
+    ]
+)

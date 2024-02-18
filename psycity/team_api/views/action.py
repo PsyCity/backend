@@ -7,28 +7,51 @@ from rest_framework import status
 from rest_framework import exceptions
 
 from team_api.serializers import (
-    KillHomelessSerializer, 
-    DepositBoxSensorReportListSerializer, 
+    KillHomelessSerializer,
+    DepositBoxSensorReportListSerializer,
     EscapeRoomAfterPuzzleSerializer,
     EscapeRoomListSerializer,
     EscapeRoomReserve,
-    serializers
+    BankRobberyWaySerializer,
+    BankRobberyListSerializer,
+    BankRobberyOpenSerializer,
+    BankSensorInstallationOpenSerializer,
+    BankRobberyOpenDepositBoxSerializer,
+    BankSensorInstallWaySerializer,
+    BankSensorInstallationListSerializer,
+    BankSensorInstallOpenDepositBox,
+    DepositBoxHackSerializer,
+    DepositBoxRobberySerializer,
+    serializers,
 )
 
 from core.models import (
     Player,
-    ConstantConfig, 
+    ConstantConfig,
     Contract,
     BankDepositBox,
-    EscapeRoom
+    EscapeRoom,
+    BankRobbery,
+    WarehouseBox,
+    TeamFeature,
+    BankSensorInstall,
+    Team,
 )
+from abc import ABC, abstractmethod
+from team_api.utils import (
+    ListModelMixin,
+    transfer_money,
+    response,
+    find_boxes,
+    )
 
-from team_api.utils import transfer_money
-from team_api.schema import deposit_list_schema
+from team_api.views.base_actions import BankPenetrationBaseViewSet
+from team_api.schema import deposit_list_schema, bank_robbery_list_schema
+
+import random
 
 
 class KillHomelessViewSet(GenericViewSet):
-
     serializer_class = KillHomelessSerializer
 
     def create(self, request, *args, **kwargs):
@@ -73,13 +96,13 @@ class KillHomelessViewSet(GenericViewSet):
         player = serializer.validated_data.get("homeless_id")
         player.last_assassination_attempt = timezone.now()
         conf = get_object_or_404(ConstantConfig.objects.filter())
-        
+
         bodyguard, contract = self.bodyguard_exist(player)
         if bodyguard:
             if team.level < bodyguard.level:
                 """
                 decrease contract_amount + penaly_percent from police
-                add contract_amount + bonus to bodyguard 
+                add contract_amount + bonus to bodyguard
                 kill homeless
                 """
                 transfer_money(
@@ -87,53 +110,52 @@ class KillHomelessViewSet(GenericViewSet):
                     from_team=bodyguard,
                     penalty_percent=conf.penalty_percent,
                     to_team=team,
-                    bonus_percent=conf.bonus_percent
+                    bonus_percent=conf.bonus_percent,
                 )
 
                 self.kill(player)
                 data = {
-                    "message" : f"Mafia Wins. {player.__str__()} is dead.",
-                    "data" : [],
-                    "result" : 1
+                    "message": f"Mafia Wins. {player.__str__()} is dead.",
+                    "data": [],
+                    "result": 1,
                 }
-                
-            elif team.level == bodyguard.level:
 
+            elif team.level == bodyguard.level:
                 transfer_money(
                     amount=contract.cost // 2,
                     from_team=bodyguard,
                     to_team=team,
                     penalty_percent=0,
-                    bonus_percent=0
+                    bonus_percent=0,
                 )
                 data = {
-                    "message" : "homeless saved. bodyguard level == mafia level",
+                    "message": "homeless saved. bodyguard level == mafia level",
                     "data": [],
-                    "result" : 2
+                    "result": 2,
                 }
-                
+
             elif team.level > bodyguard.level:
                 """
-                transfer from mafia to bodyguard 
+                transfer from mafia to bodyguard
                 """
                 transfer_money(
                     amount=contract.cost,
                     from_team=team,
                     to_team=bodyguard,
                     bonus_percent=conf.bonus_percent,
-                    penalty_percent=conf.penalty_percent
+                    penalty_percent=conf.penalty_percent,
                 )
-                data={
+                data = {
                     "message": "Bodyguard wins. mafia level < police level.",
                     "data": [],
-                    "result":3
+                    "result": 3,
                 }
 
             contract.archive = True
             contract.save()
 
             return data, status.HTTP_200_OK
-        
+
         self.kill(player)
         data={
             "message": "homeless killed successfully.",
@@ -142,7 +164,7 @@ class KillHomelessViewSet(GenericViewSet):
         } 
 
         return data, status.HTTP_200_OK
-    
+
     def kill(self, player):
         print(f"[KILL] killing {player.__str__()}")
         player.player_role.clear()
@@ -156,16 +178,16 @@ class KillHomelessViewSet(GenericViewSet):
             second_party_player=player,
             first_party_agree=True,
             second_party_agree=True,
-            archive=False
+            archive=False,
         ).last()
         if contract:
             return player.bodyguard_team, contract
         return False, None
-    
-class DepositBoxSensor(GenericViewSet):
 
-    queryset = BankDepositBox.objects.all() 
-    http_method_names=["get", "patch", "options"]
+
+class DepositBoxSensor(GenericViewSet):
+    queryset = BankDepositBox.objects.all()
+    http_method_names = ["get", "patch", "options"]
 
     def get_serializer_class(self):
         if self.request.method == "GET":
@@ -186,16 +208,12 @@ class DepositBoxSensor(GenericViewSet):
                 data={
                     "message": "something went wrong.",
                     "data": e.detail,
-                    "result": None
+                    "result": None,
                 }
             )
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    
-    
-    
-    
     def update(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -207,9 +225,9 @@ class DepositBoxSensor(GenericViewSet):
                 data={
                     "message": "Rubbery reported successfully.",
                     "data": [],
-                    "result": None
+                    "result": None,
                 },
-                status=status.HTTP_200_OK
+                status=status.HTTP_200_OK,
             )
         except BankDepositBox.DoesNotExist:
             return Response(
@@ -235,11 +253,11 @@ class DepositBoxSensor(GenericViewSet):
                 data={
                     "message": "Request is not acceptable.",
                     "data": [e.detail],
-                    "result": None
+                    "result": None,
                 },
-                status=status.HTTP_406_NOT_ACCEPTABLE
+                status=status.HTTP_406_NOT_ACCEPTABLE,
             )
-        
+
         except Exception as e:
             return Response(
                 data={
@@ -268,15 +286,7 @@ class DiscoverBankRobber(
     GenericViewSet,
     mixins.ListModelMixin
     ):
-    """
-    TODO: 
-    - [x] List EscapeRooms
-    - [x] reserve to solve
-    - [x] after puzzle
-    - [ ] report
-    - [ ] exception handlers
-    - [ ] define discord api
-    """
+
 
     queryset = EscapeRoom.objects.all()
 
@@ -284,11 +294,11 @@ class DiscoverBankRobber(
         if self.action == "list":
             return EscapeRoomListSerializer
         elif self.action == "reserve_to_solve":
-            return EscapeRoomReserve 
+            return EscapeRoomReserve
         elif self.action == "after_puzzle":
-            return EscapeRoomAfterPuzzleSerializer 
+            return EscapeRoomAfterPuzzleSerializer
         return serializers.Serializer
-    
+
     @action(["post"], True)
     def reserve_to_solve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -303,7 +313,7 @@ class DiscoverBankRobber(
             },
             status=status.HTTP_200_OK
         )
-    
+
     def perform_update_reserve(self, serializer):
         instance = serializer.instance
         instance.state = 2
@@ -338,8 +348,6 @@ class DiscoverBankRobber(
         instance.save()
         return data
 
-
-
     @action(["post"], True)
     def report(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -356,7 +364,7 @@ class DiscoverBankRobber(
         )
 
     def perform_update_report(self, serializer):
-        room :EscapeRoom = serializer.instance
+        room: EscapeRoom = serializer.instance
         police = room.solver_police
         mafia = room.bank_deposit_box.rubbery_team
         amount = room.bank_deposit_box.money
@@ -372,3 +380,410 @@ class DiscoverBankRobber(
             mafia.wallet -= mafia_amount
         police.wallet += police_amount
         police.save()
+
+class BankRobberyWayViewSet(
+    GenericViewSet,
+    mixins.CreateModelMixin
+    ):
+
+    serializer_class = BankRobberyWaySerializer
+
+    @response
+    def create(self, request, *args, **kwargs):
+        r = super().create(request, *args, **kwargs)
+        # NOTICE: Need to choose a Escape Room??
+        return Response(
+            data={
+                "message": "robbery approved.",
+                "data": [],
+                "result": r.data.get("id"),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def perform_create(self, serializer):
+        citizen = serializer.validated_data.get("contract").second_party_team
+
+        instance = serializer.save(
+            citizen=citizen
+        )
+        self.consider_escape_room(instance)
+        self.add_to_mafia_efforts(serializer.validated_data["mafia"])
+        self.archive_contract(serializer)
+
+    def archive_contract(self, serializer):
+        try:
+            contract: Contract = serializer.validated_data["contract"]
+            contract.archive = True
+            contract.save()
+        except:
+            # LOG
+            raise exceptions.APIException("Failed to archive contract.")
+
+    def consider_escape_room(self, instance: BankRobbery):
+        # TODO : Do not use random :(
+        escape_rooms = EscapeRoom.objects.filter(state=0).all()
+
+        if not escape_rooms:
+            raise exceptions.APIException("Lack off escape room.")
+
+        room = random.choice(escape_rooms)
+        instance.escape_room = room
+        room.no_valid_mafia -= 1
+        room.state = 5
+        room.save()
+        instance.save()
+
+    def add_to_mafia_efforts(self, mafia):
+        profile = mafia.team_feature.first()
+
+        profile.mafia_reserved_escape_room += 1
+        profile.save()
+
+
+class BankRobberyViewSet(
+    BankPenetrationBaseViewSet
+    ):
+
+    queryset = BankRobbery.objects.all()
+    serializer_class = BankRobberyListSerializer
+    team_role_allowed = "Mafia"
+    success_message_list = "Team Bank Robberies"
+    success_message_deposit = "Box Opened"
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return BankRobberyListSerializer
+        elif self.action == "open_escape_room":
+            return BankRobberyOpenSerializer
+        elif self.action == "open_deposit_box":
+            return BankRobberyOpenDepositBoxSerializer
+        return serializers.Serializer
+
+    def query(self, owner):
+        return self.queryset.filter(mafia=owner).all()
+
+
+    def perform_on_box(self, serializer):
+        box = serializer.validated_data["deposit_box"]
+        # box is selected box
+        boxes = find_boxes(box)
+        boxes = self.perform_on_boxes(serializer, boxes)
+        box = self.select_box(boxes, box)
+        # box is a random box. kind of random
+        self.attach_box_and_room(box, serializer.instance.escape_room)
+        self.transfer_money(serializer, box)
+        self.notify(boxes)
+
+    def perform_on_boxes(self, serializer, boxes):
+        """do any perform on all boxes together"""
+        mafia: Team = serializer.instance.mafia
+
+        for b in boxes:
+            b.robbery_state = True
+            b.rubbery_team = mafia
+            b.save()
+        return boxes
+
+    def select_box(self, boxes, box):
+        """
+        select a box with no sensor if available
+        """
+        sensor_not_installed = list(filter(lambda b: not b.sensor_state, boxes))
+        if sensor_not_installed:
+            box = random.choices(sensor_not_installed)[0]
+        return box
+
+    def notify(self, boxes):
+        return super().notify()
+
+
+
+    def attach_box_and_room(self,
+                            box:BankDepositBox,
+                            room:EscapeRoom
+                            ): 
+        room.bank_deposit_box = box
+        room.state = 1
+        room.save()
+
+    def transfer_money(self, serializer, box):
+        """
+        transfer money to citizen and pay the contract
+        """
+
+        robbery: BankRobbery = serializer.instance
+        citizen: Team = robbery.citizen
+        contract: Contract = robbery.contract
+        mafia: Team = robbery.mafia
+
+        citizen.wallet += box.money
+        robbery.robbery_amount = box.money
+        box.money = 0
+        mafia.wallet += contract.cost
+        contract.state = 3
+        contract.archive = True
+
+        robbery.save()
+        citizen.save()
+        contract.save()
+        box.save()
+        mafia.save()
+
+class WarehouseDepositBoxBaseViewSet(
+    ABC,
+    GenericViewSet
+    ):
+
+    @response
+    def update(
+        self,
+        request,
+        *args, **kwargs
+    ):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance,
+                                         data=request.data,
+                                         partial=True)
+        
+        serializer.is_valid(raise_exception=True)
+        result_of_answer = self.check_answer(serializer)
+        if result_of_answer:
+            self.right_answer(serializer)
+            return Response(
+                data={
+                    "message": "Successfully Answered!",
+                    "data": [],
+                    "result": None
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        else:
+            self.wrong_answer()
+            return Response(
+                data={
+                    "message": "Wrong answer :(",
+                    "data" : [],
+                    "result": None
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+    def check_answer(self,
+                     serializer: DepositBoxRobberySerializer
+                     )-> bool:
+        player_answer   = serializer.validated_data["answer"].strip()
+        real_answer     =  serializer.instance.lock_question.answer
+        return player_answer == real_answer
+    
+    @abstractmethod
+    def right_answer(self,
+                     serializer: DepositBoxRobberySerializer
+                     ) -> None:
+        ...
+
+
+    def wrong_answer(self) -> None:
+        # i think there is nothing to do
+        ...
+
+    @abstractmethod
+    def call_API(self, sensor):
+        ...
+
+
+class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
+
+    serializer_class = DepositBoxRobberySerializer
+    queryset = WarehouseBox.objects.filter(lock_state=0).all() 
+
+
+    def right_answer(self, serializer: DepositBoxRobberySerializer) -> None:
+        #transfer money and question to team
+        #check sensor
+
+        box: WarehouseBox = serializer.instance
+        box.unlocker = serializer.validated_data["team"]
+        box.lock_state = 1
+        box.save()
+        team: Team = serializer.validated_data["team"]
+        team.wallet += box.money
+        team.save()
+        box.box_question.last_owner = team
+        box.box_question.save()
+        
+        if box.sensor_state:
+            self.take_back_some_money(team=team, serializer=serializer)
+        
+        self.call_API(box.sensor_state)
+            
+    def take_back_some_money(
+            self,
+            box : WarehouseBox,
+            team: Team
+            )   -> None:
+        try:
+            conf = ConstantConfig.objects.last()
+        except:
+            #LOGGER :((
+            raise exceptions.APIException(
+                "Config instance not found"
+            )
+        
+        cost = box.worth * conf.penalty_percent //100
+        team.wallet -= cost
+        if team.wallet < 0:
+            team.bank_liabilities += team.wallet * (-1)
+            team.wallet = 0
+        team.save()
+    
+    def call_API(self, sensor):
+        if sensor:
+            msg = "robbed and sensor activated"
+        else:
+            msg = "robbed"
+        #TODO
+
+class BankSensorInstallWay(
+    GenericViewSet,
+    mixins.CreateModelMixin
+):
+    serializer_class = BankSensorInstallWaySerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.is_acceptable()
+        room = self.choose_room()
+        self.perform_create(serializer, room)
+
+        return Response(
+            data={
+                "message":"",
+                "data": [],
+                "result": serializer.instance.pk
+            },
+            status=status.HTTP_201_CREATED
+            )
+
+    def choose_room(self) -> EscapeRoom:
+        escape_rooms = EscapeRoom.objects.filter(state=0).all()
+
+        if not escape_rooms:
+            raise exceptions.APIException("Lack off escape room.")
+
+        # filter rooms to make sure
+        # check no_valid_citizen
+        room = random.choice(escape_rooms)
+        room.no_valid_citizen -= 1
+        room.save()
+        return room
+
+    def perform_create(self, serializer, room):
+        self.perform_on_team(serializer)
+        serializer.save(room=room)
+
+
+    def perform_on_team(self,
+                        serializer: BankSensorInstallWaySerializer
+                        ):
+        team : Team = serializer.validated_data["team"]
+        profile = team.team_feature.first()
+        profile.citizen_opened_night_escape_rooms += 1
+        profile.save()
+
+        
+class BankSensorInstallViewSet(
+    BankPenetrationBaseViewSet
+):
+    queryset = BankSensorInstall.objects.all()
+    serializer_class = BankSensorInstallationListSerializer
+    team_role_allowed = "Citizen"
+    success_message_list = "Team Bank Robberies"
+
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return BankSensorInstallationListSerializer
+        elif self.action == "open_escape_room":
+            return BankSensorInstallationOpenSerializer
+        elif self.action == "open_deposit_box":
+            return BankSensorInstallOpenDepositBox
+        return serializers.Serializer
+
+    def query(self, owner):
+        return self.queryset.filter(citizen=owner).all() 
+
+    def perform_on_box(self,
+                       serializer : BankSensorInstallOpenDepositBox
+                       )-> None:
+        box : BankDepositBox = serializer.validated_data["deposit_box"]
+        installation : BankSensorInstall = serializer.instance
+
+        box.save(
+            sensor_owner=installation.police,
+            sensor_state=1
+            )
+        self.notify()
+        self.transfer_money(installation)
+
+    def transfer_money(self,
+                       installation :BankSensorInstall
+                       ) -> None:
+        # FIXME
+        # I'm not sure about what should I have to do, the document did not mention about this part.
+        # as when you see this ,you know I'm not a part of the team anymore.
+        # so you should write this function on your own to specify what will happen to the contract between police and citizen  
+        # Best regards,
+        # Amin Masoudi 
+        ...
+            
+        
+class WarehouseDepositBoxHackViewSet(WarehouseDepositBoxBaseViewSet):
+
+    serializer_class = DepositBoxHackSerializer
+    queryset = WarehouseBox.objects.all() 
+
+
+    def right_answer(self, serializer: DepositBoxRobberySerializer) -> None:
+        box: WarehouseBox = serializer.instance
+        if not box.is_lock:
+            self.operations_on_mafia(serializer)
+            self.operations_on_police(serializer)
+            # well done
+            
+        self.operations_on_box(serializer)
+
+    def operations_on_box(self, serializer)-> None:
+        box : WarehouseBox = serializer.instance
+        box.sensor_state = True
+        box.sensor_hacker = serializer.validated_data["team"]
+        box.save()
+
+    def operations_on_police(self, serializer):
+        box : WarehouseBox = serializer.instance
+        police :Team = serializer.validated_data["team"]
+        conf = ConstantConfig.objects.last()
+        bonus = box.worth * conf.bonus_percent //100
+        police.wallet += bonus
+        police.save()
+
+    def operations_on_mafia(self, serializer):
+        conf = ConstantConfig.objects.last()
+        box : WarehouseBox = serializer.instance
+        mafia : Team = box.unlocker
+
+        cost = box.worth * conf.penalty_percent //100
+
+        mafia.wallet -= cost
+        if mafia.wallet < 0:
+            mafia.bank_liabilities += mafia.wallet * (-1)
+            mafia.wallet = 0
+        mafia.save()
+
+
+    def call_API(self, sensor):
+        #TODO 
+        ...
