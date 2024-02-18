@@ -136,6 +136,16 @@ class DepositBoxSensorReportListSerializer(serializers.ModelSerializer):
             "sensor_state",
         ]
 
+class QuestionBuySerializer(serializers.Serializer):
+    team_id = serializers.IntegerField()
+    question_id = serializers.IntegerField()
+
+
+class QuestionSolveSerializer(serializers.Serializer):
+    player_id = serializers.IntegerField()
+    question_id = serializers.IntegerField()
+    answer_file = serializers.CharField()
+    answer_file = serializers.FileField()
 
 class EscapeRoomListSerializer(serializers.ModelSerializer):
     class Meta:
@@ -355,7 +365,6 @@ class TeamMoneySerializer(serializers.ModelSerializer):
         t = team.last_bank_action + timedelta(minutes=conf.team_bank_transaction_cooldown)
         if timezone.now() < t:
             raise exceptions.NotAcceptable("cooldown has not passed.")
-
 
 
 class LoanSerializer(serializers.Serializer):
