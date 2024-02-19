@@ -91,3 +91,9 @@ class QuestionBuyView(GenericAPIView):
                 "data": [],
                 "result": str(e),
             }, status=status.HTTP_400_BAD_REQUEST)
+        
+class TeamQuestions(GenericAPIView):
+    def get(self, request, team_id, *args, **kwargs):
+        questions = (Question.objects.filter(last_owner=team_id) | Question.objects.filter(last_owner=team_id)) & Question.objects.filter(is_published=True)
+        serializer = serializers.TeamQuestionListSerializer(questions, many=True)
+        return Response(serializer.data)

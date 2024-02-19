@@ -16,6 +16,7 @@ from core.models import (
     BankRobbery,
     WarehouseBox,
     BankSensorInstall,
+    Question,
 )
 from team_api.utils import cost_validation, ModelSerializerAndABCMetaClass
 from datetime import timedelta
@@ -331,6 +332,26 @@ class TeamContractListSerializer(serializers.ModelSerializer):
             "terms",
             "state",
             "archive",
+        ]    
+
+    def to_representation(self, instance):
+        return super().to_representation(instance)
+    
+class TeamQuestionListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Question
+        fields = [
+            'id',
+            'level',
+            'last_owner',
+            'price',
+            'score',
+            'is_published',
+            'title',
+            'body',
+            'qtype',
+            'no_valid_tries',
+            'valid_solve_minutes',
         ]    
 
     def to_representation(self, instance):
