@@ -60,10 +60,17 @@ class QuestionListSerializer(ModelSerializer):
     class Meta:
         model = Question
         fields = [
-            "pk",
-            "title",
-            "body",
-            "qtype"
+            'id',
+            'level',
+            'last_owner',
+            'price',
+            'score',
+            'is_published',
+            'title',
+            'body',
+            'qtype',
+            'no_valid_tries',
+            'valid_solve_minutes',
         ]
 
 class QuestionRetrieveSerializer(ModelSerializer):
@@ -82,6 +89,11 @@ class ContractListSerializer(ModelSerializer):
         fields = [
             "id",
             "contract_type",
+            "first_party_team",
+            "second_party_team",
+            "contract_type",
+            "cost",
+            "terms",
             "first_party_agree",
             "second_party_agree"
         ]
