@@ -14,7 +14,13 @@ class TeamListSerializer(ModelSerializer):
         fields = [
             "id",
             "name",
-            "state"
+            "state",
+            "team_role",
+            "wallet",
+            "total_asset",
+            "level",
+            "channel_id",
+            "channel_role",
         ]
 class TeamPlayerSerializer(serializers.ModelSerializer):
     roles = serializers.SerializerMethodField()
@@ -47,7 +53,6 @@ class TeamRetrieveSerializer(ModelSerializer):
     def get_players(self, obj):
         players = obj.player_team.all()
         players_serializer = TeamPlayerSerializer(players, many=True)
-        print(players_serializer.data)
         return players_serializer.data
 
 

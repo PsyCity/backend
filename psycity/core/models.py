@@ -207,6 +207,8 @@ class Team(BaseModel):
     max_bank_loan = models.IntegerField(default=0)
     last_bank_action = models.DateTimeField(blank=True, null=True)
     today_bought_question = models.IntegerField(default=0)
+    channel_id = models.IntegerField(default=0)
+    channel_role = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
