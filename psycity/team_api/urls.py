@@ -1,7 +1,7 @@
 from django.urls import path, include
 
 from rest_framework.routers import DefaultRouter
-from .views import member, action, contract, money, loan
+from .views import member, action, contract, money, loan, question
 
 member_router = DefaultRouter()
 member_router.register("role", member.RoleViewset, "role")
@@ -38,5 +38,6 @@ urlpatterns = [
     path("action/", include(action_router.urls)),
     path("contract/", include(contract_router.urls)),
     path("money/", include(money_router.urls)),
+    path("question/buy/", question.QuestionBuyView.as_view(), name="team_question_buy"),
     path("loan/", include(loan_router.urls)),
 ]

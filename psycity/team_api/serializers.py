@@ -727,3 +727,15 @@ class BankSensorInstallationOpenSerializer(
         model = BankSensorInstall
         fields = []
 
+
+
+class QuestionBuySerializer(serializers.Serializer):
+    team_id = serializers.IntegerField()
+    question_id = serializers.IntegerField()
+
+
+class QuestionSolveSerializer(serializers.Serializer):
+    player_id = serializers.IntegerField()
+    question_id = serializers.IntegerField()
+    answer_text = serializers.CharField()
+    answer_file = serializers.FileField()
