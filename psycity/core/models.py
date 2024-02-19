@@ -319,25 +319,29 @@ class Contract(BaseModel):
     first_party_player = models.ForeignKey("Player",
                                            on_delete=models.CASCADE,
                                            null=True,
+                                           blank=True,
                                            related_name='contract_first_party_to_player'
                                            )
 
     first_party_team = models.ForeignKey("Team",
                                          on_delete=models.CASCADE,
                                          null=True,
+                                         blank=True,
                                          related_name='contract_first_party_to_team'
                                          )
     
     second_party_player = models.ForeignKey("Player",
                                             on_delete=models.CASCADE,
                                             related_name='contract_second_party_to_player',
-                                            null=True
+                                            null=True,
+                                            blank=True,
                                             )
 
     second_party_team = models.ForeignKey("Team",
                                           on_delete=models.CASCADE,
                                           related_name='contract_second_party_to_team',
-                                          null=True
+                                          null=True,
+                                          blank=True,
                                           )
 
     terms = models.TextField()

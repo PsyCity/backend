@@ -1,8 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
-from rest_framework import serializers
-from rest_framework import exceptions
+from rest_framework import serializers, generics, exceptions
 
 from core.models import (
     PlayerRole, 
@@ -318,6 +317,24 @@ class ContractPaySerializer(serializers.ModelSerializer):
             raise exceptions.NotAcceptable(
                 f"Not valid endpoint for {contract.contract_type}."
                 )
+
+
+class TeamContractListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contract
+        fields = [
+            "id",
+            "first_party_team",
+            "second_party_team",
+            "contract_type",
+            "cost",
+            "terms",
+            "state",
+            "archive",
+        ]    
+
+    def to_representation(self, instance):
+        return super().to_representation(instance)
 
 class TeamMoneySerializer(serializers.ModelSerializer):
     amount = serializers.IntegerField()

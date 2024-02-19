@@ -1,6 +1,7 @@
 from rest_framework.viewsets import (
     GenericViewSet, 
-    mixins
+    mixins,
+    generics,
 )
 
 from team_api.utils import response
@@ -14,6 +15,7 @@ from team_api.serializers import(
     ContractRegisterSerializer,
     ContractApprovementSerializer,
     ContractPaySerializer,
+    TeamContractListSerializer,
 )
 
 
@@ -122,3 +124,15 @@ class Pay(
             raise exceptions.APIException(
                 f"failed to transfer money between {contract.first_party_team} and {contract.second_party_team}."
                 )
+        
+# class TeamContracts(generics.ListAPIView):
+    # serializer_class = TeamContractListSerializer
+
+    # def get_queryset(self):
+    #     team_id = self.kwargs['team_id']
+    #     return Contract.objects.filter(first_party_team_id=team_id) | Contract.objects.filter(second_party_team_id=team_id)
+class TeamContracts(generics.GenericAPIView):
+    def get(self, request, *args, **kwargs):
+        contracts = Contract.objects.all()
+        serializer = TeamContractListSerializer(contracts, many=True)
+        return Response(serializer.data)

@@ -39,5 +39,6 @@ urlpatterns = [
     path("contract/", include(contract_router.urls)),
     path("money/", include(money_router.urls)),
     path("question/buy/", question.QuestionBuyView.as_view(), name="team_question_buy"),
+    path('contract/list/<int:team_id>/', contract.TeamContracts.as_view(), name='team_contracts'),
     path("loan/", include(loan_router.urls)),
 ]
