@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet, mixins
+from rest_framework.viewsets import  mixins
 from rest_framework.decorators import action
 from rest_framework import status
 from rest_framework import exceptions
@@ -45,7 +45,7 @@ from team_api.utils import (
     find_boxes,
     )
 
-from team_api.views.base_actions import BankPenetrationBaseViewSet
+from team_api.views.base_actions import BankPenetrationBaseViewSet, GenericViewSet
 from team_api.schema import deposit_list_schema, bank_robbery_list_schema
 
 import random
