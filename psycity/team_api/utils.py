@@ -7,6 +7,7 @@ from core.models import Team, BankDepositBox
 from drf_yasg import openapi
 from functools import wraps
 from abc import ABCMeta
+from dataclasses import dataclass, field
 
 
 class ResponseStructure:
@@ -159,6 +160,26 @@ def find_boxes(box: BankDepositBox) -> set:
         boxes = [box]
 
     return set(boxes)
+@dataclass
+class HiddenID:
+    id: int = field(kw_only=True, default=None)
+    encoded_id: int = field(kw_only=True, default=None)
+
+    @property
+    def decoded(self)-> int:
+        assert self.encoded_id is not None
+        return self.__f_inverse()
+
+    def encoded(self) -> int:
+        assert self.id is not None
+        return self.__f()
+    
+    def __f(self) -> int:
+        #FIXME more complex function
+        return self.id * 2 + 300
+
+    def __f_inverse(self) -> int:
+        return (self.encoded_id - 300) / 2 
 
 
 class ModelSerializerAndABCMetaClass(
