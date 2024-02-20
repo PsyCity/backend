@@ -1,6 +1,6 @@
 from django.utils import timezone
 
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet as BaseGenericViewSet
 from rest_framework.decorators import action
 from rest_framework import exceptions
 from rest_framework.response import Response
@@ -8,8 +8,21 @@ from rest_framework.response import Response
 from abc import ABC, abstractmethod
 
 from core.models import Team
-from team_api.utils import ListModelMixin, response
+from team_api.utils import ListModelMixin, response, HiddenID
 from team_api.schema import bank_robbery_list_schema
+
+
+class GenericViewSet(
+    BaseGenericViewSet
+    ):
+    def get_object(self):
+        assert self.kwargs[self.lookup_field].isdigit(), "pk is not digit"
+        
+        if (pk:=int(self.kwargs[self.lookup_field])) > 300:
+            pk = HiddenID(encoded_id=pk)
+            self.kwargs[self.lookup_field] = pk.decoded
+
+        return super().get_object()
 
 
 class BankPenetrationBaseViewSet(ABC,
