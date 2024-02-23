@@ -207,8 +207,8 @@ class Team(BaseModel):
     max_bank_loan = models.IntegerField(default=0)
     last_bank_action = models.DateTimeField(blank=True, null=True)
     today_bought_question = models.IntegerField(default=0)
-    channel_id = models.IntegerField(default=0)
-    channel_role = models.IntegerField(default=0)
+    channel_id = models.CharField(max_length=100)
+    channel_role = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
@@ -313,6 +313,7 @@ class Contract(BaseModel):
         bank_rubbery_sponsorship = 'bank_rubbery_sponsorship', _('Bank Robbery Sponsorship'),
         bank_sensor_installation_sponsorship = 'bank_sensor_installation_sponsorship', _('Bank Sensor Installation Sponsorship'),
         bodyguard_for_the_homeless = 'bodyguard_for_the_homeless', _('Bodyguard for the Homeless'),
+        homeless_solve_question = 'homeless_solve_question', _('Homeless Solve Question'),
         other = 'other', _('Other'),
     
     state = models.IntegerField(choices=STATE_CHOICE)
@@ -368,6 +369,7 @@ class PlayerRole(models.Model):
         SMOOTH_TALKER = 'SmoothTalker', _('Smooth Talker')
 
     name = models.CharField(max_length=15, choices=ROLES_CHOICES.choices)
+    discord_role_id = models.CharField(max_length=100, null=False, blank=False, unique=True, primary_key=True)
 
     def __str__(self) -> str:
         return f"{self.name}"
