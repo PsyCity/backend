@@ -12,7 +12,6 @@ class TeamListSerializer(ModelSerializer):
     class Meta:
         model = Team
         fields = [
-            "id",
             "name",
             "state",
             "team_role",

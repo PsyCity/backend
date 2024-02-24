@@ -18,7 +18,7 @@ from core.models import (
     BankSensorInstall,
     Question,
 )
-from team_api.utils import cost_validation, ModelSerializerAndABCMetaClass
+from team_api.utils import cost_validation, ModelSerializerAndABCMetaClass, question_validation
 from datetime import timedelta
 from abc import ABC, abstractmethod
 from abc import ABC, abstractmethod, ABCMeta
@@ -181,9 +181,9 @@ class EscapeRoomSerializer(serializers.ModelSerializer):
 
 
 
-def required(value):
+def required(value, field_name):
     if value is None:
-        raise serializers.ValidationError('This field is required')
+        raise serializers.ValidationError(f'{field_name} is required')
 
 class ContractRegisterSerializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField()
@@ -193,32 +193,38 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
             "id",
             "first_party_team",
             "second_party_team",
+            "first_party_player",
+            "second_party_player",
             "contract_type",
+            "question",
             "cost",
             "terms",
         )
 
-    def base_team_validation(self, team_id):
-        required(team_id)
-        return team_id
 
     def get_id(self, obj):
         return obj.id
     
-    def validate_first_party_team(self, team_id):
-        self.base_team_validation(team_id)
-        return team_id
-    
-    def validate_second_party_team(self, team_id):
-        self.base_team_validation(team_id)        
-        return team_id
     
     def contract_type_validation(self, attrs):
         contract_type = attrs.get("contract_type")
+
+        print('attrs', attrs)
         
         if contract_type == "question_ownership_transfer":
-            first = attrs.get("first_party_team")
+            first: Team = attrs.get("first_party_team")
+            second: Team = attrs.get("second_party_team")
+            question: Question = attrs.get("question")
+            cost = attrs.get("cost")
+            required(first, 'first_party_team')
+            required(second, 'second_party_team')
+            required(question, 'question')
+            required(cost, 'cost')
+            
             cost_validation(attrs.get("cost"), first)
+            question_validation(attrs.get("question"), first)
+
+            
 
         elif contract_type == "bank_rubbery_sponsorship":
             try:
@@ -237,11 +243,17 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
 
             cost_validation(attrs.get("cost"), citizen_team)
 
+        elif contract_type == "homeless_solve_question":
+            first = attrs.get("first_party_team")
+            second = attrs.get("second_party_player")
+
+
         elif contract_type == "bodyguard_for_the_homeless":
             raise exceptions.NotAcceptable("Not this endpoint")
 
         elif contract_type == "other":
             raise exceptions.NotAcceptable("Not Implemented in here :)")
+        
 
 
     def validate(self, attrs):
@@ -249,7 +261,7 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
         return attrs
 
 class ContractApprovementSerializer(serializers.ModelSerializer):
-    team = serializers.IntegerField()
+    team = serializers.CharField()
     class Meta:
         model = Contract
         fields = (

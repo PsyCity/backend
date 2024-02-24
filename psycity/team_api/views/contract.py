@@ -116,6 +116,12 @@ class Pay(
     
     def pay(self, contract:Contract):
         try:
+            if contract.contract_type == 'question_ownership_transfer':
+                contract.question.last_owner = contract.second_party_team
+                contract.question.save()
+            elif contract.contract_type == 'homeless_solve_question':
+                # todo:
+                ...
             contract.first_party_team.wallet -= contract.cost
             contract.first_party_team.save()
             contract.second_party_team.wallet += contract.cost

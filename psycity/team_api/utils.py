@@ -1,9 +1,10 @@
 from django.http import Http404
+from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import exceptions, status
 from psycity.settings import DEBUG
-from core.models import Team, BankDepositBox
+from core.models import Team, BankDepositBox, Question
 from drf_yasg import openapi
 from functools import wraps
 from abc import ABCMeta
@@ -100,6 +101,14 @@ def cost_validation(cost, team:Team):
         )
         # log.warning(f"Team {team.name} cant effort {cost} amount of money")
     return True
+
+def question_validation(question: Question, first_team: Team):
+     if question.last_owner != first_team:
+         raise exceptions.NotAcceptable(
+             f"Quesiton owner is not first party team"
+         )
+     return True
+    
     
 def response(func):
     @wraps(func)

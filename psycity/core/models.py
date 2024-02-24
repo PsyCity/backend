@@ -208,7 +208,7 @@ class Team(BaseModel):
     last_bank_action = models.DateTimeField(blank=True, null=True)
     today_bought_question = models.IntegerField(default=0)
     channel_id = models.CharField(max_length=100)
-    channel_role = models.CharField(max_length=100)
+    channel_role = models.CharField(max_length=100, null=False, blank=False, unique=True, primary_key=True)
 
     def __str__(self):
         return self.name
@@ -348,6 +348,11 @@ class Contract(BaseModel):
                                           )
 
     terms = models.TextField()
+    question = models.ForeignKey('Question',
+                                    on_delete=models.CASCADE,
+                                    related_name='contract_question_to_question',
+                                    blank=True,
+                                    null=True)
     first_party_agree = models.BooleanField()
     second_party_agree = models.BooleanField()
     archive = models.BooleanField() # todo isn't it avail in state?
