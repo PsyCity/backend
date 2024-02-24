@@ -146,7 +146,7 @@ class Player(BaseModel):
 
     STATUS_CHOICES = [
         ('TeamMember', 'Team Member'),
-        ('Homeless', 'Homeless'),
+        ('Bikhaanemaan', 'Bikhaanemaan'),
         ('Dead', 'Dead'),
     ]
 
@@ -185,8 +185,8 @@ class Player(BaseModel):
 class Team(BaseModel):
     ROLES_CHOICES = [
         ('Mafia', 'Mafia'),
-        ('Police', 'Police'),
-        ('Citizen', 'Citizen'),
+        ('Polis', 'Polis'),
+        ('Shahrvand', 'Shahrvand'),
     ]
 
     STATE_CHOICE = [

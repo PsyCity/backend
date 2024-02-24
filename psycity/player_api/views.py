@@ -162,7 +162,7 @@ class PlayerLoanRepayment(GenericAPIView):
             liabilities = player.bank_liabilities
             wallet = player.wallet
 
-            if player.status != 'Homeless':
+            if player.status != 'Bikhaanemaan':
                 return Response({
                     "message": "only homeless can repayment his/her loan",
                     "data": [],

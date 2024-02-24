@@ -700,7 +700,7 @@ class BankSensorInstallViewSet(
 ):
     queryset = BankSensorInstall.objects.all()
     serializer_class = BankSensorInstallationListSerializer
-    team_role_allowed = "Citizen"
+    team_role_allowed = "Shahrvand"
     success_message_list = "Team Bank Robberies"
 
 

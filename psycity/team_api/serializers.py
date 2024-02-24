@@ -104,7 +104,7 @@ class KillHomelessSerializer(serializers.Serializer):
     
     def validate_homeless_id(self, id):
         player = Player.objects.get(pk=id)
-        if player.status != "Homeless":
+        if player.status != "Bikhaanemaan":
             raise exceptions.NotAcceptable("Player is not homeless.")
 
         if player.last_assassination_attempt:
@@ -156,7 +156,7 @@ class EscapeRoomReserve(serializers.ModelSerializer):
     def validate_team_id(self, attr):
         team = get_object_or_404(Team,pk=attr)
         print(team.name)
-        if team.team_role != "Police":
+        if team.team_role != "Polis":
             raise exceptions.ValidationError("Not a police Team")
         return team
     
@@ -711,7 +711,7 @@ class BankSensorInstallWaySerializer(
 
     def validate_team(self, team) ->Team:
         team = Team.objects.get(pk=team)
-        if team.team_role == "Citizen":
+        if team.team_role == "Shahrvand":
             return team
         raise exceptions.ValidationError("Not Citizen!")
     
@@ -740,7 +740,7 @@ class BankSensorInstallWaySerializer(
 
         kwargs["citizen"] = self.validated_data["team"]
         kwargs["contract"] = self.validated_data["contract"]
-        assert self.validated_data["contract"].first_party_team.team_role == "Police"
+        assert self.validated_data["contract"].first_party_team.team_role == "Polis"
         kwargs["police"] = self.validated_data["contract"].first_party_team
         self.instance = self.create(kwargs)
         assert self.instance is not None, (

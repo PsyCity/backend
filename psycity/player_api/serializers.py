@@ -29,12 +29,12 @@ class BodyguardSerializer(serializers.ModelSerializer):
 
     
     def validate_first_party_team(self, team):
-        if team.team_role != "Police":
+        if team.team_role != "Polis":
             raise  exceptions.ValidationError("Not a police team")
         return team
     
     def validate_second_party_player(self, player):
-        if player.status != "Homeless":
+        if player.status != "Bikhaanemaan":
             raise exceptions.ValidationError("Not a homeless player")
         return player
     

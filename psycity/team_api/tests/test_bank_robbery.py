@@ -124,7 +124,7 @@ class TestBankRobbery(Base):
         
         self.citizen = Team.objects.create(
             name='citizen_test_team',
-            team_role="Citizen",
+            team_role="Shahrvand",
             wallet=60,
             level=3,
         )
