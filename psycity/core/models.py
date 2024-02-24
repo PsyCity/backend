@@ -176,6 +176,7 @@ class Player(BaseModel):
                                           on_delete=models.DO_NOTHING,
                                           related_name='player_bodyguard_team')
     last_bodyguard_cost = models.IntegerField(default=0)
+    discord_id = models.CharField(max_length=100, null=False, blank=False, unique=True, primary_key=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
