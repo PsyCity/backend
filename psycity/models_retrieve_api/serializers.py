@@ -30,6 +30,7 @@ class TeamPlayerSerializer(serializers.ModelSerializer):
         fields = [
             "name",
             "discord_username",
+            "discord_id",
             "roles"
             ]
     def get_name(self, player):
@@ -110,6 +111,7 @@ class PlayerListSerializer(ModelSerializer):
             "first_name",
             "last_name",
             "discord_username",
+            "discord_id",
             "team",
             "status",
             "roles"
