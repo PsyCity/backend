@@ -22,11 +22,17 @@ class WarehouseBox(BaseModel):
         (1, "Robbed"),
         (2, "Empty by citizen")
     )
+    LEVEL_CHOICE = [
+        (1, 'Level 1'),
+        (2, 'Level 2'),
+        (3, 'Level 3')
+    ]
     lock_state = models.IntegerField(_("Lock State"),
                                      choices=BOX_STATUS,
                                      default=0)
-
+    box_number = models.IntegerField(_("Box Number"), null=False, blank=False)
     sensor_state = models.BooleanField(default=False)
+    level = models.IntegerField(choices=LEVEL_CHOICE)
 
     unlocker = models.ForeignKey("Team",
                                  on_delete=models.CASCADE,

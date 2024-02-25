@@ -509,9 +509,9 @@ class BankRobberyWaySerializer(serializers.ModelSerializer):
 
 class BankRobberyListSerializer(serializers.ModelSerializer):
 
-    citizen_id = serializers.IntegerField(source="citizen.id")
+    citizen_id = serializers.CharField(source="citizen.pk")
     citizen_name = serializers.CharField(source="citizen.name")
-    mafia_id = serializers.IntegerField(source="mafia.id")
+    mafia_id = serializers.CharField(source="mafia.pk")
     mafia_name = serializers.CharField(source="mafia.name")
     robbery_id = serializers.IntegerField(source="id")
     

@@ -28,11 +28,10 @@ class TeamPlayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Player
         fields = [
-            "id",
             "name",
             "discord_username",
             "roles"
-                  ]
+            ]
     def get_name(self, player):
         return player.__str__()
     
@@ -108,7 +107,6 @@ class PlayerListSerializer(ModelSerializer):
     class Meta:
         model = Player
         fields = [
-            "id",
             "first_name",
             "last_name",
             "discord_username",
@@ -134,7 +132,7 @@ class WarehouseBoxListSerializer(
 
     class Meta:
         model = WarehouseBox
-        fields = "id", "is_lock" 
+        fields = "id", "is_lock", "level"
 
 class WarehouseQuestionSerializer(
     ModelSerializer
@@ -152,5 +150,6 @@ class WarehouseBoxRetrieveSerializer(
         fields  = (
             "id",
             "is_lock",
-            "lock_question"
+            "lock_question",
+            "level",
         )
