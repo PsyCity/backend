@@ -246,6 +246,16 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
         elif contract_type == "homeless_solve_question":
             first = attrs.get("first_party_team")
             second = attrs.get("second_party_player")
+            question: Question = attrs.get("question")
+            required(first, 'first_party_team')
+            required(second, 'second_party_player')
+            required(question, 'question')
+
+            if not second.status != 'Bikhaanemaan':
+                raise serializers.ValidationError(f'Second party player is not homeless!')
+            if not question.last_owner != first:
+                raise serializers.ValidationError(f'question owner is not first party team!')
+
 
 
         elif contract_type == "bodyguard_for_the_homeless":
