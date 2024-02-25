@@ -214,8 +214,8 @@ class Team(BaseModel):
     max_bank_loan = models.IntegerField(default=0)
     last_bank_action = models.DateTimeField(blank=True, null=True)
     today_bought_question = models.IntegerField(default=0)
-    channel_id = models.CharField(max_length=100)
-    channel_role = models.CharField(max_length=100, null=False, blank=False, unique=True, primary_key=True)
+    channel_id = models.IntegerField()
+    channel_role = models.IntegerField(null=False, blank=False, unique=True, primary_key=True)
 
     def __str__(self):
         return self.name
@@ -381,7 +381,7 @@ class PlayerRole(models.Model):
         SMOOTH_TALKER = 'SmoothTalker', _('Smooth Talker')
 
     name = models.CharField(max_length=15, choices=ROLES_CHOICES.choices)
-    discord_role_id = models.CharField(max_length=100, null=False, blank=False, unique=True, primary_key=True)
+    discord_role_id = models.IntegerField(null=False, blank=False, unique=True, primary_key=True)
 
     def __str__(self) -> str:
         return f"{self.name}"
