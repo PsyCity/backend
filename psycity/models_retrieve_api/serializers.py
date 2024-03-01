@@ -20,7 +20,9 @@ class TeamListSerializer(ModelSerializer):
             "level",
             "channel_id",
             "channel_role",
+            "hidden_id",
         ]
+
 class TeamPlayerSerializer(serializers.ModelSerializer):
     roles = serializers.SerializerMethodField()
     name = serializers.SerializerMethodField()

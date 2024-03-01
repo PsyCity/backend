@@ -1,6 +1,7 @@
 from rest_framework.viewsets import GenericViewSet, mixins
 from rest_framework.response import Response
-from rest_framework import exceptions
+from rest_framework import exceptions, status
+from rest_framework.generics import RetrieveAPIView
 
 from core.models import (
     Team,
@@ -51,7 +52,27 @@ class TeamViewSet(
         if self.action == "retrieve":
             return TeamRetrieveSerializer
         return TeamListSerializer
+        
     
+    def get_object(self):
+        lookup_value = self.kwargs.get('pk')
+        lookup_value_int = int(lookup_value)
+
+        if len(lookup_value) == 10:
+            self.kwargs['pk'] = self.queryset.filter(hidden_id=lookup_value_int).first().channel_role
+
+        return super().get_object()
+    
+
+    def get(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            
+            return Response(serializer.data)
+        except Team.DoesNotExist:
+            return Response({'detail': 'Team not found'}, status=status.HTTP_404_NOT_FOUND)
+
 
 class QuestionViewSet(
     ListModelMixin,

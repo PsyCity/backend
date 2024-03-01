@@ -1,10 +1,12 @@
 from collections.abc import Iterable
 from django.db import models
+from django.db.models import Q
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import mark_safe
 from core.utiles import PathAndRename
 from random import randint
+import time
 
 
 class BaseModel(models.Model):
@@ -200,6 +202,13 @@ class Team(BaseModel):
         ('Disbanded', 'Disbanded')
     ]
 
+    def generate_hidden_id():
+        new_hidden_id = int(time.time())
+        while Team.objects.filter(hidden_id=new_hidden_id).exists():
+            time.sleep(1)
+            new_hidden_id = int(time.time())
+        return new_hidden_id
+
     name = models.CharField(max_length=35)
     team_role = models.CharField(max_length=20, choices=ROLES_CHOICES)
     state = models.CharField(max_length=20, choices=STATE_CHOICE)
@@ -216,10 +225,10 @@ class Team(BaseModel):
     today_bought_question = models.IntegerField(default=0)
     channel_id = models.IntegerField()
     channel_role = models.IntegerField(null=False, blank=False, unique=True, primary_key=True)
+    hidden_id = models.IntegerField(default=generate_hidden_id, editable=False, unique=True)
 
     def __str__(self):
         return self.name
-
 
 class TeamFeature(BaseModel):
     team = models.ForeignKey(
