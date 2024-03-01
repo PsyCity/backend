@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from team_api.utils import ResponseStructure
 
 from django.utils.timezone import datetime
+from django.db.models import Q
 
 
 class QuestionBuyView(GenericAPIView):
@@ -94,6 +95,14 @@ class QuestionBuyView(GenericAPIView):
         
 class TeamQuestions(GenericAPIView):
     def get(self, request, team_id, *args, **kwargs):
-        questions = (Question.objects.filter(last_owner=team_id) | Question.objects.filter(last_owner=team_id)) & Question.objects.filter(is_published=True)
+        team_query = Team.objects.filter(hidden_id=team_id) | Team.objects.filter(channel_role=team_id)
+        if not team_query:
+            return Response({
+                "message": "team not found",
+                "data": [],
+                "result": None,
+            }, status=status.HTTP_404_NOT_FOUND)
+        team_id = team_query.first().channel_role
+        questions = Question.objects.filter(last_owner=team_id) & Question.objects.filter(is_published=True)
         serializer = serializers.TeamQuestionListSerializer(questions, many=True)
         return Response(serializer.data)
