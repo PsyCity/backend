@@ -57,6 +57,16 @@ class Register(
                         status=status.HTTP_404_NOT_FOUND,
                     )
                 request.data['second_party_team'] = team.first().channel_role
+
+        if request.data.get('first_party_team', 'f') == request.data.get('second_party_team', 's'):
+            return Response(
+                        data={
+                        "message": "teams must be different.",
+                        "data": [],
+                        "result": None,
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
         r = super().create(request, *args, **kwargs)
         return Response(
             data={
