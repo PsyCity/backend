@@ -3,18 +3,19 @@ from rest_framework.viewsets import (
     mixins,
     generics,
 )
-
+from django.db.models import Q
 from team_api.utils import response
 
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import exceptions
 
-from core.models import Contract, Question, Team
+from core.models import Contract, Question, Team, Player
 from team_api.serializers import(
     ContractRegisterSerializer,
     ContractApprovementSerializer,
     ContractPaySerializer,
+    ContractRejectSerializer,
     TeamContractListSerializer,
 )
 
@@ -171,6 +172,86 @@ class Pay(
             raise exceptions.APIException(
                 f"failed to transfer money between {contract.first_party_team} and {contract.second_party_team}."
                 )
+        
+class Reject(generics.UpdateAPIView):
+    http_method_names = ["patch"]
+    
+    def get_serializer_class(self):
+        return ContractRejectSerializer
+
+    def patch(self, request):
+        try:
+            contract = Contract.objects.get(pk=request.data["contract_id"])
+            if (contract.state != 2 or contract.archive == True):
+                return Response({
+                    "message": f"invalid contract state. current state is {contract.state} and archive is {contract.archive}",
+                    "data": [],
+                    "result": None,
+                }, status=status.HTTP_400_BAD_REQUEST)
+            team = request.data.get('team_id', None)
+            player = request.data.get('player_id', None)
+            if not player and not team:
+                return Response({
+                    "message": "one of player or team is required",
+                    "data": [],
+                    "result": None,
+                }, status=status.HTTP_400_BAD_REQUEST)
+            if team:
+                team_obj = Team.objects.get(Q(hidden_id=team) | Q(channel_role=team))
+                if team_obj not in [contract.first_party_team, contract.second_party_team]:
+                    return Response({
+                        "message": "contract does'not belong to this team",
+                        "data": [],
+                        "result": None,
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+
+            else:
+                player_obj = Player.objects.get(pk=player)
+                if player_obj not in [contract.first_party_player, contract.second_party_player]:
+                    return Response({
+                        "message": "contract does'not belong to this player",
+                        "data": [],
+                        "result": None,
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+            # archive and reject the contract
+            contract.state = 3
+            contract.is_rejected = True
+            contract.archive = True
+            contract.save()
+
+            return Response({
+                "message": "contract rejected successfully",
+                "data": [],
+                "result": None,
+            }, status=status.HTTP_200_OK)
+        except Contract.DoesNotExist:
+            return Response({
+                "message": "contract doesn't exist",
+                "data": [],
+                "result": None,
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Team.DoesNotExist:
+            return Response({
+                "message": "team doesn't exist",
+                "data": [],
+                "result": None,
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Player.DoesNotExist:
+            return Response({
+                "message": "player doesn't exist",
+                "data": [],
+                "result": None,
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            raise e
+            return Response({
+                "message": "something went wrong",
+                "data": [],
+                "result": None,
+            }, status=status.HTTP_400_BAD_REQUEST)
+    
         
 class TeamContracts(generics.GenericAPIView):
     def get(self, request, team_id, *args, **kwargs):

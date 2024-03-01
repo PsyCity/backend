@@ -96,7 +96,8 @@ class ContractListSerializer(ModelSerializer):
             "cost",
             "terms",
             "first_party_agree",
-            "second_party_agree"
+            "second_party_agree",
+            "is_rejected",
         ]
 
 class ContractRetrieveSerializer(ModelSerializer):

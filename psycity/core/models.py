@@ -371,6 +371,7 @@ class Contract(BaseModel):
     first_party_agree = models.BooleanField()
     second_party_agree = models.BooleanField()
     archive = models.BooleanField() # todo isn't it avail in state?
+    is_rejected = models.BooleanField(default=False)
 
 
 class TeamJoinRequest(BaseModel):

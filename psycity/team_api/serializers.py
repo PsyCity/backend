@@ -343,6 +343,30 @@ class ContractPaySerializer(serializers.ModelSerializer):
             raise exceptions.NotAcceptable(
                 f"Not valid endpoint for {contract.contract_type}."
                 )
+        
+class ContractRejectSerializer(serializers.Serializer):
+    contract_id = serializers.IntegerField(required=True)
+    team_id = serializers.IntegerField(required=False)
+    player_id = serializers.IntegerField(required=False)
+
+    
+    def validate(self, attrs):
+        contract: Contract = attrs.get('contract_id', None)
+        team= attrs.get('team_id', None)
+        player: Player = attrs.get('player_id', None)
+        required(contract, 'contract_id')
+        if not team and not player:
+            raise serializers.ValidationError('one of team or player is required!')
+        
+        if team:
+            team_query = Team.objects.filter(hidden_id=team) | Team.objects.filter(channel_role=team)
+            if not team_query:
+                raise serializers.ValidationError('team not found!')
+            team = team_query.first().channel_role
+        
+        return super().validate(attrs)
+
+
 
 
 class TeamContractListSerializer(serializers.ModelSerializer):
