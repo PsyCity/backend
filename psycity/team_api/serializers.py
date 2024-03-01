@@ -271,7 +271,7 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
         return attrs
 
 class ContractApprovementSerializer(serializers.ModelSerializer):
-    team = serializers.CharField()
+    team = serializers.IntegerField()
     class Meta:
         model = Contract
         fields = (
@@ -279,7 +279,10 @@ class ContractApprovementSerializer(serializers.ModelSerializer):
         )
     
     def validate_team(self, pk):
-        team = Team.objects.get(pk=pk)
+        if len(str(pk)) == 10:
+            team = Team.objects.get(hidden_id=pk)
+        else:
+            team = Team.objects.get(pk=pk)
         return team.pk
     
     def validate(self, attrs):

@@ -203,10 +203,7 @@ class Team(BaseModel):
     ]
 
     def generate_hidden_id():
-        new_hidden_id = int(time.time())
-        while Team.objects.filter(hidden_id=new_hidden_id).exists():
-            time.sleep(1)
-            new_hidden_id = int(time.time())
+        new_hidden_id = int(time.time() * 100)
         return new_hidden_id
 
     name = models.CharField(max_length=35)

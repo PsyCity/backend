@@ -30,7 +30,7 @@ class Register(
     @response
     def create(self, request, *args, **kwargs):
         if request.data.get('first_party_team'):
-            if len(str(request.data.get('first_party_team'))) == 10:
+            if len(str(request.data.get('first_party_team'))) == 12:
                 team = self.team_query_set.filter(hidden_id=request.data.get('first_party_team'))
                 if not team:
                     return Response(
@@ -44,7 +44,7 @@ class Register(
                 request.data['first_party_team'] = team.first().channel_role
 
         if request.data.get('second_party_team'):
-            if len(str(request.data.get('second_party_team'))) == 10:
+            if len(str(request.data.get('second_party_team'))) == 12:
                 team = self.team_query_set.filter(hidden_id=request.data.get('second_party_team'))
                 if not team:
                     return Response(
@@ -90,7 +90,6 @@ class Approvement(
 
     @response
     def partial_update(self, request, *args, **kwargs):
-        
         super().partial_update(request, *args, **kwargs)
         return Response(
             data={
