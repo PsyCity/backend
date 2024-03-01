@@ -225,7 +225,7 @@ class Team(BaseModel):
     today_bought_question = models.IntegerField(default=0)
     channel_id = models.IntegerField()
     channel_role = models.IntegerField(null=False, blank=False, unique=True, primary_key=True)
-    hidden_id = models.IntegerField(default=generate_hidden_id, editable=False, unique=True)
+    hidden_id = models.IntegerField(default=generate_hidden_id, unique=True)
 
     def __str__(self):
         return self.name
