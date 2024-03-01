@@ -279,7 +279,7 @@ class ContractApprovementSerializer(serializers.ModelSerializer):
         )
     
     def validate_team(self, pk):
-        if len(str(pk)) == 10:
+        if len(str(pk)) == 12:
             team = Team.objects.get(hidden_id=pk)
         else:
             team = Team.objects.get(pk=pk)

@@ -87,9 +87,23 @@ class Approvement(
         second_party_agree=False,
         state=1
         )
+    team_query_set = Team.objects.all()
 
     @response
     def partial_update(self, request, *args, **kwargs):
+        if request.data.get('team'):
+            if len(str(request.data.get('team'))) == 12:
+                team = self.team_query_set.filter(hidden_id=request.data.get('team'))
+                if not team:
+                    return Response(
+                        data={
+                        "message": "team not found.",
+                        "data": [],
+                        "result": None,
+                        },
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+                request.data['team'] = team.first().channel_role
         super().partial_update(request, *args, **kwargs)
         return Response(
             data={
