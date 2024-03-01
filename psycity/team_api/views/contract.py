@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import exceptions
 
-from core.models import Contract, Question
+from core.models import Contract, Question, Team
 from team_api.serializers import(
     ContractRegisterSerializer,
     ContractApprovementSerializer,
@@ -25,9 +25,37 @@ class Register(
     ):
 
     serializer_class = ContractRegisterSerializer
+    team_query_set = Team.objects.all()
 
     @response
     def create(self, request, *args, **kwargs):
+        if request.data.get('first_party_team'):
+            if len(str(request.data.get('first_party_team'))) == 10:
+                team = self.team_query_set.filter(hidden_id=request.data.get('first_party_team'))
+                if not team:
+                    return Response(
+                        data={
+                        "message": "first_party_team not found.",
+                        "data": [],
+                        "result": None,
+                        },
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+                request.data['first_party_team'] = team.first().channel_role
+
+        if request.data.get('second_party_team'):
+            if len(str(request.data.get('second_party_team'))) == 10:
+                team = self.team_query_set.filter(hidden_id=request.data.get('second_party_team'))
+                if not team:
+                    return Response(
+                        data={
+                        "message": "second_party_team not found.",
+                        "data": [],
+                        "result": None,
+                        },
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+                request.data['second_party_team'] = team.first().channel_role
         r = super().create(request, *args, **kwargs)
         return Response(
             data={
