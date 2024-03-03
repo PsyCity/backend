@@ -473,3 +473,41 @@ class BankSensorInstall(BaseModel):
     class Meta:
         verbose_name = _("bank sensor install request")
         verbose_name_plural = _("bank sensor install requests")
+
+
+class Report(
+    BaseModel
+    ):
+
+    REPORT_TYPE = (
+        (1, "Simple Report"),
+        (2, "Contract Report")
+    )
+
+    description = models.TextField(
+        _("Report Description"),
+        null=True,
+        blank=True
+        )
+    
+    report_type = models.IntegerField(
+        _("Report Type"),
+        choices=REPORT_TYPE,
+        default=1
+        )
+
+    player_reporter = models.ForeignKey(
+        "Player",
+        verbose_name=_(""),
+        on_delete=models.DO_NOTHING,
+        null=True,
+        blank=True
+        )
+    
+    team_reporter = models.ForeignKey(
+        "Team",
+        verbose_name=_(""),
+        on_delete=models.DO_NOTHING,
+        null=True,
+        blank=True
+        )
