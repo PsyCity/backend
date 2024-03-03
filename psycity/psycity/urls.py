@@ -40,6 +40,7 @@ urlpatterns = [
     path('api/v1/player/', include('player_api.urls')),
     path('api/v1/team/', include('team_api.urls')),
     path('api/v1/models/', include('models_retrieve_api.urls')),
+    path('api/v1/reports/', include('report.urls')),
 
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
 
