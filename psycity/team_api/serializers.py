@@ -187,6 +187,7 @@ def required(value, field_name):
 
 class ContractRegisterSerializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField()
+    terms = serializers.CharField(required=False)
     class Meta:
         model = Contract
         fields = (
@@ -320,6 +321,7 @@ class ContractApprovementSerializer(serializers.ModelSerializer):
             "question_ownership_transfer",
             "bank_rubbery_sponsorship",
             "bank_sensor_installation_sponsorship",
+            "bodyguard_for_the_homeless",
             "other",
         ]
         
