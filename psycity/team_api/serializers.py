@@ -18,7 +18,7 @@ from core.models import (
     BankSensorInstall,
     Question,
 )
-from team_api.utils import cost_validation, ModelSerializerAndABCMetaClass, question_validation
+from team_api.utils import team_cost_validation, ModelSerializerAndABCMetaClass, question_validation, player_cost_validation
 from datetime import timedelta
 from abc import ABC, abstractmethod
 from abc import ABC, abstractmethod, ABCMeta
@@ -221,7 +221,7 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
             required(question, 'question')
             required(cost, 'cost')
             
-            cost_validation(attrs.get("cost"), first)
+            team_cost_validation(attrs.get("cost"), first)
             question_validation(attrs.get("question"), first)
 
             
@@ -233,7 +233,7 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
             except:
                 raise exceptions.ValidationError("cant retrieve data.")
 
-            cost_validation(attrs.get("cost"), citizen_team)
+            team_cost_validation(attrs.get("cost"), citizen_team)
 
         elif contract_type == "bank_sensor_installation_sponsorship":
             try:
@@ -241,7 +241,7 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
             except:
                 raise exceptions.NotAcceptable("cant create!!")
 
-            cost_validation(attrs.get("cost"), citizen_team)
+            team_cost_validation(attrs.get("cost"), citizen_team)
 
         elif contract_type == "homeless_solve_question":
             first = attrs.get("first_party_team")
@@ -259,7 +259,20 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
 
 
         elif contract_type == "bodyguard_for_the_homeless":
-            raise exceptions.NotAcceptable("Not this endpoint")
+            first: Team = attrs.get("first_party_team")
+            second: Player = attrs.get("second_party_player")
+            cost = attrs.get("cost")
+            required(first, 'first_party_team')
+            required(second, 'second_party_player')
+            required(cost, 'cost')
+
+            if first.team_role != 'Polis':
+                raise serializers.ValidationError(f'team is not Polis!')
+            if second.status != 'Bikhaanemaan':
+                raise serializers.ValidationError(f'player is not Bikhaanemaan!')
+            
+            player_cost_validation(cost, second)
+
 
         elif contract_type == "other":
             first: Team = attrs.get("first_party_team")
@@ -329,7 +342,7 @@ class ContractPaySerializer(serializers.ModelSerializer):
 
 
     def cost_validation(self):
-        cost_validation(
+        team_cost_validation(
             team=self.instance.first_party_team,
             cost=self.instance.cost
         )
@@ -340,6 +353,7 @@ class ContractPaySerializer(serializers.ModelSerializer):
             "question_ownership_transfer",
             "bank_rubbery_sponsorship",
             "bank_sensor_installation_sponsorship",
+            "bodyguard_for_the_homeless",
             "other",
         ]
         

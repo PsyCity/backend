@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import exceptions, status
 from psycity.settings import DEBUG
-from core.models import Team, BankDepositBox, Question
+from core.models import Team, BankDepositBox, Question, Player
 from drf_yasg import openapi
 from functools import wraps
 from abc import ABCMeta
@@ -94,12 +94,20 @@ class ListModelMixin:
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-def cost_validation(cost, team:Team):
+def team_cost_validation(cost, team:Team):
     if team.wallet < cost:
         raise exceptions.NotAcceptable(
             f"Team {team.name} cant effort {cost} amount of money"
         )
         # log.warning(f"Team {team.name} cant effort {cost} amount of money")
+    return True
+
+def player_cost_validation(cost, player: Player):
+    if player.wallet < cost:
+        raise exceptions.NotAcceptable(
+            f"Player {player.name} cant effort {cost} amount of money"
+        )
+        # log.warning(f"Player {player.name} cant effort {cost} amount of money")
     return True
 
 def question_validation(question: Question, first_team: Team):
