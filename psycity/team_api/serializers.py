@@ -25,22 +25,21 @@ from abc import ABC, abstractmethod, ABCMeta
 
 class TeamMemberSerializer(serializers.Serializer):
     todo        = serializers.ChoiceField(["add","delete"],
-                                          required=False,
+                                          required=True,
                                           write_only=True)
 
-    role        = serializers.ChoiceField(choices=[1,2,3],
-                                          required=False,
-                                          write_only=True)
+    role        = serializers.IntegerField()
     
     agreement   = serializers.IntegerField(required=True, write_only=True)
+    player_role_queryset = PlayerRole.objects.all()
 
     def update(self, instance, validated_data):
         todo = validated_data.get("todo")
         
-        role = get_object_or_404(
-            PlayerRole,
-            pk=validated_data.get("role")
-        )
+        role_query = self.player_role_queryset.filter(pk=validated_data.get("role"))
+        if not role_query:
+            raise serializers.ValidationError('invalid role')
+        role = role_query.first()
         if todo == "add":
             team = instance.team
             players = team.player_team.all()
@@ -64,6 +63,11 @@ class TeamMemberSerializer(serializers.Serializer):
         else:
             exceptions.NotAcceptable(f"{todo} not an option for todo")
 
+    def validate_role(self, role):
+        role_query = self.player_role_queryset.filter(pk=role)
+        if not role_query:
+            raise serializers.ValidationError('invalid role id')
+        return role
 
 
 

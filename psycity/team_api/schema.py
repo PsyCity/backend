@@ -16,6 +16,8 @@ role_schema = swagger_auto_schema(
         type=openapi.TYPE_OBJECT,
         properties={
             "agreement" : agreement_schema,
+            "role": openapi.Schema(type=openapi.TYPE_INTEGER),
+            "todo": openapi.Schema(type=openapi.TYPE_STRING),
         }
     ),
     responses={
