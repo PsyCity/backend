@@ -498,7 +498,6 @@ class Report(
 
     player_reporter = models.ForeignKey(
         "Player",
-        verbose_name=_(""),
         on_delete=models.DO_NOTHING,
         null=True,
         blank=True
@@ -506,7 +505,6 @@ class Report(
     
     team_reporter = models.ForeignKey(
         "Team",
-        verbose_name=_(""),
         on_delete=models.DO_NOTHING,
         null=True,
         blank=True
