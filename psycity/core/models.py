@@ -271,6 +271,7 @@ class Question(BaseModel):
     qtype = models.IntegerField(choices=TYPE_CHOICE)
     answer_text = models.TextField(blank=True, null=True)
     answer_file = models.FileField(blank=True, null=True, upload_to='question_answer_file')
+    attachment = models.FileField(blank=True, null=True, upload_to='question_attachment')
 
     def body_preview(self): #new
         return mark_safe(f'<img src = "{self.body.url}" width = "300"/>')
