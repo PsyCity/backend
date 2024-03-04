@@ -124,7 +124,6 @@ class QuestionSolveView(GenericAPIView):
         text_answer = serializer.validated_data.get("text_answer")
         file_answer = serializer.validated_data.get("file_answer")
 
-        # Validate that at least one of team_id and player_id is provided
         if not team_id and not player_id:
             return Response({
                 "message": "Provide either team_id or player_id",
@@ -132,7 +131,6 @@ class QuestionSolveView(GenericAPIView):
                 "result": None,
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Validate that either text or file answer is provided
         if not text_answer and not file_answer:
             return Response({
                 "message": "Provide either text or file answer",
@@ -140,10 +138,8 @@ class QuestionSolveView(GenericAPIView):
                 "result": None,
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Get the question based on the provided question_id
         question = get_object_or_404(Question, pk=serializer.validated_data.get("question_id"))
 
-        # Validate that the question type matches
         if question.qtype != question_type:
             return Response({
                 "message": "Invalid question type",
@@ -151,7 +147,6 @@ class QuestionSolveView(GenericAPIView):
                 "result": None,
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Validate that the question belongs to the specified team or player
         if team_id:
             team = get_object_or_404(Team, pk=team_id)
             if question.last_owner != team:
@@ -169,7 +164,6 @@ class QuestionSolveView(GenericAPIView):
                     "result": None,
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Perform additional validation and answer checking based on your requirements
 
         return Response({
             "message": "Question solved successfully",
