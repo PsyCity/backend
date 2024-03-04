@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'player_api.apps.PlayerApiConfig',
     'team_api.apps.TeamApiConfig',
     'models_retrieve_api.apps.ModelsRetrieveApiConfig',
+    'report.apps.ReportConfig',
     'rest_framework',
     'drf_yasg',
 
