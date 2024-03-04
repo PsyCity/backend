@@ -263,8 +263,8 @@ class Question(BaseModel):
                                    blank=True,
                                    null=True
                                    )
-    price = models.IntegerField()
-    score = models.IntegerField()
+    price = models.IntegerField(default=1)
+    score = models.IntegerField(default=1)
     is_published = models.BooleanField(default=False)
     title = models.CharField(max_length=300)
     body = models.ImageField(upload_to=PathAndRename('data_dir/question'))
