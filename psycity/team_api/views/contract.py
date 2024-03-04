@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import exceptions
 
-from core.models import Contract, Question, Team, Player
+from core.models import Contract, Question, Team, Player, Report
 from team_api.serializers import(
     ContractRegisterSerializer,
     ContractApprovementSerializer,
@@ -229,6 +229,16 @@ class Reject(generics.UpdateAPIView):
             contract.state = 3
             contract.is_rejected = True
             contract.archive = True
+            report = Report.objects.create(
+                description="contract rejection.",
+                report_type=2,
+                contract=contract
+            )
+            if team:
+                report.team_reporter = team
+            else:
+                report.player_reporter = player_obj
+            report.save()
             contract.save()
 
             return Response({
