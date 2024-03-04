@@ -142,11 +142,11 @@ def response(func):
                 status=status.HTTP_406_NOT_ACCEPTABLE
             )
         
-        except Http404:
+        except Http404 as e:
             return Response(
                 data={
                     "message": "Not Found.",
-                    "data": [],
+                    "data": ["yaft nashod!"],
                     "result": None
                 },
                 status=status.HTTP_404_NOT_FOUND

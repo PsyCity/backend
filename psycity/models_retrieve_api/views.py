@@ -125,7 +125,7 @@ class WarehouseViewSet(
             return WarehouseBoxRetrieveSerializer
         else:
             raise exceptions.MethodNotAllowed(
-                "Serializer not defined for this method"
+                "server side error"
                 )
 
     def get_queryset(self):
