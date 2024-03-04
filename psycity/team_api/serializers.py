@@ -425,8 +425,6 @@ class TeamQuestionListSerializer(serializers.ModelSerializer):
             'title',
             'body',
             'qtype',
-            'no_valid_tries',
-            'valid_solve_minutes',
         ]    
 
     def to_representation(self, instance):

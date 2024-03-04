@@ -70,8 +70,6 @@ class QuestionListSerializer(ModelSerializer):
             'title',
             'body',
             'qtype',
-            'no_valid_tries',
-            'valid_solve_minutes',
         ]
 
 class QuestionRetrieveSerializer(ModelSerializer):

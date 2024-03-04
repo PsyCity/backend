@@ -271,8 +271,6 @@ class Question(BaseModel):
     qtype = models.IntegerField(choices=TYPE_CHOICE)
     answer_text = models.TextField(blank=True, null=True)
     answer_file = models.FileField(blank=True, null=True, upload_to='question_answer_file')
-    no_valid_tries = models.IntegerField()
-    valid_solve_minutes = models.IntegerField()
 
     def body_preview(self): #new
         return mark_safe(f'<img src = "{self.body.url}" width = "300"/>')
@@ -287,6 +285,15 @@ class TeamQuestionRel(BaseModel):
     received_score = models.IntegerField(default=False)
     tries = models.IntegerField(default=False)
 
+class QuesionSolveTries(BaseModel):
+    team = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='question_solve_tries_team')
+    player = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='question_solve_tries_player')
+    homeless_contract = models.ForeignKey('Contract', on_delete=models.CASCADE, related_name='question_solve_tries_contract')
+    question = models.ForeignKey("Question", on_delete=models.CASCADE, related_name='question_solve_tries_question')
+    solved = models.BooleanField(default=False)
+    received_score = models.IntegerField(default=False)
+    answer_text = models.TextField(null=True, blank=True)
+    answer_file = models.FileField(blank=True, null=True, upload_to='questionsolvetries_answer_file')
 
 class EscapeRoom(BaseModel):
     ESCAPE_ROOM_STATE = [

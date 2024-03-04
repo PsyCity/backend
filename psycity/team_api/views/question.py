@@ -4,12 +4,13 @@ from rest_framework.exceptions import ValidationError, NotAcceptable
 from rest_framework.parsers import MultiPartParser
 from rest_framework import status
 
-from core.models import Question, Team, Player, ConstantConfig, TeamQuestionRel
+from core.models import Question, Team, Player, ConstantConfig, TeamQuestionRel, QuesionSolveTries, Contract
 from team_api import serializers, schema
 from rest_framework.response import Response
 from team_api.utils import ResponseStructure
+from core.config import QUESTION_SOLVE_LIMIT_PER_HOUR
 
-from django.utils.timezone import datetime
+from django.utils.timezone import datetime, timedelta
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
@@ -124,9 +125,24 @@ class QuestionSolveView(GenericAPIView):
         text_answer = serializer.validated_data.get("text_answer")
         file_answer = serializer.validated_data.get("file_answer")
 
+        conf = ConstantConfig.objects.latest('id')
+
+        if not conf:
+            return Response({
+                "message": "define constant configs first!",
+                "data": [],
+                "result": None,
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         if not team_id and not player_id:
             return Response({
                 "message": "Provide either team_id or player_id",
+                "data": [],
+                "result": None,
+            }, status=status.HTTP_400_BAD_REQUEST)
+        if team_id and player_id:
+            return Response({
+                "message": "One of team_id or player_id must be filled",
                 "data": [],
                 "result": None,
             }, status=status.HTTP_400_BAD_REQUEST)
@@ -156,14 +172,89 @@ class QuestionSolveView(GenericAPIView):
                     "result": None,
                 }, status=status.HTTP_400_BAD_REQUEST)
         elif player_id:
-            player = get_object_or_404(Player, pk=player_id)
-            if question.last_owner != player.team:
+            player = get_object_or_404(Player, pk=player_id, status='Bikhaanemaan')
+            contract_query = Contract.objects.filter(
+                state=2,
+                contract_type='homeless_solve_question',
+                second_party_player=player,
+                first_party_agree=True,
+                second_party_agree=True,
+                question=question,
+                archive=False,
+            )
+            if not contract_query:
                 return Response({
-                    "message": "Question does not belong to the specified player's team",
+                    "message": "There is no contract between this player and a team",
+                    "data": [],
+                    "result": None,
+                }, status=status.HTTP_400_BAD_REQUEST)
+            contract = contract_query.first()
+
+        team_question_rel = TeamQuestionRel.objects.get(question=question, team=team)        
+
+        # solve procedure
+        last_hour_datetime = datetime.now() - timedelta(hours=1)
+        solve_tries = QuesionSolveTries.objects.filter(Q(team=team, question=question) | Q(player=player_id, question=question))
+        last_hour_tries = solve_tries.filter(created_date__gte=last_hour_datetime)
+        solved_before = solve_tries.filter(solved=True)
+
+        if last_hour_tries.count() >= QUESTION_SOLVE_LIMIT_PER_HOUR:
+            return Response({
+                    "message": "Your number of attempts to solve the question has exceeded the limit",
                     "data": [],
                     "result": None,
                 }, status=status.HTTP_400_BAD_REQUEST)
 
+        if solved_before:
+            return Response({
+                    "message": "You cannot solve the question that you solved before",
+                    "data": [],
+                    "result": None,
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        target_question = QuesionSolveTries.objects.create(
+                    team=team if team else None,
+                    player=player if player else None,
+                    question=question,
+                    solved=False,
+                    received_score=0,
+                    contract=contract if contract else None,
+                    answer_text=text_answer if text_answer else None,
+                    answer_file=file_answer if file_answer else None,
+                )
+        target_question.save()
+
+        if question_type == 1:
+            if text_answer.strip() == question.answer_text.strip():
+                delay = (datetime.now() - TeamQuestionRel.created_date)
+                if question.level == 1:
+                    ...
+                elif question.level == 2:
+                    ...
+                else:
+                    ...
+                applied_score = question.score * delay
+                target_question.solved = True
+                target_question.received_score = question.score
+                team.wallet += question.score
+                #FIXME: if homeless solve the question the contract automatically apllied?
+            else:
+                return Response({
+                    "message": "Incorrect answer",
+                    "data": [],
+                    "result": None,
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+        elif question_type == 2:
+            # code
+            # judge.solve(question_id, file_answer)
+            ...
+        else:
+            return Response({
+                    "message": "Invalid question_type",
+                    "data": [],
+                    "result": None,
+                }, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({
             "message": "Question solved successfully",

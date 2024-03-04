@@ -28,8 +28,6 @@ class DepositBoxTest(TestCase):
             price=100,
             score=100,
             qtype=2,
-            no_valid_tries=1024,
-            valid_solve_minutes=123
         )
         
         self.box    = WarehouseBox.objects.create(
