@@ -848,7 +848,30 @@ class QuestionBuySerializer(serializers.Serializer):
 
 
 class QuestionSolveSerializer(serializers.Serializer):
-    player_id = serializers.IntegerField()
+    question_type = serializers.IntegerField()
     question_id = serializers.IntegerField()
-    answer_text = serializers.CharField()
-    answer_file = serializers.FileField()
+    team_id = serializers.IntegerField(required=False)
+    player_id = serializers.IntegerField(required=False)
+    text_answer = serializers.CharField(required=False)
+    file_answer = serializers.FileField(required=False)
+
+    def validate(self, attrs):
+        question_type = attrs.get("question_type")
+        team_id = attrs.get("team_id")
+        player_id = attrs.get("player_id")
+        text_answer = attrs.get("text_answer")
+        file_answer = attrs.get("file_answer")
+
+        # Validate that at least one of team_id and player_id is provided
+        if not team_id and not player_id:
+            raise serializers.ValidationError("Provide either team_id or player_id")
+        
+        if question_type == 1:
+            if not text_answer:
+                raise serializers.ValidationError("text_answer is required for question_type 1")
+        elif question_type == 2:
+            raise serializers.ValidationError("file_answer is required for question_type 2")
+        else:
+            raise serializers.ValidationError('Invalid question_type')
+
+        return attrs
