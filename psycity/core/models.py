@@ -511,3 +511,10 @@ class Report(
         null=True,
         blank=True
         )
+    
+    contract = models.ForeignKey(
+        "Contract",
+        on_delete=models.DO_NOTHING,
+        null=True,
+        blank=True
+        )
