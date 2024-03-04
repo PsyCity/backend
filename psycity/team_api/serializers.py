@@ -38,7 +38,7 @@ class TeamMemberSerializer(serializers.Serializer):
         
         role_query = self.player_role_queryset.filter(pk=validated_data.get("role"))
         if not role_query:
-            raise serializers.ValidationError('invalid role')
+            raise serializers.ValidationError('role na motabar')
         role = role_query.first()
         if todo == "add":
             team = instance.team
@@ -66,7 +66,7 @@ class TeamMemberSerializer(serializers.Serializer):
     def validate_role(self, role):
         role_query = self.player_role_queryset.filter(pk=role)
         if not role_query:
-            raise serializers.ValidationError('invalid role id')
+            raise serializers.ValidationError('role id namotabar')
         return role
 
 
@@ -79,7 +79,7 @@ class TeamJoinRequestSerializer(serializers.ModelSerializer):
 
     def validate_team(self, team):
         if (team.player_team.count() > 3):
-           raise  exceptions.NotAcceptable("team is full", 406)
+           raise  exceptions.NotAcceptable("team por ast", 406)
         return team
     
     def validate_player(self, player):
@@ -97,7 +97,7 @@ class KillHomelessSerializer(serializers.Serializer):
     def validate_team_id(self, team_id):
         team = Team.objects.get(pk=team_id)
         if team.team_role != "Mafia":
-            raise exceptions.NotAcceptable("Team is not Mafia")
+            raise exceptions.NotAcceptable("Team Mafia mafia nist")
             
         return team
 
@@ -109,7 +109,7 @@ class KillHomelessSerializer(serializers.Serializer):
     def validate_homeless_id(self, id):
         player = Player.objects.get(pk=id)
         if player.status != "Bikhaanemaan":
-            raise exceptions.NotAcceptable("Player is not homeless.")
+            raise exceptions.NotAcceptable("bazicon Bikhaanemaan nist.")
 
         if player.last_assassination_attempt:
             self.check_last_assassination_attempt(player)
@@ -125,7 +125,7 @@ class KillHomelessSerializer(serializers.Serializer):
     def check_last_assassination_attempt(self, player:Player):
         t = player.last_assassination_attempt + timedelta(minutes=self.conf.assassination_attempt_cooldown_time)
         if timezone.now() < t:
-            raise exceptions.NotAcceptable("cool_down has not passed") 
+            raise exceptions.NotAcceptable("cool_down nagozashteh") 
         
 
 
@@ -161,13 +161,13 @@ class EscapeRoomReserve(serializers.ModelSerializer):
         team = get_object_or_404(Team,pk=attr)
         print(team.name)
         if team.team_role != "Polis":
-            raise exceptions.ValidationError("Not a police Team")
+            raise exceptions.ValidationError("team police nist")
         return team
     
     def validate(self, attrs):
         
         if self.instance.state != 1:
-            raise exceptions.NotAcceptable("Room is not in robbed state.")
+            raise exceptions.NotAcceptable("otagh dara halat robbed state nist.")
         return attrs
 
 
@@ -187,7 +187,7 @@ class EscapeRoomSerializer(serializers.ModelSerializer):
 
 def required(value, field_name):
     if value is None:
-        raise serializers.ValidationError(f'{field_name} is required')
+        raise serializers.ValidationError(f'{field_name} lazem ast')
 
 class ContractRegisterSerializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField()
@@ -244,7 +244,7 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
             try:
                 citizen_team :Team = attrs.get("first_party_team")
             except:
-                raise exceptions.NotAcceptable("cant create!!")
+                raise exceptions.NotAcceptable("eshkal dar create!!")
 
             team_cost_validation(attrs.get("cost"), citizen_team)
 
@@ -257,9 +257,9 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
             required(question, 'question')
 
             if not second.status != 'Bikhaanemaan':
-                raise serializers.ValidationError(f'Second party player is not homeless!')
+                raise serializers.ValidationError(f'Second party player Bikhaanemaan nist!')
             if not question.last_owner != first:
-                raise serializers.ValidationError(f'question owner is not first party team!')
+                raise serializers.ValidationError(f'malek soal first party team nist!')
 
 
 
@@ -272,9 +272,9 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
             required(cost, 'cost')
 
             if first.team_role != 'Polis':
-                raise serializers.ValidationError(f'team is not Polis!')
+                raise serializers.ValidationError(f'team Polis nist!')
             if second.status != 'Bikhaanemaan':
-                raise serializers.ValidationError(f'player is not Bikhaanemaan!')
+                raise serializers.ValidationError(f'player Bikhaanemaan nist!')
             
             player_cost_validation(cost, second)
 
@@ -382,12 +382,12 @@ class ContractRejectSerializer(serializers.Serializer):
         player: Player = attrs.get('player_id', None)
         required(contract, 'contract_id')
         if not team and not player:
-            raise serializers.ValidationError('one of team or player is required!')
+            raise serializers.ValidationError('team ya player vared shavad!')
         
         if team:
             team_query = Team.objects.filter(hidden_id=team) | Team.objects.filter(channel_role=team)
             if not team_query:
-                raise serializers.ValidationError('team not found!')
+                raise serializers.ValidationError('team paida nashod!')
             team = team_query.first().channel_role
         
         return super().validate(attrs)
@@ -442,7 +442,7 @@ class TeamMoneySerializer(serializers.ModelSerializer):
 
     def validate_amount(self, amount):
         if amount < 1:
-            raise exceptions.ValidationError("amount is less then 1.")
+            raise exceptions.ValidationError("amount kamtar as 1.")
         return amount
 
 
@@ -458,7 +458,7 @@ class TeamMoneySerializer(serializers.ModelSerializer):
     def check_bank_wallet(self, **kwargs):
         team: Team = kwargs["team"]
         if team.bank < kwargs["amount"]:
-            raise exceptions.NotAcceptable("Amount is more then team's bank.")
+            raise exceptions.NotAcceptable("Amount bishtar as team's bank.")
 
     def check_bank_cooldown(self, team:Team):
         conf = ConstantConfig.objects.last()
@@ -467,7 +467,7 @@ class TeamMoneySerializer(serializers.ModelSerializer):
         
         t = team.last_bank_action + timedelta(minutes=conf.team_bank_transaction_cooldown)
         if timezone.now() < t:
-            raise exceptions.NotAcceptable("cooldown has not passed.")
+            raise exceptions.NotAcceptable("cooldown tamam nashode.")
 
 
 
@@ -501,7 +501,7 @@ class LoanSerializer(serializers.Serializer):
           
         t = team.last_bank_action + timedelta(minutes=conf.team_bank_transaction_cooldown)
         if timezone.now() < t:
-            raise exceptions.NotAcceptable("cooldown has not passed.")
+            raise exceptions.NotAcceptable("cooldown tamam nashode.")
 
 
     def max_team_loan_amount_validation(self, amount, team:Team):
@@ -510,7 +510,7 @@ class LoanSerializer(serializers.Serializer):
         team.max_bank_loan = max_amount
         team.save()
         if amount > max_amount:
-            raise exceptions.ValidationError("amount is more then team's max loan amount.")
+            raise exceptions.ValidationError("amount bishtar as team's max loan amount.")
         
     def positive_amount(self, amount):
         if amount <= 0:
@@ -527,7 +527,7 @@ class LoanRepaySerializer(LoanSerializer):
     def wallet_validation(self, attrs):
         team :Team = attrs["team"]
         if team.wallet < attrs["amount"]:
-            raise exceptions.NotAcceptable(detail="Not enough money in teams wallet.")
+            raise exceptions.NotAcceptable(detail="team poll nadarad.")
         
 class BankRobberyWaySerializer(serializers.ModelSerializer):
     class Meta:
@@ -539,17 +539,17 @@ class BankRobberyWaySerializer(serializers.ModelSerializer):
 
     def validate_contract(self, contract):
         if contract.contract_type != "bank_rubbery_sponsorship":
-            raise exceptions.ValidationError("Contract type is not bank_rubbery_sponsorship")
+            raise exceptions.ValidationError("noe garardad  bank_rubbery_sponsorship nist")
 
         if contract.state != 2:
-            raise exceptions.ValidationError("Contract state is not valid.")
+            raise exceptions.ValidationError("Contract state eshtebah.")
         if contract.archive:
-            raise exceptions.NotAcceptable("Contract is Archived.")
+            raise exceptions.NotAcceptable("gharardad Archive shode.")
         return contract
     
     def validate_mafia(self, team:Team):
         if team.team_role != "Mafia":
-            raise exceptions.ValidationError("Not a mafia team")
+            raise exceptions.ValidationError("team mafia nist")
         
         self.validate_mafia_max_escape_room(team)
         
@@ -567,7 +567,7 @@ class BankRobberyWaySerializer(serializers.ModelSerializer):
         conf = ConstantConfig.objects.last()
 
         if not profile.mafia_reserved_escape_room < conf.team_escape_room_max:
-            raise exceptions.NotAcceptable("team_escape_room limit")
+            raise exceptions.NotAcceptable("mahdodiat team_escape_room")
 
 
 class BankRobberyListSerializer(serializers.ModelSerializer):
@@ -621,13 +621,13 @@ class BankPenetrationOpenDepositBoxSerializer(
         try:
             box = BankDepositBox.objects.get(pk=pk)
         except:
-            raise exceptions.NotFound("Box not found.")
+            raise exceptions.NotFound("Box paida nashod.")
         return box
     
 
     def check_deposit_box(self, box:BankDepositBox):
         if box.robbery_state:
-            raise exceptions.NotAcceptable("Money has been stolen from the box.")
+            raise exceptions.NotAcceptable("pol as box dozdideh shod.")
 
     def __deadline_check(self):
         room = self.query()
@@ -685,7 +685,7 @@ class DepositBoxRobberySerializer(DepositBoxSolveSerializer):
     def validate(self, attrs):
         if not self.instance.is_lock:
             raise exceptions.NotAcceptable(
-                "The box is empty!"
+                "box khalist!"
             )
         return super().validate(attrs)
     
@@ -698,11 +698,11 @@ class DepositBoxHackSerializer(DepositBoxSolveSerializer):
     def validate(self, attrs):
         if self.instance.lock_state == 2:
             raise exceptions.NotAcceptable(
-                "Oops!, not a valid box."
+                "Oops!, box no motabar."
             )
         if self.instance.sensor_state:
             raise exceptions.NotAcceptable(
-                "Already hacked"
+                "ghablan hack shode"
             )
         return super().validate(attrs)
     
@@ -728,11 +728,11 @@ class BankRobberyOpenDepositBoxSerializer(
     def check_deposit_box(self, box: BankDepositBox):
         super().check_deposit_box(box)
         if box.money == 0 :
-            raise exceptions.NotAcceptable("Empty box. try another one.")
+            raise exceptions.NotAcceptable("box khali. yeki digeh entekab kon.")
     
     def check_password(self, password):
         if password != self.validated_data["deposit_box"].password:
-            raise exceptions.NotAcceptable("Password Not match")
+            raise exceptions.NotAcceptable("Passworde eshtebah")
 
     def query(self) -> EscapeRoom:
         return self.instance.escape_room
@@ -748,7 +748,7 @@ class BankSensorInstallOpenDepositBox(
     def check_deposit_box(self, box: BankDepositBox):
         super().check_deposit_box(box)
         if box.sensor_state == 1:
-            raise exceptions.NotAcceptable("Sensor is already installed. Try another one")
+            raise exceptions.NotAcceptable("Sensor ghablan nasb shode. eki digeh entekhab kon")
         
     def query(self):
         return self.instance.room
@@ -767,16 +767,16 @@ class BankSensorInstallWaySerializer(
 
     def validate_contract(self, contract):
         if contract.contract_type != "bank_sensor_installation_sponsorship":
-            raise exceptions.ValidationError("Not a valid type contract")
+            raise exceptions.ValidationError("gharardad nooee eshtebah")
         if BankSensorInstall.objects.filter(contract=contract).last():
-            raise exceptions.NotAcceptable("Contract used")
+            raise exceptions.NotAcceptable("gharardad estefadeh shode")
         return contract
 
     def validate_team(self, team) ->Team:
         team = Team.objects.get(pk=team)
         if team.team_role == "Shahrvand":
             return team
-        raise exceptions.ValidationError("Not Citizen!")
+        raise exceptions.ValidationError("Shahrvand nist!")
     
     def is_acceptable(self):
         self.check_room_usage_of_team()
@@ -786,7 +786,7 @@ class BankSensorInstallWaySerializer(
         team : Team = self.validated_data["team"]
         contract :Contract = self.validated_data["contract"]
         if contract.second_party_team != team:
-            raise exceptions.NotAcceptable("OOPS!!, team is not contract's second_party_team ")
+            raise exceptions.NotAcceptable("OOPS!!, team second_party_team gharardad nist")
 
     def check_room_usage_of_team(self):
         citizen : Team= self.validated_data["team"]
@@ -796,7 +796,7 @@ class BankSensorInstallWaySerializer(
         conf = ConstantConfig.objects.last()
 
         if not profile.citizen_opened_night_escape_rooms < conf.team_escape_room_max:
-            raise exceptions.NotAcceptable("team_escape_room limit")
+            raise exceptions.NotAcceptable("mahdodiat team_escape_room")
         
 
     def save(self, **kwargs):
@@ -864,13 +864,13 @@ class QuestionSolveSerializer(serializers.Serializer):
 
         # Validate that at least one of team_id and player_id is provided
         if not team_id and not player_id:
-            raise serializers.ValidationError("Provide either team_id or player_id")
+            raise serializers.ValidationError("team_id ya player_id ra faraham konid")
         
         if question_type == 1:
             if not text_answer:
-                raise serializers.ValidationError("text_answer is required for question_type 1")
+                raise serializers.ValidationError("text_answer lazem ast baraye question_type 1")
         elif question_type == 2:
-            raise serializers.ValidationError("file_answer is required for question_type 2")
+            raise serializers.ValidationError("file_answer lazem ast baraye question_type 2")
         else:
             raise serializers.ValidationError('Invalid question_type')
 

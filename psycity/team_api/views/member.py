@@ -30,12 +30,12 @@ class RoleViewset(mixins.UpdateModelMixin,
         validated_data = serializer.validated_data
         team = player.team
         if not team:
-            raise ValidationError("team does not exist")
+            raise ValidationError("team vojad nadarad(korosh company)")
 
 
         role = validated_data.get("role")
         if not role:
-            raise ValidationError("role cant be null",400)
+            raise ValidationError("role khali nabashad",400)
         role = PlayerRole.objects.get(pk=role)
 
         serializer.update(
@@ -60,12 +60,12 @@ class KickViewset(mixins.UpdateModelMixin,
     def perform_update(self, serializer, player):
         team = player.team
         if not team:
-            raise ValidationError("no team for player")
+            raise ValidationError("player team nadarad")
         if (n_of_player:=team.player_team.count()) <= TEAM_MEMBER_MIN:
-            raise NotAcceptable("Team members are not enough", 406)
+            raise NotAcceptable("aazae team kafi nist", 406)
         agreement = serializer.validated_data.get("agreement")
         if agreement < (n_of_player - 1):
-            raise NotAcceptable("Not enough vote.", 406) 
+            raise NotAcceptable("ray nakafi.", 406) 
         player.team = None
         player.status = Player.STATUS_CHOICES[1][0]
         player.player_role.clear()
@@ -105,6 +105,6 @@ class InviteViewset(mixins.CreateModelMixin,
             ).first()
         
         if join_request:
-            raise NotAcceptable("an active request exist")   
+            raise NotAcceptable("yeak darkhast faal vojod darad.")   
             
         serializer.save(state='active')

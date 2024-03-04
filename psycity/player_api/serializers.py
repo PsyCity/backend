@@ -30,15 +30,15 @@ class BodyguardSerializer(serializers.ModelSerializer):
     
     def validate_first_party_team(self, team):
         if team.team_role != "Polis":
-            raise  exceptions.ValidationError("Not a police team")
+            raise  exceptions.ValidationError("Polis nist")
         return team
     
     def validate_second_party_player(self, player):
         if player.status != "Bikhaanemaan":
-            raise exceptions.ValidationError("Not a homeless player")
+            raise exceptions.ValidationError("bazicon Bikhaanemaan nist")
         return player
     
     def validate(self, attrs):
         if attrs["second_party_player"].wallet < attrs["cost"]:
-            raise exceptions.NotAcceptable("Out of homeless budget") 
+            raise exceptions.NotAcceptable("bishtar as bodjeh Bikhaanemaan") 
         return super().validate(attrs) 
