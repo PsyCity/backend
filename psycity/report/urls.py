@@ -9,7 +9,10 @@ router.register(
     "simple_report",
     views.SimpleReportViewSet,
 )
-
+router.register(
+    "contract_report",
+    views.ContractReportViewSet
+)
 urlpatterns = [
     path("", include(router.urls))
 ]
