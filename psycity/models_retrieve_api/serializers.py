@@ -106,6 +106,7 @@ class ContractRetrieveSerializer(ModelSerializer):
 
 class PlayerListSerializer(ModelSerializer):
     roles = serializers.SerializerMethodField()
+    discord_id = serializers.CharField()
     class Meta:
         model = Player
         fields = [
@@ -122,6 +123,9 @@ class PlayerListSerializer(ModelSerializer):
         roles = list(map(lambda role: role.pk, roles))
 
         return roles
+    
+    def get_discord_id(self, obj):
+        return str(obj.discord_id)
 
 class PlayerRetrieveSerializer(ModelSerializer):
     class Meta:
@@ -142,7 +146,7 @@ class WarehouseQuestionSerializer(
     ):
     class Meta:
         model   = WarehouseQuestions
-        fields  = "text", "attachment"
+        fields  = "id", "text", "attachment"
 
 class WarehouseBoxRetrieveSerializer(
     ModelSerializer
