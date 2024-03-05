@@ -32,7 +32,7 @@ class ContractReportSerializer(
             obj.second_party_agree 
             ):
             raise exceptions.ValidationError(
-                "obj is not in a correct state or not signed by both side."
+                "gharardad dar state eshtebah ya emza nashodeh."
             )
         return obj
     
@@ -47,5 +47,5 @@ class ContractReportSerializer(
         if contract.second_party_team: l.append(contract.second_party_team.pk)
         if reporter.pk not in l:
             raise exceptions.NotAcceptable(
-                "the team is not in the contract."
+                "team dar gharadad nist."
             )

@@ -53,7 +53,7 @@ class BankPenetrationBaseViewSet(ABC,
         try:
             team = Team.objects.get(pk=owner_pk)
         except:
-            raise exceptions.NotFound("team not found")
+            raise exceptions.NotFound("team paida nashod")
 
         if team.team_role != self.team_role_allowed:
             raise exceptions.NotAcceptable(f"Not {self.team_role_allowed}.")

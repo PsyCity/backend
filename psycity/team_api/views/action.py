@@ -218,7 +218,7 @@ class DepositBoxSensor(GenericViewSet):
         try:
             instance = self.get_object()
             if instance.reported:
-                raise exceptions.NotAcceptable("Already reported.")
+                raise exceptions.NotAcceptable("gozaresh shodeh.")
             self.perform_update(instance)
 
             return Response(
@@ -418,14 +418,14 @@ class BankRobberyWayViewSet(
             contract.save()
         except:
             # LOG
-            raise exceptions.APIException("Failed to archive contract.")
+            raise exceptions.APIException("shekast dar archive kardan contract.")
 
     def consider_escape_room(self, instance: BankRobbery):
         # TODO : Do not use random :(
         escape_rooms = EscapeRoom.objects.filter(state=0).all()
 
         if not escape_rooms:
-            raise exceptions.APIException("Lack off escape room.")
+            raise exceptions.APIException("kambode otagh farar.")
 
         room = random.choice(escape_rooms)
         instance.escape_room = room
@@ -629,7 +629,7 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
         except:
             #LOGGER :((
             raise exceptions.APIException(
-                "Config instance not found"
+                "Config instance not found. Call web master"
             )
         
         cost = box.worth * conf.penalty_percent //100
@@ -672,7 +672,7 @@ class BankSensorInstallWay(
         escape_rooms = EscapeRoom.objects.filter(state=0).all()
 
         if not escape_rooms:
-            raise exceptions.APIException("Lack off escape room.")
+            raise exceptions.APIException("kambode otagh farar.")
 
         # filter rooms to make sure
         # check no_valid_citizen
