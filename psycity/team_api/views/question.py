@@ -125,6 +125,10 @@ class QuestionSolveView(GenericAPIView):
         text_answer = serializer.validated_data.get("text_answer")
         file_answer = serializer.validated_data.get("file_answer")
 
+        player = None
+        team = None
+        contract = None
+
         conf = ConstantConfig.objects.latest('id')
 
         if not conf:
