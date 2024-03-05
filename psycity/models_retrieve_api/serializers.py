@@ -92,7 +92,7 @@ class QuestionListSerializer(ModelSerializer):
             'qtype',
         ]
     def get_last_owner(self, obj):
-        return str(obj.last_owner)
+        return str(obj.last_owner.pk)
 
 class QuestionRetrieveSerializer(ModelSerializer):
     class Meta:
@@ -126,13 +126,13 @@ class ContractListSerializer(ModelSerializer):
             "is_rejected",
         ]
     def get_first_party_team(self, obj):
-        return str(obj.first_party_team)
+        return str(obj.first_party_team.pk)
     def get_second_party_team(self, obj):
-        return str(obj.second_party_team)
+        return str(obj.second_party_team.pk)
     def get_first_party_player(self, obj):
-        return str(obj.first_party_player)
+        return str(obj.first_party_player.pk)
     def get_second_party_player(self, obj):
-        return str(obj.second_party_player)
+        return str(obj.second_party_player.pk)
     
 
 class ContractRetrieveSerializer(ModelSerializer):
@@ -144,13 +144,13 @@ class ContractRetrieveSerializer(ModelSerializer):
         model = Contract
         fields = "__all__"
     def get_first_party_team(self, obj):
-        return str(obj.first_party_team)
+        return str(obj.first_party_team.pk)
     def get_second_party_team(self, obj):
-        return str(obj.second_party_team)
+        return str(obj.second_party_team.pk)
     def get_first_party_player(self, obj):
-        return str(obj.first_party_player)
+        return str(obj.first_party_player.pk)
     def get_second_party_player(self, obj):
-        return str(obj.second_party_player)
+        return str(obj.second_party_player.pk)
 
 
 class PlayerListSerializer(ModelSerializer):
@@ -178,7 +178,7 @@ class PlayerListSerializer(ModelSerializer):
         return str(obj.discord_id)
 
     def get_team(self, obj):
-        return str(obj.team)
+        return str(obj.team.pk)
 
 class PlayerRetrieveSerializer(ModelSerializer):
     discord_id = serializers.CharField()
@@ -191,7 +191,7 @@ class PlayerRetrieveSerializer(ModelSerializer):
         return str(obj.discord_id)
 
     def get_team(self, obj):
-        return str(obj.team)
+        return str(obj.team.pk)
 
 
 class WarehouseBoxListSerializer(
