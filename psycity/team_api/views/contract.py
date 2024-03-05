@@ -70,7 +70,7 @@ class Register(
         r = super().create(request, *args, **kwargs)
         return Response(
             data={
-                "message": "gharardad ba movafaghiat basteh shod.",
+                "message": "gharardad ba movafaghiat sabt shod.",
                 "data": [],
                 "result": r.data.get("id")
             },

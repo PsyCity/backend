@@ -337,11 +337,12 @@ class Login(
         try:
             
             p = self.check_login(serializer)
+            print(p.pk)
             return Response(
                 data={
                     "message": "vorod movafagh.",
                     "data": [],
-                    "result": p.pk
+                    "result": str(p.discord_id)
                 },
                 status=status.HTTP_200_OK
             )
