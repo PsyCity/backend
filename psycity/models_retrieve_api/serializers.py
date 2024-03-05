@@ -155,6 +155,7 @@ class WarehouseBoxRetrieveSerializer(
             "is_lock",
             "lock_question",
             "level",
+            "money"
         )
 
 class WarehouseQuestionListSerializer(
