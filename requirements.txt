@@ -6,3 +6,4 @@ pytz==2023.3
 sqlparse==0.4.4
 drf-yasg==1.21.7
 pillow==10.0.1
+django-cors-headers==4.3.1
