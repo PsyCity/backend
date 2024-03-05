@@ -10,4 +10,5 @@ urlpatterns = [
     path('loan/repayment', views.PlayerLoanRepayment.as_view(), name='player_loan_repayment'),
     path("bodyguard/request/", views.BodyguardViewSet.as_view({"post":"create"}), name="player_bodyguard_request"),
     path("bodyguard/approvement/<int:pk>/", views.BodyguardViewSet.as_view({"patch": "partial_update"}), name="player_bodyguard_approvement"),
+    path("login", views.Login.as_view(), name="login")
 ]
