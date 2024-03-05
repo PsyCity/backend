@@ -156,3 +156,17 @@ class WarehouseBoxRetrieveSerializer(
             "lock_question",
             "level",
         )
+
+class WarehouseQuestionListSerializer(
+    ModelSerializer
+):
+    class Meta:
+        model = WarehouseQuestions
+        fields = "id", "text"
+
+class WarehouseQuestionRetrieveSerializer(
+    ModelSerializer
+):
+    class Meta:
+        model = WarehouseQuestions
+        fields = "id", "text", "attachment"

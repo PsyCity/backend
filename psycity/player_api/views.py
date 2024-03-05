@@ -2,6 +2,7 @@ from django.db import transaction
 from rest_framework.response import Response
 from rest_framework.generics import UpdateAPIView, GenericAPIView
 from rest_framework.viewsets import GenericViewSet
+from rest_framework.decorators import api_view
 from rest_framework import mixins
 from rest_framework import status
 from rest_framework import exceptions
@@ -13,9 +14,12 @@ from player_api.serializers import (
     DiscordPlayer,
     LoanRepaymentSerializer,
     LoanReceiveSerializer,
-    BodyguardSerializer
+    BodyguardSerializer,
+    LoginSerializer
 )
 from . import schema
+from team_api.utils import response
+
 class PlayerLeftTeam(UpdateAPIView):
     http_method_names = ["patch"]
     
@@ -317,3 +321,47 @@ class BodyguardViewSet(GenericViewSet,
             },
             status= status
         )
+
+
+class Login(
+    GenericAPIView,
+    ):
+    
+    serializer_class = LoginSerializer
+
+    @response
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            
+            p = self.check_login(serializer)
+            return Response(
+                data={
+                    "message": "vorod movafagh.",
+                    "data": [],
+                    "result": p.pk
+                },
+                status=status.HTTP_200_OK
+            )
+        except exceptions.NotFound:
+            return Response(
+                data={
+                    "message": "username ya password eshtebah!!",
+                    "data" : ["username ya password eshtebah!!"],
+                    "result": None
+                }
+            )
+        except Exception as e:
+            raise e
+        
+    def check_login(self,
+                    serializer: LoginSerializer
+                    ):
+        p = Player.objects.filter(
+            discord_username=serializer.validated_data["discord_username"],
+            password=serializer.validated_data["password"]
+        ).first()
+        if not p:
+            raise exceptions.NotFound()
+        return p

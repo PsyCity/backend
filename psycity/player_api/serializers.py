@@ -42,3 +42,10 @@ class BodyguardSerializer(serializers.ModelSerializer):
         if attrs["second_party_player"].wallet < attrs["cost"]:
             raise exceptions.NotAcceptable("bishtar as bodjeh Bikhaanemaan") 
         return super().validate(attrs) 
+
+class LoginSerializer(
+    serializers.ModelSerializer
+):
+    class Meta:
+        model = Player
+        fields = "discord_username" ,"password"

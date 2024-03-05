@@ -8,6 +8,7 @@ from core.models import (
     Question,
     Contract,
     WarehouseBox,
+    WarehouseQuestions,
     Player
 )
 
@@ -25,7 +26,10 @@ from models_retrieve_api.serializers import (
     PlayerRetrieveSerializer,
 
     WarehouseBoxListSerializer,
-    WarehouseBoxRetrieveSerializer
+    WarehouseBoxRetrieveSerializer,
+
+    WarehouseQuestionListSerializer,
+    WarehouseQuestionRetrieveSerializer
 )
 
 from team_api.utils import response
@@ -129,9 +133,7 @@ class WarehouseViewSet(
                 )
 
     def get_queryset(self):
-        if self.action == "list":
-            return self.queryset
-        elif self.action == "retrieve":
+        if self.action == "retrieve":
             return self.queryset.select_related()
         return super().get_queryset()
 
@@ -143,3 +145,30 @@ class WarehouseViewSet(
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
     
+
+class WarehouseQuestionViewSet(
+    ListModelMixin,
+    mixins.RetrieveModelMixin,
+    GenericViewSet
+):
+    queryset = WarehouseQuestions.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return WarehouseQuestionListSerializer
+        
+        elif self.action == "retrieve":
+            return WarehouseQuestionRetrieveSerializer
+        else:
+            raise exceptions.MethodNotAllowed(
+                "server side error"
+                )
+
+
+    @response
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @response
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
