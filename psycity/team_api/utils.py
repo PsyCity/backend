@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import exceptions, status
 from psycity.settings import DEBUG
-from core.models import Team, BankDepositBox, Question, Player
+from core.models import Team, BankDepositBox, Question, Player, ConstantConfig
 from drf_yasg import openapi
 from functools import wraps
 from abc import ABCMeta
@@ -182,3 +182,22 @@ class ModelSerializerAndABCMetaClass(
     type(serializers.ModelSerializer),
     ABCMeta
     ): ...
+
+
+
+def game_state(valid_state=["Day", "Night"]):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(request, *args, **kwargs):
+            if valid_state == "__all__":
+                return func(request, *args, **kwargs)
+            conf = ConstantConfig.objects.last()
+            game_current_state = conf.state_converter()
+            if game_current_state in valid_state:
+                return func(request, *args, **kwargs)
+            else:
+                raise exceptions.MethodNotAllowed(
+                    "faz eshtebah (roz ya shab)"
+                )
+        return wrapper
+    return decorator
