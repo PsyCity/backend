@@ -62,7 +62,7 @@ class TeamViewSet(
         lookup_value = self.kwargs.get('pk')
         lookup_value_int = int(lookup_value)
 
-        if len(lookup_value) == 10:
+        if len(lookup_value) == 12:
             self.kwargs['pk'] = self.queryset.filter(hidden_id=lookup_value_int).first().channel_role
 
         return super().get_object()

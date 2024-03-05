@@ -10,6 +10,7 @@ from core.models import (
 )
 class TeamListSerializer(ModelSerializer):
     channel_role = serializers.CharField()
+    channel_id = serializers.CharField()
     class Meta:
         model = Team
         fields = [
@@ -25,6 +26,9 @@ class TeamListSerializer(ModelSerializer):
         ]
     def get_channel_role(self, obj):
         return str(obj.channel_role)
+    
+    def get_channel_id(self, obj):
+        return str(obj.channel_id)
 
 class TeamPlayerSerializer(serializers.ModelSerializer):
     roles = serializers.SerializerMethodField()
@@ -54,6 +58,8 @@ class TeamPlayerSerializer(serializers.ModelSerializer):
 
 class TeamRetrieveSerializer(ModelSerializer):
     players = serializers.SerializerMethodField()
+    channel_role = serializers.CharField()
+    channel_id = serializers.CharField()
     class Meta:
         model = Team
         fields = "__all__"
@@ -62,9 +68,16 @@ class TeamRetrieveSerializer(ModelSerializer):
         players = obj.player_team.all()
         players_serializer = TeamPlayerSerializer(players, many=True)
         return players_serializer.data
+    
+    def get_channel_role(self, obj):
+        return str(obj.channel_role)
+    
+    def get_channel_id(self, obj):
+        return str(obj.channel_id)
 
 
 class QuestionListSerializer(ModelSerializer):
+    last_owner = serializers.CharField()
     class Meta:
         model = Question
         fields = [
@@ -78,6 +91,8 @@ class QuestionListSerializer(ModelSerializer):
             'body',
             'qtype',
         ]
+    def get_last_owner(self, obj):
+        return str(obj.last_owner.channel_role)
 
 class QuestionRetrieveSerializer(ModelSerializer):
     class Meta:
@@ -90,6 +105,10 @@ class QuestionRetrieveSerializer(ModelSerializer):
 
 
 class ContractListSerializer(ModelSerializer):
+    first_party_team = serializers.CharField()
+    second_party_team = serializers.CharField()
+    first_party_player = serializers.CharField()
+    second_party_player = serializers.CharField()
     class Meta:
         model = Contract
         fields = [
@@ -97,6 +116,8 @@ class ContractListSerializer(ModelSerializer):
             "contract_type",
             "first_party_team",
             "second_party_team",
+            "first_party_player",
+            "second_party_player",
             "contract_type",
             "cost",
             "terms",
@@ -104,16 +125,38 @@ class ContractListSerializer(ModelSerializer):
             "second_party_agree",
             "is_rejected",
         ]
+    def get_first_party_team(self, obj):
+        return str(obj.first_party_team.channel_role)
+    def get_second_party_team(self, obj):
+        return str(obj.second_party_team.channel_role)
+    def get_first_party_player(self, obj):
+        return str(obj.first_party_player.discord_id)
+    def get_second_party_player(self, obj):
+        return str(obj.second_party_player.discord_id)
+    
 
 class ContractRetrieveSerializer(ModelSerializer):
+    first_party_team = serializers.CharField()
+    second_party_team = serializers.CharField()
+    first_party_player = serializers.CharField()
+    second_party_player = serializers.CharField()
     class Meta:
         model = Contract
         fields = "__all__"
+    def get_first_party_team(self, obj):
+        return str(obj.first_party_team.channel_role)
+    def get_second_party_team(self, obj):
+        return str(obj.second_party_team.channel_role)
+    def get_first_party_player(self, obj):
+        return str(obj.first_party_player.discord_id)
+    def get_second_party_player(self, obj):
+        return str(obj.second_party_player.discord_id)
 
 
 class PlayerListSerializer(ModelSerializer):
     roles = serializers.SerializerMethodField()
     discord_id = serializers.CharField()
+    team = serializers.CharField()
     class Meta:
         model = Player
         fields = [
@@ -134,10 +177,21 @@ class PlayerListSerializer(ModelSerializer):
     def get_discord_id(self, obj):
         return str(obj.discord_id)
 
+    def get_team(self, obj):
+        return str(obj.team.channel_role)
+
 class PlayerRetrieveSerializer(ModelSerializer):
+    discord_id = serializers.CharField()
+    team = serializers.CharField()
     class Meta:
         model = Player
         fields = "__all__"
+
+    def get_discord_id(self, obj):
+        return str(obj.discord_id)
+
+    def get_team(self, obj):
+        return str(obj.team.channel_role)
 
 
 class WarehouseBoxListSerializer(
