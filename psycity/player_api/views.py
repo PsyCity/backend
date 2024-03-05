@@ -370,7 +370,7 @@ class Login(
 
 class PlayerContracts(generics.GenericAPIView):
     def get(self, request, player_id, *args, **kwargs):
-        p = Player.objects.filter(player_id).first()
+        p = Player.objects.filter(pk=player_id).first()
         if not p or not p.status=="Bikhaanemaan":
             return Response(
                 data={
