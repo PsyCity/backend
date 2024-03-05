@@ -77,6 +77,7 @@ class TeamRetrieveSerializer(ModelSerializer):
 
 
 class QuestionListSerializer(ModelSerializer):
+    last_owner = serializers.CharField()
     class Meta:
         model = Question
         fields = [
@@ -104,6 +105,10 @@ class QuestionRetrieveSerializer(ModelSerializer):
 
 
 class ContractListSerializer(ModelSerializer):
+    first_party_team = serializers.CharField()
+    second_party_team = serializers.CharField()
+    first_party_player = serializers.CharField()
+    second_party_player = serializers.CharField()
     class Meta:
         model = Contract
         fields = [
@@ -131,6 +136,10 @@ class ContractListSerializer(ModelSerializer):
     
 
 class ContractRetrieveSerializer(ModelSerializer):
+    first_party_team = serializers.CharField()
+    second_party_team = serializers.CharField()
+    first_party_player = serializers.CharField()
+    second_party_player = serializers.CharField()
     class Meta:
         model = Contract
         fields = "__all__"
@@ -172,6 +181,8 @@ class PlayerListSerializer(ModelSerializer):
         return str(obj.team)
 
 class PlayerRetrieveSerializer(ModelSerializer):
+    discord_id = serializers.CharField()
+    team = serializers.CharField()
     class Meta:
         model = Player
         fields = "__all__"
