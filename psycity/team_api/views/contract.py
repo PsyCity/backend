@@ -36,7 +36,7 @@ class Register(
                 if not team:
                     return Response(
                         data={
-                        "message": "first_party_team not found.",
+                        "message": "first_party_team yaft nashod.",
                         "data": [],
                         "result": None,
                         },
@@ -50,7 +50,7 @@ class Register(
                 if not team:
                     return Response(
                         data={
-                        "message": "second_party_team not found.",
+                        "message": "second_party_team yaft nashod.",
                         "data": [],
                         "result": None,
                         },
@@ -61,7 +61,7 @@ class Register(
         if request.data.get('first_party_team', 'f') == request.data.get('second_party_team', 's'):
             return Response(
                         data={
-                        "message": "teams must be different.",
+                        "message": "team ha bayad motefavet bashand.",
                         "data": [],
                         "result": None,
                         },
@@ -70,7 +70,7 @@ class Register(
         r = super().create(request, *args, **kwargs)
         return Response(
             data={
-                "message": "Contract created successfully.",
+                "message": "gharardad ba movafaghiat basteh shod.",
                 "data": [],
                 "result": r.data.get("id")
             },
@@ -108,7 +108,7 @@ class Approvement(
                 if not team:
                     return Response(
                         data={
-                        "message": "team not found.",
+                        "message": "team yaft nashod.",
                         "data": [],
                         "result": None,
                         },
@@ -118,7 +118,7 @@ class Approvement(
         super().partial_update(request, *args, **kwargs)
         return Response(
             data={
-                "message": "signed successfully.",
+                "message": "bamovafaghiat emza shod.",
                 "data": [],
                 "result": None
             },
@@ -150,7 +150,7 @@ class Pay(
         super().partial_update(request, *args, **kwargs)
         return Response(
             data={
-                "message": "Payed successfully.",
+                "message": "ba movafaghiat pardakht shod.",
                 "data":[],
                 "result": None
             },
@@ -194,7 +194,7 @@ class Reject(generics.UpdateAPIView):
             contract = Contract.objects.get(pk=request.data["contract_id"])
             if (contract.state != 2 or contract.archive == True):
                 return Response({
-                    "message": f"invalid contract state. current state is {contract.state} and archive is {contract.archive}",
+                    "message": f"vaziat eshtebah dar gharardad. vaziat feli: {contract.state} and archive is {contract.archive}",
                     "data": [],
                     "result": None,
                 }, status=status.HTTP_400_BAD_REQUEST)
@@ -202,7 +202,7 @@ class Reject(generics.UpdateAPIView):
             player = request.data.get('player_id', None)
             if not player and not team:
                 return Response({
-                    "message": "one of player or team is required",
+                    "message": "player ya team lazem ast",
                     "data": [],
                     "result": None,
                 }, status=status.HTTP_400_BAD_REQUEST)
@@ -210,7 +210,7 @@ class Reject(generics.UpdateAPIView):
                 team_obj = Team.objects.get(Q(hidden_id=team) | Q(channel_role=team))
                 if team_obj not in [contract.first_party_team, contract.second_party_team]:
                     return Response({
-                        "message": "contract does'not belong to this team",
+                        "message": "gharardad motealegh be in team nist",
                         "data": [],
                         "result": None,
                     }, status=status.HTTP_400_BAD_REQUEST)
@@ -220,7 +220,7 @@ class Reject(generics.UpdateAPIView):
                 player_obj = Player.objects.get(pk=player)
                 if player_obj not in [contract.first_party_player, contract.second_party_player]:
                     return Response({
-                        "message": "contract does'not belong to this player",
+                        "message": "gharardad motealegh be in player nist",
                         "data": [],
                         "result": None,
                     }, status=status.HTTP_400_BAD_REQUEST)
@@ -242,32 +242,32 @@ class Reject(generics.UpdateAPIView):
             contract.save()
 
             return Response({
-                "message": "contract rejected successfully",
+                "message": "gharardad ba movafaghiat rad shod.",
                 "data": [],
                 "result": None,
             }, status=status.HTTP_200_OK)
         except Contract.DoesNotExist:
             return Response({
-                "message": "contract doesn't exist",
+                "message": "gharardad vojod nadarad",
                 "data": [],
                 "result": None,
             }, status=status.HTTP_404_NOT_FOUND)
         except Team.DoesNotExist:
             return Response({
-                "message": "team doesn't exist",
+                "message": "team vojad nadarad",
                 "data": [],
                 "result": None,
             }, status=status.HTTP_404_NOT_FOUND)
         except Player.DoesNotExist:
             return Response({
-                "message": "player doesn't exist",
+                "message": "player vojod nadarad",
                 "data": [],
                 "result": None,
             }, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             raise e
             return Response({
-                "message": "something went wrong",
+                "message": "khata: ye chisi eshtebah shode",
                 "data": [],
                 "result": None,
             }, status=status.HTTP_400_BAD_REQUEST)
