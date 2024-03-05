@@ -271,8 +271,8 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
             required(second, 'second_party_player')
             required(cost, 'cost')
 
-            if first.team_role != 'Polis':
-                raise serializers.ValidationError(f'team Polis nist!')
+            if first.team_role not in ['Polis', 'Shahrvand']:
+                raise serializers.ValidationError(f'team Polis ya Shahrvand nist!')
             if second.status != 'Bikhaanemaan':
                 raise serializers.ValidationError(f'player Bikhaanemaan nist!')
             
