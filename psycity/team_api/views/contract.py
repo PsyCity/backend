@@ -180,7 +180,7 @@ class Pay(
             contract.second_party_team.save()
         except:
             raise exceptions.APIException(
-                f"failed to transfer money between {contract.first_party_team} and {contract.second_party_team}."
+                f"shekast dar enteghl poll bain {contract.first_party_team} va {contract.second_party_team}."
                 )
         
 class Reject(generics.UpdateAPIView):
