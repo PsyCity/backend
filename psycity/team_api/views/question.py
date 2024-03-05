@@ -223,7 +223,7 @@ class QuestionSolveView(GenericAPIView):
                     question=question,
                     solved=False,
                     received_score=0,
-                    contract=contract if contract else None,
+                    homeless_contract=contract if contract else None,
                     answer_text=text_answer if text_answer else None,
                     answer_file=file_answer if file_answer else None,
                 )
