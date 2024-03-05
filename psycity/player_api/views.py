@@ -1,7 +1,7 @@
 from django.db import transaction
 from rest_framework.response import Response
 from rest_framework.generics import UpdateAPIView, GenericAPIView
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet, generics
 from rest_framework.decorators import api_view
 from rest_framework import mixins
 from rest_framework import status
@@ -15,6 +15,7 @@ from player_api.serializers import (
     LoanRepaymentSerializer,
     LoanReceiveSerializer,
     BodyguardSerializer,
+    PlayerContractListSerializer,
     LoginSerializer
 )
 from . import schema
@@ -365,3 +366,21 @@ class Login(
         if not p:
             raise exceptions.NotFound()
         return p
+    
+
+class PlayerContracts(generics.GenericAPIView):
+    def get(self, request, player_id, *args, **kwargs):
+        p = Player.objects.filter(player_id).first()
+        if not p or not p.status=="Bikhaanemaan":
+            return Response(
+                data={
+                    "message": "bikhaneman yaft nashod!!",
+                    "data": ["bikhaneman yaft nashod!!"],
+                    "result": None
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+        contracts = Contract.objects.filter(first_party_player=player_id) | Contract.objects.filter(second_party_player=player_id)
+        contracts = list(filter(lambda contract: contract.state in [2], contracts))
+        serializer = PlayerContractListSerializer(contracts, many=True)
+        return Response(serializer.data)

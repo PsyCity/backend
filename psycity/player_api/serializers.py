@@ -49,3 +49,22 @@ class LoginSerializer(
     class Meta:
         model = Player
         fields = "discord_username" ,"password"
+
+
+class PlayerContractListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contract
+        fields = [
+            "id",
+            "first_party_team",
+            "second_party_team",
+            "contract_type",
+            "cost",
+            "terms",
+            "state",
+            "archive",
+        ]    
+
+    def to_representation(self, instance):
+        return super().to_representation(instance)
+    
