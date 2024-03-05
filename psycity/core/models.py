@@ -451,6 +451,7 @@ class BankRobbery(BaseModel):
 class WarehouseQuestions(BaseModel):
     text    = models.TextField(_("Question text"))
     answer  = models.TextField(_("Question answer")) 
+    attachment = models.FileField(blank=True, null=True, upload_to=PathAndRename('data_dir/warehousequestion_attachment'))
 
 class BankSensorInstall(BaseModel):
 

@@ -142,7 +142,7 @@ class WarehouseQuestionSerializer(
     ):
     class Meta:
         model   = WarehouseQuestions
-        fields  = "text",
+        fields  = "text", "attachment"
 
 class WarehouseBoxRetrieveSerializer(
     ModelSerializer
