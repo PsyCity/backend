@@ -256,9 +256,9 @@ class ContractRegisterSerializer(serializers.ModelSerializer):
             required(second, 'second_party_player')
             required(question, 'question')
 
-            if not second.status != 'Bikhaanemaan':
+            if second.status != 'Bikhaanemaan':
                 raise serializers.ValidationError(f'Second party player Bikhaanemaan nist!')
-            if not question.last_owner != first:
+            if question.last_owner != first:
                 raise serializers.ValidationError(f'malek soal first party team nist!')
 
 
