@@ -139,7 +139,29 @@ class WarehouseViewSet(
 
     @response
     def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
+        try:
+            team_id = int(request.GET.get("team_id"))
+            team = Team.objects.get(pk=team_id)
+        except:
+            raise exceptions.ValidationError(
+                "cant retrieve team by team_id"
+            )
+
+        instance = self.get_object()
+        serializer: WarehouseBoxRetrieveSerializer = self.get_serializer(instance)
+
+        if team.team_role == "Mafia":
+            zarib = 1.2
+        elif team.team_role == "Polis":
+            zarib = 1.3
+        elif team.team_role == "Shahrvand":
+            zarib = 1.4
+
+        r = serializer.data
+        r["money"] = int(serializer.data["money"]  * zarib)
+
+        return Response(r)
+
 
     @response    
     def list(self, request, *args, **kwargs):
