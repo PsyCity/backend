@@ -9,6 +9,7 @@ from core.models import (
     Player,
 )
 class TeamListSerializer(ModelSerializer):
+    channel_role = serializers.CharField()
     class Meta:
         model = Team
         fields = [
@@ -22,10 +23,13 @@ class TeamListSerializer(ModelSerializer):
             "channel_role",
             "hidden_id",
         ]
+    def get_channel_role(self, obj):
+        return str(obj.channel_role)
 
 class TeamPlayerSerializer(serializers.ModelSerializer):
     roles = serializers.SerializerMethodField()
     name = serializers.SerializerMethodField()
+    discord_id = serializers.CharField()
 
     class Meta:
         model = Player
@@ -43,6 +47,9 @@ class TeamPlayerSerializer(serializers.ModelSerializer):
         roles = list(map(lambda role: role.pk, roles))
 
         return roles
+    
+    def get_discord_id(self, obj):
+        return str(obj.discord_id)
 
 
 class TeamRetrieveSerializer(ModelSerializer):
@@ -106,6 +113,7 @@ class ContractRetrieveSerializer(ModelSerializer):
 
 class PlayerListSerializer(ModelSerializer):
     roles = serializers.SerializerMethodField()
+    discord_id = serializers.CharField()
     class Meta:
         model = Player
         fields = [
@@ -122,6 +130,9 @@ class PlayerListSerializer(ModelSerializer):
         roles = list(map(lambda role: role.pk, roles))
 
         return roles
+    
+    def get_discord_id(self, obj):
+        return str(obj.discord_id)
 
 class PlayerRetrieveSerializer(ModelSerializer):
     class Meta:
@@ -142,7 +153,7 @@ class WarehouseQuestionSerializer(
     ):
     class Meta:
         model   = WarehouseQuestions
-        fields  = "text", "attachment"
+        fields  = "id", "text", "attachment"
 
 class WarehouseBoxRetrieveSerializer(
     ModelSerializer

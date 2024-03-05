@@ -125,6 +125,10 @@ class QuestionSolveView(GenericAPIView):
         text_answer = serializer.validated_data.get("text_answer")
         file_answer = serializer.validated_data.get("file_answer")
 
+        player = None
+        team = None
+        contract = None
+
         conf = ConstantConfig.objects.latest('id')
 
         if not conf:
@@ -154,7 +158,14 @@ class QuestionSolveView(GenericAPIView):
                 "result": None,
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        question = get_object_or_404(Question, pk=serializer.validated_data.get("question_id"))
+        question = Question.objects.filter(pk=serializer.validated_data.get("question_id"))
+        if not question:
+            return Response({
+                    "message": "Question not found",
+                    "data": [],
+                    "result": None,
+                }, status=status.HTTP_404_NOT_FOUND)
+        question = question.first()
 
         if question.qtype != question_type:
             return Response({
@@ -172,7 +183,14 @@ class QuestionSolveView(GenericAPIView):
                     "result": None,
                 }, status=status.HTTP_400_BAD_REQUEST)
         elif player_id:
-            player = get_object_or_404(Player, pk=player_id, status='Bikhaanemaan')
+            player = Player.filter(pk=player_id, status='Bikhaanemaan')
+            if not player:
+                return Response({
+                    "message": "Player not found or player is not Bikhaanemaan",
+                    "data": [],
+                    "result": None,
+                }, status=status.HTTP_404_NOT_FOUND)
+            player = player.first()
             contract_query = Contract.objects.filter(
                 state=2,
                 contract_type='homeless_solve_question',
@@ -219,7 +237,7 @@ class QuestionSolveView(GenericAPIView):
                     question=question,
                     solved=False,
                     received_score=0,
-                    contract=contract if contract else None,
+                    homeless_contract=contract if contract else None,
                     answer_text=text_answer if text_answer else None,
                     answer_file=file_answer if file_answer else None,
                 )
@@ -227,7 +245,7 @@ class QuestionSolveView(GenericAPIView):
 
         if question_type == 1:
             if text_answer.strip() == question.answer_text.strip():
-                delay = (make_aware(datetime.now()) - TeamQuestionRel.created_date).seconds // 60
+                delay = (make_aware(datetime.now()) - team_question_rel.created_date).seconds // 60
                 if question.level == 1:
                     delayed = delay <= conf.question_level_1_early_solve_time
                     score = question.price * (conf.delay_factor if delayed else 2)

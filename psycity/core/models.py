@@ -287,9 +287,9 @@ class TeamQuestionRel(BaseModel):
     tries = models.IntegerField(default=False)
 
 class QuesionSolveTries(BaseModel):
-    team = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='question_solve_tries_team')
-    player = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='question_solve_tries_player')
-    homeless_contract = models.ForeignKey('Contract', on_delete=models.CASCADE, related_name='question_solve_tries_contract')
+    team = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='question_solve_tries_team', blank=True, null=True)
+    player = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='question_solve_tries_player', blank=True, null=True)
+    homeless_contract = models.ForeignKey('Contract', on_delete=models.CASCADE, related_name='question_solve_tries_contract', blank=True, null=True)
     question = models.ForeignKey("Question", on_delete=models.CASCADE, related_name='question_solve_tries_question')
     solved = models.BooleanField(default=False)
     received_score = models.IntegerField(default=False)

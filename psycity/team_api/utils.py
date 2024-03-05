@@ -105,7 +105,7 @@ def team_cost_validation(cost, team:Team):
 def player_cost_validation(cost, player: Player):
     if player.wallet < cost:
         raise exceptions.NotAcceptable(
-            f"Player {player.name}, {cost} ta pol nadareh"
+            f"Player {player}, {cost} ta pol nadareh"
         )
         # log.warning(f"Player {player.name} cant effort {cost} amount of money")
     return True
