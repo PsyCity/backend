@@ -147,18 +147,15 @@ class WarehouseViewSet(
                 "cant retrieve team by team_id"
             )
 
-        instance = self.get_object()
+        instance :WarehouseBox = self.get_object()
         serializer: WarehouseBoxRetrieveSerializer = self.get_serializer(instance)
 
-        if team.team_role == "Mafia":
-            zarib = 1.2
-        elif team.team_role == "Polis":
-            zarib = 1.3
-        elif team.team_role == "Shahrvand":
-            zarib = 1.4
-
         r = serializer.data
-        r["money"] = int(serializer.data["money"]  * zarib)
+
+        if team.team_role == "Polis":
+            r["salary"] = int(instance.box_question.price * 0.3)
+        elif team.team_role == "Shahrvand":
+            r["salary"] = int(instance.box_question.price * 0.5)
 
         return Response(r)
 
