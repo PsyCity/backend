@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from team_api.utils import ResponseStructure
 from core.config import QUESTION_SOLVE_LIMIT_PER_HOUR
 
-from django.utils.timezone import datetime, timedelta
+from django.utils.timezone import datetime, timedelta, make_aware
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
@@ -197,6 +197,7 @@ class QuestionSolveView(GenericAPIView):
         solve_tries = QuesionSolveTries.objects.filter(Q(team=team, question=question) | Q(player=player_id, question=question))
         last_hour_tries = solve_tries.filter(created_date__gte=last_hour_datetime)
         solved_before = solve_tries.filter(solved=True)
+        max_received_score = solve_tries.order_by('-received_score').first() or 0
 
         if last_hour_tries.count() >= QUESTION_SOLVE_LIMIT_PER_HOUR:
             return Response({
@@ -226,17 +227,20 @@ class QuestionSolveView(GenericAPIView):
 
         if question_type == 1:
             if text_answer.strip() == question.answer_text.strip():
-                delay = (datetime.now() - TeamQuestionRel.created_date)
+                delay = (make_aware(datetime.now()) - TeamQuestionRel.created_date).seconds // 60
                 if question.level == 1:
-                    ...
+                    delayed = delay <= conf.question_level_1_early_solve_time
+                    score = question.price * (conf.delay_factor if delayed else 2)
                 elif question.level == 2:
-                    ...
+                    delayed = delay <= conf.question_level_2_early_solve_time
+                    score = question.price * (conf.delay_factor if delayed else 2)
                 else:
-                    ...
-                applied_score = question.score * delay
+                    delayed = delay <= conf.question_level_3_early_solve_time
+                    score = question.price * (conf.delay_factor if delayed else 2)
+
                 target_question.solved = True
-                target_question.received_score = question.score
-                team.wallet += question.score
+                target_question.received_score = score
+                team.wallet += score
                 #FIXME: if homeless solve the question the contract automatically apllied?
             else:
                 return Response({
