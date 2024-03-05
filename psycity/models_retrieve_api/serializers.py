@@ -125,13 +125,13 @@ class ContractListSerializer(ModelSerializer):
             "second_party_agree",
             "is_rejected",
         ]
-    def first_party_team(self, obj):
+    def get_first_party_team(self, obj):
         return str(obj.first_party_team)
-    def second_party_team(self, obj):
+    def get_second_party_team(self, obj):
         return str(obj.second_party_team)
-    def first_party_player(self, obj):
+    def get_first_party_player(self, obj):
         return str(obj.first_party_player)
-    def second_party_player(self, obj):
+    def get_second_party_player(self, obj):
         return str(obj.second_party_player)
     
 
@@ -143,13 +143,13 @@ class ContractRetrieveSerializer(ModelSerializer):
     class Meta:
         model = Contract
         fields = "__all__"
-    def first_party_team(self, obj):
+    def get_first_party_team(self, obj):
         return str(obj.first_party_team)
-    def second_party_team(self, obj):
+    def get_second_party_team(self, obj):
         return str(obj.second_party_team)
-    def first_party_player(self, obj):
+    def get_first_party_player(self, obj):
         return str(obj.first_party_player)
-    def second_party_player(self, obj):
+    def get_second_party_player(self, obj):
         return str(obj.second_party_player)
 
 
