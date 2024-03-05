@@ -141,10 +141,7 @@ class WarehouseViewSet(
     def retrieve(self, request, *args, **kwargs):
         try:
             team_id = int(request.GET.get("team_id"))
-            if len(str(team_id)) > 10:
-                team = Team.objects.get(hidden_id=team_id)
-            else:
-                team = Team.objects.get(pk=team_id)
+            team = Team.objects.get(pk=team_id)
         except:
             raise exceptions.ValidationError(
                 "cant retrieve team by team_id"
