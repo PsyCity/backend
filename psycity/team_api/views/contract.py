@@ -276,5 +276,6 @@ class Reject(generics.UpdateAPIView):
 class TeamContracts(generics.GenericAPIView):
     def get(self, request, team_id, *args, **kwargs):
         contracts = Contract.objects.filter(first_party_team=team_id) | Contract.objects.filter(second_party_team=team_id)
+        contracts = list(filter(lambda contract: contract.state in [2], contracts))
         serializer = TeamContractListSerializer(contracts, many=True)
         return Response(serializer.data)
