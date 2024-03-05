@@ -184,7 +184,7 @@ class Player(BaseModel):
                                           on_delete=models.DO_NOTHING,
                                           related_name='player_bodyguard_team')
     last_bodyguard_cost = models.IntegerField(default=0)
-    discord_id = models.IntegerField(null=False, blank=False, unique=True, primary_key=True)
+    discord_id = models.BigIntegerField(null=False, blank=False, unique=True, primary_key=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -221,7 +221,7 @@ class Team(BaseModel):
     last_bank_action = models.DateTimeField(blank=True, null=True)
     today_bought_question = models.IntegerField(default=0)
     channel_id = models.IntegerField()
-    channel_role = models.IntegerField(null=False, blank=False, unique=True, primary_key=True)
+    channel_role = models.BigIntegerField(null=False, blank=False, unique=True, primary_key=True)
     hidden_id = models.IntegerField(default=generate_hidden_id, unique=True, validators=[
             MinValueValidator(100000000000, message='Value must be greater than or equal to 100000000000.'),
             MaxValueValidator(999999999999, message='Value must be less than or equal to 999999999999.')])
@@ -398,7 +398,7 @@ class PlayerRole(models.Model):
         SMOOTH_TALKER = 'SmoothTalker', _('Smooth Talker')
 
     name = models.CharField(max_length=15, choices=ROLES_CHOICES.choices)
-    discord_role_id = models.IntegerField(null=False, blank=False, unique=True, primary_key=True)
+    discord_role_id = models.BigIntegerField(null=False, blank=False, unique=True, primary_key=True)
 
     def __str__(self) -> str:
         return f"{self.name}"
