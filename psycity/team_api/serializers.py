@@ -689,6 +689,10 @@ class DepositBoxRobberySerializer(DepositBoxSolveSerializer):
     
     def validate_team(self, pk):
         team = Team.objects.get(pk=pk)  #TODO: team is mafia
+        if team.team_role != "Mafia":
+            raise exceptions.ValidationError(
+                "Team mafia nist"
+            )
         return team
     
 class DepositBoxHackSerializer(DepositBoxSolveSerializer):
@@ -706,6 +710,10 @@ class DepositBoxHackSerializer(DepositBoxSolveSerializer):
     
     def validate_team(self, pk):
         team = Team.objects.get(pk=pk)  #TODO: team is Police
+        if team.team_role != "Polis":
+            raise exceptions.ValidationError(
+                "Team Polis nist!"
+            )
         return team
 
 
