@@ -221,7 +221,8 @@ class QuestionSolveView(GenericAPIView):
         solve_tries = QuesionSolveTries.objects.filter(Q(team=team, question=question) | Q(player=player_id, question=question))
         last_hour_tries = solve_tries.filter(created_date__gte=last_hour_datetime)
         solved_before = solve_tries.filter(solved=True)
-        max_received_score = solve_tries.order_by('-received_score').first().received_score or 0
+        max_received_score_query = solve_tries.order_by('-received_score').first()
+        max_received_score = max_received_score_query.received_score if max_received_score_query else 0
 
         if last_hour_tries.count() >= QUESTION_SOLVE_LIMIT_PER_HOUR:
             return Response({
@@ -284,7 +285,7 @@ class QuestionSolveView(GenericAPIView):
 
         elif question_type == 2:
             answer_zip_file = question.answer_file.file
-            extract_dir = f'/tmp/question_zip/{str(uuid.uuid4())}'
+            extract_dir = f'data_dir/questionsolvetries_judge/{str(uuid.uuid4())}'
             extract_dir_Path = Path(extract_dir)
             extract_dir_Path.mkdir(parents=True)
 
@@ -293,7 +294,8 @@ class QuestionSolveView(GenericAPIView):
 
             code_file_path = os.path.join(extract_dir, file_answer.name)
             with open(code_file_path, 'wb') as code_file:
-                code_file.write(file_answer.read())
+                for chunk in file_answer.chunks():
+                    code_file.write(chunk)
 
             target_question.judge_extract_dir = extract_dir
 
@@ -325,6 +327,7 @@ class QuestionSolveView(GenericAPIView):
                     delayed = delay <= conf.question_level_3_early_solve_time
                     score = question.price * result * (conf.delay_factor if delayed else 2)
 
+                score = int(score)
                 if score > max_received_score:
                     if rounded_result == 1:
                         target_question.solved = True
@@ -348,7 +351,7 @@ class QuestionSolveView(GenericAPIView):
                     }, status=status.HTTP_200_OK)
                 else:
                     return Response({
-                        "message": f"emtiaze indafe az dafe ghabl kamtar shod. emtiaz: {rounded_result}",
+                        "message": f"az dafe ghab emtiaz bishtari nagerefti :(. emtiaz: {rounded_result}",
                         "data": [],
                         "result": None,
                     }, status=status.HTTP_200_OK)
