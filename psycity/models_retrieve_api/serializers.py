@@ -11,8 +11,8 @@ from core.models import (
     Player,
 )
 class TeamListSerializer(ModelSerializer):
-    channel_role = serializers.CharField()
-    channel_id = serializers.CharField()
+    channel_role = serializers.SerializerMethodField()
+    channel_id = serializers.SerializerMethodField()
     class Meta:
         model = Team
         fields = [
@@ -60,8 +60,8 @@ class TeamPlayerSerializer(serializers.ModelSerializer):
 
 class TeamRetrieveSerializer(ModelSerializer):
     players = serializers.SerializerMethodField()
-    channel_role = serializers.CharField()
-    channel_id = serializers.CharField()
+    channel_role = serializers.SerializerMethodField()
+    channel_id = serializers.SerializerMethodField()
     class Meta:
         model = Team
         fields = "__all__"
@@ -79,7 +79,7 @@ class TeamRetrieveSerializer(ModelSerializer):
 
 
 class QuestionListSerializer(ModelSerializer):
-    last_owner = serializers.CharField()
+    last_owner = serializers.SerializerMethodField()
     class Meta:
         model = Question
         fields = [
@@ -107,10 +107,10 @@ class QuestionRetrieveSerializer(ModelSerializer):
 
 
 class ContractListSerializer(ModelSerializer):
-    first_party_team = serializers.CharField()
-    second_party_team = serializers.CharField()
-    first_party_player = serializers.CharField()
-    second_party_player = serializers.CharField()
+    first_party_team = serializers.SerializerMethodField()
+    second_party_team = serializers.SerializerMethodField()
+    first_party_player = serializers.SerializerMethodField()
+    second_party_player = serializers.SerializerMethodField()
     class Meta:
         model = Contract
         fields = [
@@ -138,10 +138,10 @@ class ContractListSerializer(ModelSerializer):
     
 
 class ContractRetrieveSerializer(ModelSerializer):
-    first_party_team = serializers.CharField()
-    second_party_team = serializers.CharField()
-    first_party_player = serializers.CharField()
-    second_party_player = serializers.CharField()
+    first_party_team = serializers.SerializerMethodField()
+    second_party_team = serializers.SerializerMethodField()
+    first_party_player = serializers.SerializerMethodField()
+    second_party_player = serializers.SerializerMethodField()
     class Meta:
         model = Contract
         fields = "__all__"
@@ -157,7 +157,7 @@ class ContractRetrieveSerializer(ModelSerializer):
 
 class PlayerListSerializer(ModelSerializer):
     roles = serializers.SerializerMethodField()
-    discord_id = serializers.CharField()
+    discord_id = serializers.SerializerMethodField()
     team = serializers.SerializerMethodField()
     class Meta:
         model = Player
@@ -183,7 +183,7 @@ class PlayerListSerializer(ModelSerializer):
         return str(obj.team.channel_role)
 
 class PlayerRetrieveSerializer(ModelSerializer):
-    discord_id = serializers.CharField()
+    discord_id = serializers.SerializerMethodField()
     team = serializers.SerializerMethodField()
     class Meta:
         model = Player
