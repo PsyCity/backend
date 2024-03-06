@@ -110,7 +110,8 @@ class BankDepositBox(BaseModel):
 class ConstantConfig(BaseModel):
     GAME_STATUS = [
         (0, "Night"),
-        (1, "Day")
+        (1, "Day"),
+        (2, "Off")
     ]
     game_current_state = models.IntegerField(choices=GAME_STATUS)
     wallet_init_value = models.IntegerField(default=900)
@@ -148,7 +149,15 @@ class ConstantConfig(BaseModel):
     police_sensor_contract_sponsorship_max = models.PositiveIntegerField(default=5)
     # escape_room_solve_time = models.PositiveIntegerField()
 
-
+    def state_converter(self):
+        state_int = self.game_current_state
+        
+        if state_int == 0:
+            return "Night"
+        elif state_int == 1:
+            return "Day"
+        else:
+            return "Off"
 class Player(BaseModel):
 
 

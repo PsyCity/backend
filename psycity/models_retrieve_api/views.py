@@ -2,14 +2,14 @@ from rest_framework.viewsets import GenericViewSet, mixins
 from rest_framework.response import Response
 from rest_framework import exceptions, status
 from rest_framework.generics import RetrieveAPIView
-
 from core.models import (
     Team,
     Question,
     Contract,
     WarehouseBox,
     WarehouseQuestions,
-    Player
+    Player,
+    TeamQuestionRel
 )
 from core.config import HIDDEN_ID_LEN
 
@@ -30,10 +30,14 @@ from models_retrieve_api.serializers import (
     WarehouseBoxRetrieveSerializer,
 
     WarehouseQuestionListSerializer,
-    WarehouseQuestionRetrieveSerializer
+    WarehouseQuestionRetrieveSerializer,
+
+    TeamQuestionRelListSerializer,
+    TeamQuestionRelRetrieveSerializer
 )
 
-from team_api.utils import response
+from team_api.utils import response, game_state
+
 
 class ListModelMixin:
     """
@@ -192,3 +196,29 @@ class WarehouseQuestionViewSet(
     @response
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+    
+class TeamQuestionRelViewSet(
+    ListModelMixin,
+    mixins.RetrieveModelMixin,
+    GenericViewSet
+    ):
+    queryset = TeamQuestionRel.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return TeamQuestionRelListSerializer
+        
+        elif self.action == "retrieve":
+            return TeamQuestionRelRetrieveSerializer
+        else:
+            raise exceptions.MethodNotAllowed(
+                "server side error"
+                )
+
+    @response
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+    
+    @response
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)

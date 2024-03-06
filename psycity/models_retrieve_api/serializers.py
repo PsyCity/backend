@@ -6,6 +6,7 @@ from core.models import (
     Contract,
     WarehouseBox,
     WarehouseQuestions,
+    TeamQuestionRel,
     Player,
 )
 class TeamListSerializer(ModelSerializer):
@@ -236,3 +237,19 @@ class WarehouseQuestionRetrieveSerializer(
     class Meta:
         model = WarehouseQuestions
         fields = "id", "text", "attachment"
+
+
+class TeamQuestionRelRetrieveSerializer(
+    ModelSerializer
+):
+    class Meta:
+        model = TeamQuestionRel
+        fields = "__all__"
+
+class TeamQuestionRelListSerializer(
+    ModelSerializer
+):
+    class Meta:
+        model = TeamQuestionRel
+        fields = "id", "team", "question", "solved"
+

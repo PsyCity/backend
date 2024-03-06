@@ -8,7 +8,7 @@ from rest_framework.decorators import action
 from core.models import Team
 
 from team_api.serializers import TeamMoneySerializer
-
+from team_api.utils import game_state
 
 
 
@@ -21,7 +21,7 @@ class TeamMoneyViewSet(
     serializer_class = TeamMoneySerializer
 
 
-
+    @game_state(["Day"])
     def create(self, request, *args, **kwargs):
         try:
             serializer = self.get_serializer(data=request.data)   

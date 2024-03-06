@@ -19,7 +19,7 @@ from player_api.serializers import (
     LoginSerializer
 )
 from . import schema
-from team_api.utils import response
+from team_api.utils import response, game_state
 
 class PlayerLeftTeam(UpdateAPIView):
     http_method_names = ["patch"]
@@ -27,6 +27,7 @@ class PlayerLeftTeam(UpdateAPIView):
     def get_serializer_class(self):
         return PlayerSerializer
     @schema.left_team_schema
+    @game_state()
     def patch(self, request, *args, **kwargs):
         try:
             player = Player.objects.get(pk=request.data["player_id"])
@@ -59,6 +60,7 @@ class PlayerJoinTeam(UpdateAPIView):
         return PlayerSerializer
     @schema.join_team_schema
     @transaction.atomic
+    @game_state()
     def patch(self, request):
         try:
             found_request = TeamJoinRequest.objects.get(pk=request.data["request_id"])
@@ -112,6 +114,7 @@ class PlayerIdByDiscord(GenericAPIView):
 class LoanReceive(GenericAPIView):
     serializer_class = LoanReceiveSerializer
 
+    @game_state()
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -159,6 +162,7 @@ class LoanReceive(GenericAPIView):
 class PlayerLoanRepayment(GenericAPIView):
     serializer_class = LoanRepaymentSerializer
 
+    @game_state()
     def post(self, request, *args, **kwargs):
         try:
             player = Player.objects.get(pk=request.data['player_id'])
@@ -232,6 +236,7 @@ class BodyguardViewSet(GenericViewSet,
 
 
     #schema => description
+    @game_state()
     def create(self, request, *args, **kwargs):    
         try:
 
@@ -277,6 +282,8 @@ class BodyguardViewSet(GenericViewSet,
             second_party_agree = False,
             archive = False
             )
+    
+    @game_state()
     def partial_update(self, request, *args, **kwargs):
         try:
             kwargs['partial'] = True
