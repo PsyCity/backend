@@ -30,6 +30,7 @@ contract_router.register("pay", contract.Pay, "contract")
 
 money_router = DefaultRouter()
 money_router.register("exchenge", money.TeamMoneyViewSet, "money")
+money_router.register("property", money.PropertyViewSet, "property")
 
 loan_router = DefaultRouter()
 loan_router.register("receive", loan.Receive, "loan")
