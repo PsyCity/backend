@@ -19,7 +19,7 @@ class CodeJudgeService:
                 print("Compilation Error:", compile_process.stderr)
                 return None
         elif file_type == 'py':
-            executable_path = source_path
+            executable_path = 'python3 ' + source_path
         return executable_path
     
     @staticmethod
