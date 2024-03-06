@@ -214,7 +214,7 @@ class Team(BaseModel):
     ]
 
     def generate_hidden_id():
-        new_hidden_id = int(time.time() * 100)
+        new_hidden_id = randint(100, 999)
         return new_hidden_id
 
     name = models.CharField(max_length=35)
@@ -233,9 +233,9 @@ class Team(BaseModel):
     today_bought_question = models.IntegerField(default=0)
     channel_id = models.IntegerField()
     channel_role = models.BigIntegerField(null=False, blank=False, unique=True, primary_key=True)
-    hidden_id = models.IntegerField(default=generate_hidden_id, unique=True, validators=[
-            MinValueValidator(100, message='Value must be greater than or equal to 100.'),
-            MaxValueValidator(999, message='Value must be less than or equal to 999.')])
+    hidden_id = models.IntegerField(unique=True, validators=[
+                                    MinValueValidator(100, message='Value must be greater than or equal to 100.'),
+                                    MaxValueValidator(999, message='Value must be less than or equal to 999.')])
     has_card = models.BooleanField(default=False)
 
     def __str__(self):
