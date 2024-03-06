@@ -158,7 +158,7 @@ class ContractRetrieveSerializer(ModelSerializer):
 class PlayerListSerializer(ModelSerializer):
     roles = serializers.SerializerMethodField()
     discord_id = serializers.CharField()
-    team = serializers.CharField()
+    team = serializers.SerializerMethodField()
     class Meta:
         model = Player
         fields = [
@@ -184,7 +184,7 @@ class PlayerListSerializer(ModelSerializer):
 
 class PlayerRetrieveSerializer(ModelSerializer):
     discord_id = serializers.CharField()
-    team = serializers.CharField()
+    team = serializers.SerializerMethodField()
     class Meta:
         model = Player
         fields = "__all__"
