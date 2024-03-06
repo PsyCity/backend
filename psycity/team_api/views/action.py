@@ -33,6 +33,7 @@ from core.models import (
     EscapeRoom,
     BankRobbery,
     WarehouseBox,
+    TeamQuestionRel,
     TeamFeature,
     BankSensorInstall,
     Team,
@@ -608,15 +609,18 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
     def right_answer(self, serializer: DepositBoxRobberySerializer) -> None:
         #transfer money and question to team
         #check sensor
-
         box: WarehouseBox = serializer.instance
         box.unlocker = serializer.validated_data["team"]
         box.lock_state = 1
         box.save()
         team: Team = serializer.validated_data["team"]
         team.wallet += box.money
-        team.save()
         box.box_question.last_owner = team
+        TeamQuestionRel.objects.create(
+            team=team,
+            question=box.box_question
+        )
+        team.save()
         box.box_question.save()
         
         if box.sensor_state:
