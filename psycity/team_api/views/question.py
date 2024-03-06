@@ -274,10 +274,16 @@ class QuestionSolveView(GenericAPIView):
 
                 target_question.solved = True
                 target_question.received_score = score
-                team.wallet += score
                 target_question.solved = True
                 team_question_rel.solved = True
                 team_question_rel.received_score = score
+
+                if team:
+                    team.wallet += score
+                    team.save()
+                else:
+                    player.wallet += score
+                    player.save()
 
                 target_question.save()
                 team.save()
