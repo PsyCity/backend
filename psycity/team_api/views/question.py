@@ -14,6 +14,8 @@ from team_api.judge import CodeJudgeService
 from django.utils.timezone import datetime, timedelta, make_aware
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+
+from team_api.utils import game_state
 import os
 import uuid
 import zipfile
@@ -21,9 +23,11 @@ import shutil
 from pathlib import Path
 
 
+
 class QuestionBuyView(GenericAPIView):
     serializer_class = serializers.QuestionBuySerializer
 
+    @game_state()
     def post(self, request, *args, **kwargs):
         try:
             conf = ConstantConfig.objects.latest('id')
@@ -121,6 +125,7 @@ class QuestionSolveView(GenericAPIView):
     parser_classes = [MultiPartParser]
     serializer_class = serializers.QuestionSolveSerializer
 
+    @game_state(["Day"])
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
