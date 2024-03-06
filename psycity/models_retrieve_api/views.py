@@ -11,6 +11,7 @@ from core.models import (
     Player,
     TeamQuestionRel
 )
+from core.config import HIDDEN_ID_LEN
 
 from models_retrieve_api.serializers import (
     TeamListSerializer,
@@ -66,7 +67,7 @@ class TeamViewSet(
         lookup_value = self.kwargs.get('pk')
         lookup_value_int = int(lookup_value)
 
-        if len(lookup_value) == 12:
+        if len(lookup_value) == HIDDEN_ID_LEN:
             self.kwargs['pk'] = self.queryset.filter(hidden_id=lookup_value_int).first().channel_role
 
         return super().get_object()

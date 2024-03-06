@@ -18,6 +18,7 @@ from core.models import (
     BankSensorInstall,
     Question,
 )
+from core.config import HIDDEN_ID_LEN
 from team_api.utils import team_cost_validation, ModelSerializerAndABCMetaClass, question_validation, player_cost_validation
 from datetime import timedelta
 from abc import ABC, abstractmethod
@@ -301,7 +302,7 @@ class ContractApprovementSerializer(serializers.ModelSerializer):
         )
     
     def validate_team(self, pk):
-        if len(str(pk)) == 12:
+        if len(str(pk)) == HIDDEN_ID_LEN:
             team = Team.objects.get(hidden_id=pk)
         else:
             team = Team.objects.get(pk=pk)

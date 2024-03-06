@@ -262,6 +262,13 @@ class QuestionSolveView(GenericAPIView):
                 target_question.solved = True
                 target_question.received_score = score
                 team.wallet += score
+                target_question.solved = True
+                team_question_rel.solved = True
+                team_question_rel.received_score = score
+
+                target_question.save()
+                team.save()
+                team_question_rel.save()
                 #FIXME: if homeless solve the question the contract automatically apllied?
             else:
                 return Response({

@@ -3,6 +3,7 @@ from rest_framework.viewsets import GenericViewSet, mixins
 from rest_framework.response import Response
 from rest_framework import status
 from core.models import Report, Team
+from core.config import HIDDEN_ID_LEN
 from team_api.utils import response
 from .serializers import SimpleReportSerializer, ContractReportSerializer
 # Create your views here.
@@ -45,7 +46,7 @@ class ContractReportViewSet(
     @response
     def create(self, request, *args, **kwargs):
         if request.data.get('team_reporter'):
-            if len(str(request.data.get('team_reporter'))) == 12:
+            if len(str(request.data.get('team_reporter'))) == HIDDEN_ID_LEN:
                 team = self.team_query_set.filter(hidden_id=request.data.get('team_reporter'))
                 if not team:
                     return Response(
