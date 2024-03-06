@@ -835,7 +835,15 @@ class FindCardViewSet(
     @response
     @game_state()
     def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
+        super().update(request, *args, **kwargs)
+        return Response(
+            data={
+                "message": "OK",
+                "data": ["AFARIN!. shoma kart ra yafti"],
+                "result": None
+            },
+            status=status.HTTP_200_OK
+        )
 
     def perform_update(self, serializer):
         serializer.save(has_card=True)
