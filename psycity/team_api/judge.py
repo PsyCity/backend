@@ -11,12 +11,15 @@ class CodeJudgeService:
     @staticmethod
     def compile_code(source_path):
         """Compiles the C++ code. Returns the path to the executable if successful, None otherwise."""
+        file_type = source_path.split('/')[-1].split('.')[-1]
         executable_path = source_path + '.out'
-        compile_process = subprocess.run(['g++', '-o', executable_path, source_path], capture_output=True, text=True)
-
-        if compile_process.returncode != 0:
-            print("Compilation Error:", compile_process.stderr)
-            return None
+        if file_type == 'cpp':
+            compile_process = subprocess.run(['g++', '-o', executable_path, source_path], capture_output=True, text=True)
+            if compile_process.returncode != 0:
+                print("Compilation Error:", compile_process.stderr)
+                return None
+        elif file_type == 'py':
+            executable_path = source_path
         return executable_path
     
     @staticmethod
