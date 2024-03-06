@@ -32,6 +32,9 @@ router.register(prefix="team_question_rel",
                 viewset=views.TeamQuestionRelViewSet)
 router.register(prefix="config",
                 viewset=views.ConfigViewSet)
+router.register(prefix="transfer_money",
+                viewset=views.TransferMoneyViewSet
+                )
 
 urlpatterns = [
     path("", include(router.urls))

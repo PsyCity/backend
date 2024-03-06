@@ -9,6 +9,7 @@ from core.models import (
     WarehouseBox,
     WarehouseQuestions,
     ConstantConfig,
+    TransferMoney,
     Player,
     TeamQuestionRel
 )
@@ -36,7 +37,8 @@ from models_retrieve_api.serializers import (
     TeamQuestionRelListSerializer,
     TeamQuestionRelRetrieveSerializer,
 
-    ConfSerializer
+    ConfSerializer,
+    TransferMoneySerializer
 )
 
 from team_api.utils import response, game_state
@@ -237,3 +239,16 @@ class ConfigViewSet(
         conf = self.queryset.last()
         serializer = ConfSerializer(conf)
         return Response(serializer.data)
+    
+
+class TransferMoneyViewSet(
+    GenericViewSet,
+    mixins.CreateModelMixin
+):
+    serializer_class = TransferMoneySerializer
+    queryset = TransferMoney.objects.all()
+
+    @response
+    @game_state()
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)

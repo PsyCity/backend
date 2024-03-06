@@ -239,8 +239,8 @@ class Reject(generics.UpdateAPIView):
                 report_type=2,
                 contract=contract
             )
-            if team:
-                report.team_reporter = team
+            if team_obj:
+                report.team_reporter = team_obj
             else:
                 report.player_reporter = player_obj
             report.save()
