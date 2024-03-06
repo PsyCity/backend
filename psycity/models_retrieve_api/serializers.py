@@ -5,6 +5,7 @@ from core.models import (
     Question,
     Contract,
     WarehouseBox,
+    ConstantConfig,
     WarehouseQuestions,
     TeamQuestionRel,
     Player,
@@ -253,3 +254,11 @@ class TeamQuestionRelListSerializer(
         model = TeamQuestionRel
         fields = "id", "team", "question", "solved"
 
+
+
+class ConfSerializer(
+    ModelSerializer
+):
+    class Meta:
+        model = ConstantConfig
+        fields = "state",
