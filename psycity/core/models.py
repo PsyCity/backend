@@ -301,6 +301,13 @@ class TeamQuestionRel(BaseModel):
     received_score = models.IntegerField(default=False)
     tries = models.IntegerField(default=False)
 
+class PlayerQuestionRel(BaseModel):
+    player = models.ForeignKey("Player", on_delete=models.CASCADE, related_name="playerquestionrel_player")
+    question = models.ForeignKey("Question", on_delete=models.CASCADE, related_name="playerquestionrel_question")    
+    solved = models.BooleanField(default=False)
+    received_score = models.IntegerField(default=False)
+    tries = models.IntegerField(default=False)
+
 class QuesionSolveTries(BaseModel):
     team = models.ForeignKey('Team', on_delete=models.CASCADE, related_name='question_solve_tries_team', blank=True, null=True)
     player = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='question_solve_tries_player', blank=True, null=True)

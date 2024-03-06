@@ -944,5 +944,5 @@ class TeamPropertySerializer(
     teamquestionrel_team = QuestionRelSerializer(many=True)
     class Meta:
         model = Team
-        fields = "has_card", "teamquestionrel_team"
+        fields = "pk", "has_card", "teamquestionrel_team"
 

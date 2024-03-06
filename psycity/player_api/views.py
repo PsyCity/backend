@@ -16,7 +16,8 @@ from player_api.serializers import (
     LoanReceiveSerializer,
     BodyguardSerializer,
     PlayerContractListSerializer,
-    LoginSerializer
+    LoginSerializer,
+    PlayerPropertySerializer
 )
 from . import schema
 from team_api.utils import response, game_state
@@ -392,3 +393,16 @@ class PlayerContracts(generics.GenericAPIView):
         contracts = list(filter(lambda contract: contract.state in [2], contracts))
         serializer = PlayerContractListSerializer(contracts, many=True)
         return Response(serializer.data)
+    
+
+class PropertyViewSet(
+    GenericViewSet,
+    mixins.RetrieveModelMixin
+):
+    queryset = Player.objects.filter(status="Bikhaanemaan").all().select_related()
+    serializer_class = PlayerPropertySerializer
+
+    @response
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+    
