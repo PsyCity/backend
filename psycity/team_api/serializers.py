@@ -907,7 +907,8 @@ class QuestionSolveSerializer(serializers.Serializer):
             if not text_answer:
                 raise serializers.ValidationError("text_answer lazem ast baraye question_type 1")
         elif question_type == 2:
-            raise serializers.ValidationError("file_answer lazem ast baraye question_type 2")
+            if not file_answer:
+                raise serializers.ValidationError("file_answer lazem ast baraye question_type 2")
         else:
             raise serializers.ValidationError('Invalid question_type')
 

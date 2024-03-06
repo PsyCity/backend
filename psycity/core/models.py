@@ -281,6 +281,8 @@ class Question(BaseModel):
     answer_text = models.TextField(blank=True, null=True)
     answer_file = models.FileField(blank=True, null=True, upload_to='data_dir/question_answer_file')
     attachment = models.FileField(blank=True, null=True, upload_to='data_dir/question_attachment')
+    memory_limit = models.IntegerField(default=256, null=True, blank=True)
+    time_limit = models.IntegerField(default=2, null=True, blank=True)
 
     def body_preview(self): #new
         return mark_safe(f'<img src = "{self.body.url}" width = "300"/>')
@@ -304,6 +306,9 @@ class QuesionSolveTries(BaseModel):
     received_score = models.IntegerField(default=False)
     answer_text = models.TextField(null=True, blank=True)
     answer_file = models.FileField(blank=True, null=True, upload_to='data_dir/questionsolvetries_answer_file')
+    judge_result = models.FloatField(null=True, blank=True)
+    judge_status = models.CharField(max_length=200, null=True, blank=True)
+    judge_extract_dir = models.CharField(max_length=200, null=True, blank=True)
 
 class EscapeRoom(BaseModel):
     ESCAPE_ROOM_STATE = [
