@@ -8,6 +8,7 @@ from core.models import (
     ConstantConfig,
     WarehouseQuestions,
     TeamQuestionRel,
+    TransferMoney,
     Player,
 )
 class TeamListSerializer(ModelSerializer):
@@ -314,3 +315,10 @@ class ConfSerializer(
     class Meta:
         model = ConstantConfig
         fields = "state",
+
+class TransferMoneySerializer(
+    ModelSerializer
+):
+    class Meta:
+        model = TransferMoney
+        fields = "__all__"

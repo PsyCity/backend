@@ -398,6 +398,8 @@ class ContractRejectSerializer(serializers.Serializer):
 
 
 class TeamContractListSerializer(serializers.ModelSerializer):
+    first_party_team = serializers.SerializerMethodField()
+    second_party_team = serializers.SerializerMethodField()
     class Meta:
         model = Contract
         fields = [
@@ -413,6 +415,15 @@ class TeamContractListSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         return super().to_representation(instance)
+    def get_first_party_team(self, obj):
+        if obj.first_party_team:
+            return str(obj.first_party_team.channel_role)
+        return None
+    def get_second_party_team(self, obj):
+        if obj.second_party_team:
+            return str(obj.second_party_team.channel_role)
+        return None
+
     
 class TeamQuestionListSerializer(serializers.ModelSerializer):
     class Meta:
