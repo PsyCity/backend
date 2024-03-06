@@ -14,6 +14,7 @@ from team_api.judge import CodeJudgeService
 from django.utils.timezone import datetime, timedelta, make_aware
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from django.core.files.base import ContentFile
 
 from team_api.utils import game_state
 import os
@@ -251,9 +252,10 @@ class QuestionSolveView(GenericAPIView):
                     received_score=0,
                     homeless_contract=contract if contract else None,
                     answer_text=text_answer if text_answer else None,
-                    answer_file=file_answer if file_answer else None,
                 )
-        target_question.save()
+        if file_answer:
+            target_question.answer_file.save(file_answer.name, ContentFile(file_answer.read()))
+            target_question.save()
 
         # FIXME: handle player solve question
 
@@ -306,7 +308,9 @@ class QuestionSolveView(GenericAPIView):
 
             try:
                 code_judge_service = CodeJudgeService()
-                jresult = code_judge_service.judge(code_file_path, extract_dir)
+                time_limit = question.time_limit or 2
+                memory_limit = question.memory_limit or 256
+                jresult = code_judge_service.judge(code_file_path, extract_dir, time_limit=time_limit, memory_limit_mb=memory_limit)
 
                 if not jresult[0]:
                     target_question.judge_status = 'fail'
