@@ -9,10 +9,16 @@ from team_api import serializers, schema
 from rest_framework.response import Response
 from team_api.utils import ResponseStructure
 from core.config import QUESTION_SOLVE_LIMIT_PER_HOUR
+from team_api.judge import CodeJudgeService
 
 from django.utils.timezone import datetime, timedelta, make_aware
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+import os
+import uuid
+import zipfile
+import shutil
+from pathlib import Path
 
 
 class QuestionBuyView(GenericAPIView):
@@ -215,7 +221,7 @@ class QuestionSolveView(GenericAPIView):
         solve_tries = QuesionSolveTries.objects.filter(Q(team=team, question=question) | Q(player=player_id, question=question))
         last_hour_tries = solve_tries.filter(created_date__gte=last_hour_datetime)
         solved_before = solve_tries.filter(solved=True)
-        max_received_score = solve_tries.order_by('-received_score').first() or 0
+        max_received_score = solve_tries.order_by('-received_score').first().received_score or 0
 
         if last_hour_tries.count() >= QUESTION_SOLVE_LIMIT_PER_HOUR:
             return Response({
@@ -242,6 +248,8 @@ class QuestionSolveView(GenericAPIView):
                     answer_file=file_answer if file_answer else None,
                 )
         target_question.save()
+
+        # FIXME: handle player solve question
 
         if question_type == 1:
             if text_answer.strip() == question.answer_text.strip():
@@ -275,9 +283,86 @@ class QuestionSolveView(GenericAPIView):
                 }, status=status.HTTP_400_BAD_REQUEST)
 
         elif question_type == 2:
-            # code
-            # judge.solve(question_id, file_answer)
-            ...
+            answer_zip_file = question.answer_file.file
+            extract_dir = f'/tmp/question_zip/{str(uuid.uuid4())}'
+            extract_dir_Path = Path(extract_dir)
+            extract_dir_Path.mkdir(parents=True)
+
+            with zipfile.ZipFile(answer_zip_file, 'r') as zip_ref:
+                zip_ref.extractall(extract_dir)
+
+            code_file_path = os.path.join(extract_dir, file_answer.name)
+            with open(code_file_path, 'wb') as code_file:
+                code_file.write(file_answer.read())
+
+            target_question.judge_extract_dir = extract_dir
+
+            try:
+                code_judge_service = CodeJudgeService()
+                jresult = code_judge_service.judge(code_file_path, extract_dir)
+
+                if not jresult[0]:
+                    target_question.judge_status = 'fail'
+                    target_question.save()
+                    return Response({
+                        "message": f"khata. {jresult[1]}",
+                        "data": [],
+                        "result": None,
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                result = jresult[1]
+                rounded_result = round(result * 100)
+                target_question.judge_status = 'success'
+                target_question.judge_result = result
+
+                delay = (make_aware(datetime.now()) - team_question_rel.created_date).seconds // 60
+                if question.level == 1:
+                    delayed = delay <= conf.question_level_1_early_solve_time
+                    score = question.price * result * (conf.delay_factor if delayed else 2)
+                elif question.level == 2:
+                    delayed = delay <= conf.question_level_2_early_solve_time
+                    score = question.price * result * (conf.delay_factor if delayed else 2)
+                else:
+                    delayed = delay <= conf.question_level_3_early_solve_time
+                    score = question.price * result * (conf.delay_factor if delayed else 2)
+
+                if score > max_received_score:
+                    if rounded_result == 1:
+                        target_question.solved = True
+                        target_question.received_score = score
+                        team.wallet += (score - max_received_score)
+                        target_question.solved = True
+                        team_question_rel.solved = True
+                        team_question_rel.received_score = score
+                    else:
+                        target_question.received_score = score
+                        team.wallet += (score - max_received_score)
+                        team_question_rel.received_score = score
+                    
+                    target_question.save()
+                    team.save()
+                    team_question_rel.save()
+                    return Response({
+                        "message": f"emtiaz: {rounded_result}, meghdar ezafe shode be wallet:{score - max_received_score}",
+                        "data": [],
+                        "result": None,
+                    }, status=status.HTTP_200_OK)
+                else:
+                    return Response({
+                        "message": f"emtiaze indafe az dafe ghabl kamtar shod. emtiaz: {rounded_result}",
+                        "data": [],
+                        "result": None,
+                    }, status=status.HTTP_200_OK)
+
+
+            except Exception as e:
+                target_question.judge_status = e.__str__()
+                target_question.save()
+                return Response({
+                    "message": f"khata dar judge. {e.__str__()}",
+                    "data": [],
+                    "result": None,
+                }, status=status.HTTP_400_BAD_REQUEST)
+
         else:
             return Response({
                     "message": "Invalid question_type",
