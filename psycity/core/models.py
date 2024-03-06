@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import Q
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.translation import gettext_lazy as _
+from rest_framework import exceptions 
 from django.utils.html import mark_safe
 from core.utiles import PathAndRename
 from random import randint
@@ -551,3 +552,36 @@ class Report(
         null=True,
         blank=True
         )
+    
+
+class TransferMoney(
+    BaseModel
+):
+    from_team = models.ForeignKey("Team",null=True, blank=True, on_delete=models.CASCADE, related_name="transfer_money_team_1")
+    to_team = models.ForeignKey("Team",null=True, blank=True, on_delete=models.CASCADE, related_name="transfer_money_team_2")
+    from_player = models.ForeignKey("Player", null=True, blank=True, on_delete=models.CASCADE, related_name="transfer_money_player_1")
+    to_player = models.ForeignKey("Player", null=True, blank=True, on_delete=models.CASCADE, related_name="transfer_money_player_2")
+    amount = models.IntegerField()
+    
+    def save(self, *args, **kwargs):
+        if self.from_team and self.from_team.wallet > self.amount:
+            self.from_team.wallet -= self.amount
+            self.from_team.save()
+        elif self.from_player and self.from_player.wallet > self.amount:
+            self.from_player.wallet -= self.amount
+            self.from_player.save()
+
+        else:
+            raise exceptions.NotAcceptable("shekast dar enteghal: mojodi kam")
+        
+        if self.to_team:
+            self.to_team.wallet += self.amount
+            self.to_team.save()
+        elif self.to_player:
+            self.to_player.wallet += self.amount
+            self.to_player.save()
+
+        else:
+            raise exceptions.NotAcceptable(" ye chisi eshtebah shod")
+        return super().save(*args, **kwargs)
+    
