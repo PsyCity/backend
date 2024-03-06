@@ -701,7 +701,7 @@ class DepositBoxHackSerializer(DepositBoxSolveSerializer):
     def validate(self, attrs):
         if self.instance.lock_state == 2:
             raise exceptions.NotAcceptable(
-                "Oops!, box no motabar."
+                "Oops!, box na motabar."
             )
         if self.instance.sensor_state:
             raise exceptions.NotAcceptable(
@@ -717,6 +717,24 @@ class DepositBoxHackSerializer(DepositBoxSolveSerializer):
             )
         return team
 
+class DepositBoxHackCheckSerializer(DepositBoxSolveSerializer):
+
+    def validate(self, attrs):
+        if self.instance.lock_state != 0:
+            raise exceptions.NotAcceptable(
+                "Oops!, box na motabar."
+            )
+        return super().validate(attrs)
+    
+    def validate_team(self, pk):
+        team = Team.objects.get(pk=pk)  #TODO: team is Citizen
+        if team.team_role != "Shahrvand":
+            raise exceptions.ValidationError(
+                "Team Shahrvand nist!"
+            )
+        return team
+
+ 
 
 
 class BankRobberyOpenDepositBoxSerializer(

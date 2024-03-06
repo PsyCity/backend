@@ -22,6 +22,7 @@ from team_api.serializers import (
     BankSensorInstallOpenDepositBox,
     DepositBoxHackSerializer,
     DepositBoxRobberySerializer,
+    DepositBoxHackCheckSerializer,
     serializers,
 )
 
@@ -654,7 +655,32 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
         else:
             msg = "robbed"
         #TODO
+            
 
+
+class WarehouseDepositBoxHackCheckViewSet(WarehouseDepositBoxBaseViewSet):
+
+    serializer_class = DepositBoxHackCheckSerializer
+    queryset = WarehouseBox.objects.all() 
+
+    def right_answer(self,
+                     serializer: DepositBoxHackCheckSerializer
+                     ) -> None:
+        
+        box: WarehouseBox = serializer.instance
+        box.unlocker = serializer.validated_data["team"]
+        box.lock_state = 2
+        box.save()
+        team: Team = serializer.validated_data["team"]
+        c = box.money + int(box.box_question.price * 0.5)
+        team.wallet += c
+        team.save()
+        self.call_API(box.sensor_state)
+    
+    def call_API(self, sensor):
+        msg = "jabeh ba movafaghiat eemen shod"
+        #TODO
+            
 class BankSensorInstallWay(
     GenericViewSet,
     mixins.CreateModelMixin
