@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from core.models import Player, Contract
+from core.models import Player, Contract, Question, PlayerQuestionRel
 from rest_framework import exceptions
 class PlayerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -68,3 +68,38 @@ class PlayerContractListSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         return super().to_representation(instance)
     
+class PlayerQuestionListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Question
+        fields = [
+            'id',
+            'level',
+            'last_owner',
+            'price',
+            'score',
+            'is_published',
+            'title',
+            'body',
+            'qtype',
+        ]    
+
+    def to_representation(self, instance):
+        return super().to_representation(instance)
+
+class PlayerQuestionRelSerializer(
+    serializers.ModelSerializer
+):
+    question = PlayerQuestionListSerializer()
+    class Meta:
+        model = PlayerQuestionRel
+        fields = "id", "solved", "question"
+
+class PlayerPropertySerializer(
+    serializers.ModelSerializer
+):
+    playerquestionrel_player = PlayerQuestionRelSerializer(many=True)
+    class Meta:
+        model = Player
+        fields = "pk", "playerquestionrel_player" 
+
+
