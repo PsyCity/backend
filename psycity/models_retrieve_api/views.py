@@ -91,7 +91,7 @@ class QuestionViewSet(
     mixins.RetrieveModelMixin,
     GenericViewSet
     ):
-    queryset= Question.objects.filter(is_published=True).all()
+    queryset= Question.objects.filter(is_published=True, last_owner=None).all()
 
     def get_serializer_class(self):
         if self.action == "retrieve":
