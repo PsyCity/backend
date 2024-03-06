@@ -6,7 +6,7 @@ from core.models import Player, PlayerRole, TeamJoinRequest
 from core.config import TEAM_MEMBER_MIN
 from team_api import serializers, schema
 from rest_framework.response import Response
-from team_api.utils import ResponseStructure
+from team_api.utils import ResponseStructure, game_state
 
 # Create your views here.
 
@@ -18,6 +18,7 @@ class RoleViewset(mixins.UpdateModelMixin,
     http_method_names = ["patch"]
 
     @schema.role_schema
+    @game_state()
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(data=request.data, partial=True)
@@ -50,6 +51,7 @@ class KickViewset(mixins.UpdateModelMixin,
     http_method_names = ["patch"]
 
     @schema.kick_schema
+    @game_state()
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(data=request.data, partial=True)
@@ -82,6 +84,7 @@ class InviteViewset(mixins.CreateModelMixin,
     http_method_names = ["post", "get"]
 
     @schema.invite_schema
+    @game_state()
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
 

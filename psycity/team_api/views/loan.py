@@ -9,7 +9,7 @@ from rest_framework import status
 
 from core.models import Team
 from team_api.serializers import LoanSerializer, LoanRepaySerializer
-from team_api.utils import response
+from team_api.utils import response, game_state
 
 class Receive(
     GenericViewSet,
@@ -18,6 +18,7 @@ class Receive(
     serializer_class = LoanSerializer
 
     @response
+    @game_state(["Day"])
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -43,6 +44,7 @@ class Repay(GenericViewSet):
     serializer_class = LoanRepaySerializer
 
     @response
+    @game_state(["Day"])
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

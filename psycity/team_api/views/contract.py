@@ -4,7 +4,7 @@ from rest_framework.viewsets import (
     generics,
 )
 from django.db.models import Q
-from team_api.utils import response
+from team_api.utils import response, game_state
 
 from rest_framework.response import Response
 from rest_framework import status
@@ -29,6 +29,7 @@ class Register(
     team_query_set = Team.objects.all()
 
     @response
+    @game_state()
     def create(self, request, *args, **kwargs):
         if request.data.get('first_party_team'):
             if len(str(request.data.get('first_party_team'))) == 12:
@@ -101,6 +102,7 @@ class Approvement(
     team_query_set = Team.objects.all()
 
     @response
+    @game_state()
     def partial_update(self, request, *args, **kwargs):
         if request.data.get('team'):
             if len(str(request.data.get('team'))) == 12:
@@ -146,6 +148,7 @@ class Pay(
     http_method_names = ["patch"]
 
     @response
+    @game_state()
     def partial_update(self, request, *args, **kwargs):
         super().partial_update(request, *args, **kwargs)
         return Response(
@@ -189,6 +192,7 @@ class Reject(generics.UpdateAPIView):
     def get_serializer_class(self):
         return ContractRejectSerializer
 
+    @game_state()
     def patch(self, request):
         try:
             contract = Contract.objects.get(pk=request.data["contract_id"])
