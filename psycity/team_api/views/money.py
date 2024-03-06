@@ -1,14 +1,14 @@
 from django.utils import timezone
 
-from rest_framework import status, exceptions
+from rest_framework import status, exceptions, mixins
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.decorators import action
 
 from core.models import Team
 
-from team_api.serializers import TeamMoneySerializer
-from team_api.utils import game_state
+from team_api.serializers import TeamMoneySerializer, TeamPropertySerializer
+from team_api.utils import game_state, response
 
 
 
@@ -72,3 +72,17 @@ class TeamMoneyViewSet(
         team.wallet += amount
         team.last_bank_action = timezone.now()
         team.save()
+
+
+
+class PropertyViewSet(
+    GenericViewSet,
+    mixins.RetrieveModelMixin
+):
+    queryset = Team.objects.filter(state="Active").all().select_related()
+    serializer_class = TeamPropertySerializer
+
+    @response
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+    

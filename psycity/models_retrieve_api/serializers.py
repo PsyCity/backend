@@ -5,6 +5,7 @@ from core.models import (
     Question,
     Contract,
     WarehouseBox,
+    ConstantConfig,
     WarehouseQuestions,
     TeamQuestionRel,
     Player,
@@ -201,7 +202,7 @@ class WarehouseBoxListSerializer(
 
     class Meta:
         model = WarehouseBox
-        fields = "id", "is_lock", "level"
+        fields = "id", "is_lock", "level", "lock_state"
 
 class WarehouseQuestionSerializer(
     ModelSerializer
@@ -218,6 +219,7 @@ class WarehouseBoxRetrieveSerializer(
         model   = WarehouseBox
         fields  = (
             "id",
+            "lock_state",
             "is_lock",
             "lock_question",
             "level",
@@ -253,3 +255,11 @@ class TeamQuestionRelListSerializer(
         model = TeamQuestionRel
         fields = "id", "team", "question", "solved"
 
+
+
+class ConfSerializer(
+    ModelSerializer
+):
+    class Meta:
+        model = ConstantConfig
+        fields = "state",

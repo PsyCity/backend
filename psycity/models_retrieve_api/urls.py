@@ -30,6 +30,9 @@ router.register(prefix="warehouse_questions",
                 )
 router.register(prefix="team_question_rel",
                 viewset=views.TeamQuestionRelViewSet)
+router.register(prefix="config",
+                viewset=views.ConfigViewSet)
+
 urlpatterns = [
     path("", include(router.urls))
 ]

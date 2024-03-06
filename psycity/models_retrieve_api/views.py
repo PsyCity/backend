@@ -8,6 +8,7 @@ from core.models import (
     Contract,
     WarehouseBox,
     WarehouseQuestions,
+    ConstantConfig,
     Player,
     TeamQuestionRel
 )
@@ -33,7 +34,9 @@ from models_retrieve_api.serializers import (
     WarehouseQuestionRetrieveSerializer,
 
     TeamQuestionRelListSerializer,
-    TeamQuestionRelRetrieveSerializer
+    TeamQuestionRelRetrieveSerializer,
+
+    ConfSerializer
 )
 
 from team_api.utils import response, game_state
@@ -222,3 +225,15 @@ class TeamQuestionRelViewSet(
     @response
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
+    
+
+class ConfigViewSet(
+    GenericViewSet,
+):
+    serializer_class = ConfSerializer
+    queryset = ConstantConfig.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        conf = self.queryset.last()
+        serializer = ConfSerializer(conf)
+        return Response(serializer.data)
