@@ -202,7 +202,7 @@ class WarehouseBoxListSerializer(
 
     class Meta:
         model = WarehouseBox
-        fields = "id", "is_lock", "level"
+        fields = "id", "is_lock", "level", "lock_state"
 
 class WarehouseQuestionSerializer(
     ModelSerializer
@@ -219,6 +219,7 @@ class WarehouseBoxRetrieveSerializer(
         model   = WarehouseBox
         fields  = (
             "id",
+            "lock_state",
             "is_lock",
             "lock_question",
             "level",
