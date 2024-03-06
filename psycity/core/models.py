@@ -157,6 +157,9 @@ class ConstantConfig(BaseModel):
             return "Day"
         else:
             return "Off"
+    @property
+    def state(self):
+        return self.state_converter()
 class Player(BaseModel):
 
 

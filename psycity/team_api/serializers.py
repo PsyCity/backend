@@ -14,6 +14,7 @@ from core.models import (
     EscapeRoom,
     Contract,
     BankRobbery,
+    TeamQuestionRel,
     WarehouseBox,
     BankSensorInstall,
     Question,
@@ -923,4 +924,25 @@ class FindCardSerializer(
     class Meta:
         model = Team
         fields = []
+
+
+
+class QuestionRelSerializer(
+    serializers.ModelSerializer
+):
+    question = TeamQuestionListSerializer()
+    class Meta:
+        model = TeamQuestionRel
+        fields = "id", "solved", "question"
+
+
+
+class TeamPropertySerializer(
+    serializers.ModelSerializer
+):
+    # questions = serializers.SerializerMethodField()
+    teamquestionrel_team = QuestionRelSerializer(many=True)
+    class Meta:
+        model = Team
+        fields = "has_card", "teamquestionrel_team"
 
