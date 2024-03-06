@@ -35,7 +35,7 @@ class TeamListSerializer(ModelSerializer):
 class TeamPlayerSerializer(serializers.ModelSerializer):
     roles = serializers.SerializerMethodField()
     name = serializers.SerializerMethodField()
-    discord_id = serializers.CharField()
+    discord_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Player
@@ -94,7 +94,9 @@ class QuestionListSerializer(ModelSerializer):
             'qtype',
         ]
     def get_last_owner(self, obj):
-        return str(obj.last_owner.channel_role)
+        if obj.last_owner:
+            return str(obj.last_owner.channel_role)
+        return None
 
 class QuestionRetrieveSerializer(ModelSerializer):
     class Meta:
@@ -128,13 +130,21 @@ class ContractListSerializer(ModelSerializer):
             "is_rejected",
         ]
     def get_first_party_team(self, obj):
-        return str(obj.first_party_team.channel_role)
+        if obj.first_party_team:
+            return str(obj.first_party_team.channel_role)
+        return None
     def get_second_party_team(self, obj):
-        return str(obj.second_party_team.channel_role)
+        if obj.second_party_team:
+            return str(obj.second_party_team.channel_role)
+        return None
     def get_first_party_player(self, obj):
-        return str(obj.first_party_player.discord_id)
+        if obj.first_party_player:
+            return str(obj.first_party_player.discord_id)
+        return None
     def get_second_party_player(self, obj):
-        return str(obj.second_party_player.discord_id)
+        if obj.second_party_player:
+            return str(obj.second_party_player.discord_id)
+        return None
     
 
 class ContractRetrieveSerializer(ModelSerializer):
@@ -145,15 +155,23 @@ class ContractRetrieveSerializer(ModelSerializer):
     class Meta:
         model = Contract
         fields = "__all__"
-    def get_first_party_team(self, obj):
-        return str(obj.first_party_team.channel_role)
-    def get_second_party_team(self, obj):
-        return str(obj.second_party_team.channel_role)
-    def get_first_party_player(self, obj):
-        return str(obj.first_party_player.discord_id)
-    def get_second_party_player(self, obj):
-        return str(obj.second_party_player.discord_id)
 
+    def get_first_party_team(self, obj):
+        if obj.first_party_team:
+            return str(obj.first_party_team.channel_role)
+        return None
+    def get_second_party_team(self, obj):
+        if obj.second_party_team:
+            return str(obj.second_party_team.channel_role)
+        return None
+    def get_first_party_player(self, obj):
+        if obj.first_party_player:
+            return str(obj.first_party_player.discord_id)
+        return None
+    def get_second_party_player(self, obj):
+        if obj.second_party_player:
+            return str(obj.second_party_player.discord_id)
+        return None
 
 class PlayerListSerializer(ModelSerializer):
     roles = serializers.SerializerMethodField()
@@ -180,7 +198,9 @@ class PlayerListSerializer(ModelSerializer):
         return str(obj.discord_id)
 
     def get_team(self, obj):
-        return str(obj.team.channel_role)
+        if obj.team:
+            return str(obj.team.channel_role)
+        return None
 
 class PlayerRetrieveSerializer(ModelSerializer):
     discord_id = serializers.SerializerMethodField()
@@ -193,7 +213,9 @@ class PlayerRetrieveSerializer(ModelSerializer):
         return str(obj.discord_id)
 
     def get_team(self, obj):
-        return str(obj.team.channel_role)
+        if obj.team:
+            return str(obj.team.channel_role)
+        return None
 
 
 class WarehouseBoxListSerializer(
