@@ -54,6 +54,12 @@ class QuestionBuyView(GenericAPIView):
                     "data": [],
                     "result": None,
                 }, status=status.HTTP_400_BAD_REQUEST)
+            if question.last_owner and question.last_owner == team:
+                return Response({
+                    "message": "soal ghablan kharidari shode",
+                    "data": [],
+                    "result": None,
+                }, status=status.HTTP_400_BAD_REQUEST)
 
             if not question.is_published:
                 return Response({
