@@ -223,8 +223,8 @@ class Team(BaseModel):
     channel_id = models.IntegerField()
     channel_role = models.BigIntegerField(null=False, blank=False, unique=True, primary_key=True)
     hidden_id = models.IntegerField(default=generate_hidden_id, unique=True, validators=[
-            MinValueValidator(100000000000, message='Value must be greater than or equal to 100000000000.'),
-            MaxValueValidator(999999999999, message='Value must be less than or equal to 999999999999.')])
+            MinValueValidator(100, message='Value must be greater than or equal to 100.'),
+            MaxValueValidator(999, message='Value must be less than or equal to 999.')])
 
     def __str__(self):
         return self.name

@@ -11,6 +11,7 @@ from core.models import (
     WarehouseQuestions,
     Player
 )
+from core.config import HIDDEN_ID_LEN
 
 from models_retrieve_api.serializers import (
     TeamListSerializer,
