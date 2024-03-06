@@ -35,6 +35,7 @@ class QuestionBuyView(GenericAPIView):
             question = Question.objects.get(pk=request.data['question_id'])
             team = Team.objects.get(pk=request.data['team_id'])
             team_bought_questions_till_last_night = TeamQuestionRel.objects.filter(team=team, created_date__date=datetime.today()).count()
+            bought_and_solve_before = TeamQuestionRel.objects.filter(team=team, question=question, solved=True)
 
             if not conf:
                 return Response({
@@ -64,6 +65,12 @@ class QuestionBuyView(GenericAPIView):
             if not question.is_published:
                 return Response({
                     "message": "question is not published!",
+                    "data": [],
+                    "result": None,
+                }, status=status.HTTP_400_BAD_REQUEST)
+            if bought_and_solve_before:
+                return Response({
+                    "message": "You bought and solved this question before",
                     "data": [],
                     "result": None,
                 }, status=status.HTTP_400_BAD_REQUEST)
