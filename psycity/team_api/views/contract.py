@@ -14,7 +14,7 @@ from core.models import Contract, Question, Team, Player, Report
 from core.config import HIDDEN_ID_LEN
 from team_api.serializers import(
     ContractRegisterSerializer,
-    ContractApprovementSerializer,
+    ContractSignSerializer,
     ContractPaySerializer,
     ContractRejectSerializer,
     TeamContractListSerializer,
@@ -81,23 +81,21 @@ class Register(
         
     def perform_create(self, serializer):
         serializer.save(
-            first_party_agree=True,
+            first_party_agree=False,
             second_party_agree=False,
             archive=False,
             state=1
         )
     
-class Approvement(
+class Sign(
     GenericViewSet,
     mixins.UpdateModelMixin
     ):
     http_method_names = ["patch"]
 
-    serializer_class = ContractApprovementSerializer
+    serializer_class = ContractSignSerializer
     
     queryset = Contract.objects.filter(
-        first_party_agree=True, 
-        second_party_agree=False,
         state=1
         )
     team_query_set = Team.objects.all()
@@ -129,10 +127,19 @@ class Approvement(
         )
             
     def perform_update(self, serializer):
-        serializer.save(
-            second_party_agree=True,
-            state=2
-        )
+        team = Team.objects.get(pk=self.request.data.get('team'))
+        if team == serializer.instance.first_party_team:
+            serializer.save(
+                first_party_agree=True,
+            )
+        else:
+            serializer.save(
+                second_party_agree=True,
+            )
+        if serializer.instance.first_party_agree and serializer.instance.second_party_agree:
+            serializer.save(
+                state=2
+            )
         
 class Pay(
     GenericViewSet,
