@@ -284,6 +284,7 @@ class Question(BaseModel):
     answer_text = models.TextField(blank=True, null=True)
     answer_file = models.FileField(blank=True, null=True, upload_to='data_dir/question_answer_file')
     attachment = models.FileField(blank=True, null=True, upload_to='data_dir/question_attachment')
+    attachment_link = models.CharField(max_length=100, null=True, blank=True)
     memory_limit = models.IntegerField(default=256, null=True, blank=True)
     time_limit = models.IntegerField(default=2, null=True, blank=True)
 
@@ -476,6 +477,7 @@ class WarehouseQuestions(BaseModel):
     text    = models.TextField(_("Question text"))
     answer  = models.TextField(_("Question answer")) 
     attachment = models.FileField(blank=True, null=True, upload_to='data_dir/warehousequestion_attachment')
+    attachment_link = models.CharField(max_length=100, null=True, blank=True)
 
 class BankSensorInstall(BaseModel):
 

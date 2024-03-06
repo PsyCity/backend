@@ -99,6 +99,7 @@ class QuestionListSerializer(ModelSerializer):
         return None
 
 class QuestionRetrieveSerializer(ModelSerializer):
+    attachment = serializers.SerializerMethodField()
     class Meta:
         model = Question
         exclude = [
@@ -106,6 +107,19 @@ class QuestionRetrieveSerializer(ModelSerializer):
             "answer_file",
         ]
 
+    def get_attachment(self, obj):
+        request = self.context.get('request')
+        if obj.attachment:
+            if request:
+                base_url = request.build_absolute_uri('/')[:-1]
+                attachment_url = str(obj.attachment) if obj.attachment else str(obj.attachment_link or '')
+                return f"{base_url}/{attachment_url}"
+            else:
+                return str(obj.attachmen.url)
+        elif obj.attachment_link:
+            return str(obj.attachment_link)
+        else:
+            return str('')
 
 
 class ContractListSerializer(ModelSerializer):
@@ -258,9 +272,24 @@ class WarehouseQuestionListSerializer(
 class WarehouseQuestionRetrieveSerializer(
     ModelSerializer
 ):
+    attachment = serializers.SerializerMethodField()
     class Meta:
         model = WarehouseQuestions
         fields = "id", "text", "attachment"
+    
+    def get_attachment(self, obj):
+        request = self.context.get('request')
+        if obj.attachment:
+            if request:
+                base_url = request.build_absolute_uri('/')[:-1]
+                attachment_url = str(obj.attachment) if obj.attachment else str(obj.attachment_link or '')
+                return f"{base_url}/{attachment_url}"
+            else:
+                return str(obj.attachmen.url)
+        elif obj.attachment_link:
+            return str(obj.attachment_link)
+        else:
+            return str('')
 
 
 class TeamQuestionRelRetrieveSerializer(
