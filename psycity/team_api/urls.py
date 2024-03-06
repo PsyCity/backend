@@ -21,6 +21,7 @@ action_router.register("depositbox-sensor-report", action.DepositBoxSensor, "dep
 action_router.register("depositbox-robbery", action.WarehouseDepositBoxRobberyViewSet, "warehouse_robbery")
 action_router.register("depositbox-sensor-hack", action.WarehouseDepositBoxHackViewSet, "warehouse_hack")
 action_router.register("depositbox-hack-check", action.WarehouseDepositBoxHackCheckViewSet, "warehouse_hack_check")
+action_router.register("find_card", action.FindCardViewSet, "Team_card")
 
 contract_router = DefaultRouter()
 contract_router.register("register", contract.Register, "contract")

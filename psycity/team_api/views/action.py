@@ -23,6 +23,7 @@ from team_api.serializers import (
     DepositBoxHackSerializer,
     DepositBoxRobberySerializer,
     DepositBoxHackCheckSerializer,
+    FindCardSerializer,
     serializers,
 )
 
@@ -822,3 +823,19 @@ class WarehouseDepositBoxHackViewSet(WarehouseDepositBoxBaseViewSet):
     def call_API(self, sensor):
         #TODO 
         ...
+
+
+class FindCardViewSet(
+    GenericViewSet,
+    mixins.UpdateModelMixin
+    ):
+    serializer_class = FindCardSerializer
+    queryset = Team.objects.filter(state="Active").all()
+
+    @response
+    @game_state()
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    def perform_update(self, serializer):
+        serializer.save(has_card=True)

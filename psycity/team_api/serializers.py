@@ -694,6 +694,10 @@ class DepositBoxRobberySerializer(DepositBoxSolveSerializer):
             raise exceptions.ValidationError(
                 "Team mafia nist"
             )
+        if not team.has_card:
+            raise exceptions.NotAcceptable(
+                "Shooma cart nadarii"
+            )
         return team
     
 class DepositBoxHackSerializer(DepositBoxSolveSerializer):
@@ -715,6 +719,10 @@ class DepositBoxHackSerializer(DepositBoxSolveSerializer):
             raise exceptions.ValidationError(
                 "Team Polis nist!"
             )
+        if not team.has_card:
+            raise exceptions.NotAcceptable(
+                "Shooma cart nadarii"
+            )
         return team
 
 class DepositBoxHackCheckSerializer(DepositBoxSolveSerializer):
@@ -731,6 +739,10 @@ class DepositBoxHackCheckSerializer(DepositBoxSolveSerializer):
         if team.team_role != "Shahrvand":
             raise exceptions.ValidationError(
                 "Team Shahrvand nist!"
+            )
+        if not team.has_card:
+            raise exceptions.NotAcceptable(
+                "Shooma cart nadarii"
             )
         return team
 
@@ -900,3 +912,14 @@ class QuestionSolveSerializer(serializers.Serializer):
             raise serializers.ValidationError('Invalid question_type')
 
         return attrs
+
+
+
+class FindCardSerializer(
+    serializers.ModelSerializer
+):
+    
+    class Meta:
+        model = Team
+        fields = []
+

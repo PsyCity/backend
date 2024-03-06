@@ -62,7 +62,6 @@ class WarehouseBox(BaseModel):
                                         )
        
     money = models.PositiveIntegerField(default=0)
-    
     @property
     def is_lock(self):
         return self.lock_state==0
@@ -234,6 +233,7 @@ class Team(BaseModel):
     hidden_id = models.IntegerField(default=generate_hidden_id, unique=True, validators=[
             MinValueValidator(100, message='Value must be greater than or equal to 100.'),
             MaxValueValidator(999, message='Value must be less than or equal to 999.')])
+    has_card = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
