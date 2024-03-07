@@ -195,6 +195,11 @@ class Confirm(
                 second_party_confirm=True,
             )
 
+        if serializer.instance.first_party_confirm and serializer.instance.second_party_confirm:
+            serializer.save(
+                archive=True
+            )
+
 
 class Pay(
     GenericViewSet,
@@ -204,8 +209,9 @@ class Pay(
     serializer_class = ContractPaySerializer
     queryset = Contract.objects.filter(
         state=2,
-        first_party_confirm=True,
-        second_party_confirm=True,
+        first_party_agree=True,
+        second_party_agree=True,
+        is_paid=False,
         archive=False
     )
     http_method_names = ["patch"]
@@ -228,8 +234,7 @@ class Pay(
         self.pay(contract)
 
         serializer.save(
-            state=3,
-            archive=True,
+            is_paid=True
         )
     
     def pay(self, contract:Contract):

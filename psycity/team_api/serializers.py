@@ -379,13 +379,24 @@ class ContractConfirmSerializer(serializers.ModelSerializer):
             "bodyguard_for_the_homeless",
             "other",
         ]
+
+        paid_contract_type = [
+            "question_ownership_transfer",
+            "bank_rubbery_sponsorship",
+            "bank_sensor_installation_sponsorship",
+            "bodyguard_for_the_homeless",
+        ]
         
         contract = self.instance
         
         if contract.contract_type not in valid_contract_type:
             raise exceptions.NotAcceptable(
                 f"Not valid endpoint for {contract.contract_type}."
-                )        
+                )   
+        if contract.contract_type in paid_contract_type and contract.is_paid == False:
+            raise exceptions.NotAcceptable(
+                f"contract did not paid. pay it before"
+                )            
 
         
 class ContractPaySerializer(serializers.ModelSerializer):
@@ -412,7 +423,6 @@ class ContractPaySerializer(serializers.ModelSerializer):
             "bank_rubbery_sponsorship",
             "bank_sensor_installation_sponsorship",
             "bodyguard_for_the_homeless",
-            "other",
         ]
         
         contract = self.instance

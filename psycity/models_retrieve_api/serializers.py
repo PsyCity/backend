@@ -144,6 +144,7 @@ class ContractListSerializer(ModelSerializer):
             "second_party_agree",
             "first_party_confirm",
             "second_party_confirm",
+            "is_paid",
             "is_rejected",
         ]
     def get_first_party_team(self, obj):

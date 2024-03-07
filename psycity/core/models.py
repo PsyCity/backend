@@ -406,6 +406,7 @@ class Contract(BaseModel):
     second_party_agree = models.BooleanField()
     first_party_confirm = models.BooleanField(default=False)
     second_party_confirm = models.BooleanField(default=False)
+    is_paid = models.BooleanField(default=False)
     archive = models.BooleanField() # todo isn't it avail in state?
     is_rejected = models.BooleanField(default=False)
 
