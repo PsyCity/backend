@@ -67,7 +67,7 @@ class TeamRetrieveSerializer(ModelSerializer):
     players = serializers.SerializerMethodField()
     channel_role = serializers.SerializerMethodField()
     channel_id = serializers.SerializerMethodField()
-    total_asset = serializers.SerializerMethodField()
+    rank = serializers.SerializerMethodField()
     class Meta:
         model = Team
         fields = "__all__"
@@ -77,8 +77,16 @@ class TeamRetrieveSerializer(ModelSerializer):
         players_serializer = TeamPlayerSerializer(players, many=True)
         return players_serializer.data
     
-    def get_total_asset(self, obj:Team):
-        return obj.wallet + (obj.bank - obj.bank_liabilities)
+    def get_rank(self, obj:Team):
+        teams = Team.objects.all()
+        teams = list(teams)
+        teams.sort(key=lambda x: x.total_asset)
+        less = teams[0]
+        most = teams[-1]
+        d = most.total_asset - less.total_asset
+        return (obj.total_asset - less.total_asset) // (d//10)
+
+
 
     def get_channel_role(self, obj):
         return str(obj.channel_role)
