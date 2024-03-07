@@ -45,6 +45,7 @@ urlpatterns = [
     path("question/buy/", question.QuestionBuyView.as_view(), name="team_question_buy"),
     path('question/list/<int:team_id>/', question.TeamQuestions.as_view(), name='team_questions'),
     path('question/solve/', question.QuestionSolveView.as_view(), name='question-solve'),
+    path('question/update/', question.UpdateQuestionPrice.as_view({"get": "list"}), name='question-update'),
     path('contract/list/<int:team_id>/', contract.TeamContracts.as_view(), name='team_contracts'),
     path('contract/reject/', contract.Reject.as_view(), name='contract_reject'),
     path("loan/", include(loan_router.urls)),
