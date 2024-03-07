@@ -9,6 +9,7 @@ from core.models import (
     WarehouseQuestions,
     TeamQuestionRel,
     TransferMoney,
+    TeamFeature,
     Player,
 )
 class TeamListSerializer(ModelSerializer):
@@ -70,7 +71,28 @@ class TeamRetrieveSerializer(ModelSerializer):
     rank = serializers.SerializerMethodField()
     class Meta:
         model = Team
-        fields = "__all__"
+        fields = (
+            "name",
+            "team_role",
+            "state",
+            "wallet",
+            "bank",
+            "level",
+            "bank_liabilities",
+            "max_bank_loan",
+            "last_bank_action",
+            "today_bought_question",
+            "channel_id",
+            "channel_role",
+            "hidden_id",
+            "has_card",
+            "total_asset",
+            "players",
+            "channel_role",
+            "channel_id",
+            "rank"
+            
+        )
 
     def get_players(self, obj):
         players = obj.player_team.all()
@@ -340,4 +362,12 @@ class TransferMoneySerializer(
 ):
     class Meta:
         model = TransferMoney
+        fields = "__all__"
+
+class TeamFeatureSerializer(
+    ModelSerializer
+):
+    team = serializers.CharField(source="team.name")
+    class Meta:
+        model = TeamFeature
         fields = "__all__"
