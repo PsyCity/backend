@@ -14,6 +14,8 @@ from core.models import (
 class TeamListSerializer(ModelSerializer):
     channel_role = serializers.SerializerMethodField()
     channel_id = serializers.SerializerMethodField()
+    total_asset = serializers.SerializerMethodField()
+
     class Meta:
         model = Team
         fields = [
@@ -29,7 +31,9 @@ class TeamListSerializer(ModelSerializer):
         ]
     def get_channel_role(self, obj):
         return str(obj.channel_role)
-    
+    def get_total_asset(self, obj:Team):
+        return obj.wallet + (obj.bank - obj.bank_liabilities)
+
     def get_channel_id(self, obj):
         return str(obj.channel_id)
 
@@ -63,6 +67,7 @@ class TeamRetrieveSerializer(ModelSerializer):
     players = serializers.SerializerMethodField()
     channel_role = serializers.SerializerMethodField()
     channel_id = serializers.SerializerMethodField()
+    total_asset = serializers.SerializerMethodField()
     class Meta:
         model = Team
         fields = "__all__"
@@ -72,6 +77,9 @@ class TeamRetrieveSerializer(ModelSerializer):
         players_serializer = TeamPlayerSerializer(players, many=True)
         return players_serializer.data
     
+    def get_total_asset(self, obj:Team):
+        return obj.wallet + (obj.bank - obj.bank_liabilities)
+
     def get_channel_role(self, obj):
         return str(obj.channel_role)
     
