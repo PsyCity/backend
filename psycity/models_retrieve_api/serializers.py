@@ -106,7 +106,7 @@ class TeamRetrieveSerializer(ModelSerializer):
         less = teams[0]
         most = teams[-1]
         d = most.total_asset - less.total_asset
-        return (obj.total_asset - less.total_asset) // (d//10)
+        return 10 - ((obj.total_asset - less.total_asset) // (d//10))
 
 
 
@@ -322,7 +322,7 @@ class WarehouseQuestionRetrieveSerializer(
     def get_attachment(self, obj:WarehouseQuestions):
         if obj.attachment:
                 return f"{'http://psycitycup.ir'}/{str(obj.attachment)}"
-        return str(obj.attachment_link)
+        return str(obj.attachment_link or None)
 
         # request = self.context.get('request')
         # if obj.attachment:
