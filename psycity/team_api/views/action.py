@@ -622,7 +622,7 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
         box.save()
         money_change_logger = MoneyChangeLogger.objects.create(
             from_team=None,
-            to_team=team,
+            to_team=None,
             amount=box.money,
             warehouse_box=box,
             before_wallet=team.wallet,
@@ -639,6 +639,7 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
             team=team,
             question=box.box_question
         )
+        money_change_logger.from_team = team
         money_change_logger.current_wallet = team.wallet
         money_change_logger.save()
         team.save()
