@@ -37,6 +37,7 @@ from core.models import (
     WarehouseBox,
     TeamQuestionRel,
     TeamFeature,
+    Question,
     BankSensorInstall,
     Team,
     MoneyChangeLogger,
@@ -163,6 +164,8 @@ class KillHomelessViewSet(GenericViewSet):
             return data, status.HTTP_200_OK
 
         self.kill(player)
+        team.wallet += 400
+        team.save()
         data={
             "message": "homeless killed successfully.",
             "data" :[],
@@ -615,6 +618,7 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
         box: WarehouseBox = serializer.instance
         box.unlocker = serializer.validated_data["team"]
         box.lock_state = 1
+        q = box.box_question
         box.save()
         money_change_logger = MoneyChangeLogger.objects.create(
             from_team=None,
@@ -626,6 +630,9 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
         )
         money_change_logger.save()
         team: Team = serializer.validated_data["team"]
+        q.last_owner = team
+        q.is_published = True
+        q.save()
         team.wallet += box.money
         box.box_question.last_owner = team
         TeamQuestionRel.objects.create(
@@ -639,7 +646,7 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
         
         if box.sensor_state:
             self.take_back_some_money(team=team, serializer=serializer)
-        
+            
         self.call_API(box.sensor_state)
             
     def take_back_some_money(
@@ -661,6 +668,11 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
             team.bank_liabilities += team.wallet * (-1)
             team.wallet = 0
         team.save()
+        police :Team = box.sensor_hacker
+        cost = box.box_question.price * 0.4
+        police.wallet += cost
+        police.save()
+        
     
     def call_API(self, sensor):
         if sensor:
@@ -814,7 +826,7 @@ class WarehouseDepositBoxHackViewSet(WarehouseDepositBoxBaseViewSet):
         box : WarehouseBox = serializer.instance
         police :Team = serializer.validated_data["team"]
         conf = ConstantConfig.objects.last()
-        bonus = box.worth * conf.bonus_percent //100
+        bonus = box.box_question.price * 0.3
         police.wallet += bonus
         police.save()
 
