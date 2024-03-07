@@ -135,7 +135,7 @@ class WarehouseViewSet(
     mixins.RetrieveModelMixin,
     GenericViewSet
 ):
-    queryset = WarehouseBox.objects.all()
+    queryset = WarehouseBox.objects.all().order_by('box_number')
     
     def get_serializer_class(self):
         if self.action == "list":
