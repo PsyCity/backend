@@ -243,12 +243,15 @@ class Pay(
                 contract.question.last_owner = contract.second_party_team
                 contract.question.save()
             elif contract.contract_type == 'homeless_solve_question':
-                # FIXME:
-                ...
-            contract.first_party_team.wallet -= contract.cost
-            contract.first_party_team.save()
-            contract.second_party_team.wallet += contract.cost
-            contract.second_party_team.save()
+                contract.second_party_player.wallet += contract.cost
+                contract.first_party_team.wallet -= contract.cost
+                contract.second_party_player.wallet.save()
+                contract.first_party_team.wallet.save()
+            else:
+                contract.first_party_team.wallet -= contract.cost
+                contract.first_party_team.save()
+                contract.second_party_team.wallet += contract.cost
+                contract.second_party_team.save()
         except:
             raise exceptions.APIException(
                 f"shekast dar enteghl poll bain {contract.first_party_team} va {contract.second_party_team}."
