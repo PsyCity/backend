@@ -407,3 +407,34 @@ class QuestionSolveView(GenericAPIView):
             "data": [],
             "result": None,
         }, status=status.HTTP_200_OK)
+
+
+class UpdateQuestionPrice(
+    GenericViewSet,
+    mixins.ListModelMixin
+):
+    queryset = Question.objects.all()
+    serializer_class = serializers.serializers
+
+    def list(self, request, *args, **kwargs):
+        questions = Question.objects.all()
+        conf = ConstantConfig.objects.last()
+
+        for question in questions:
+            base_price = question.price 
+            if question.level == 1 :
+                new_price = conf.question_level_0_value
+            elif question.level ==2:
+                new_price = conf.question_level_1_value
+            elif question.level == 3:
+                new_price = conf.question_level_2_value
+            question.price = new_price
+            question.save()
+            if question.last_owner:
+                team :Team= question.last_owner
+                team.wallet -= (new_price - base_price)
+                team.save()
+                
+        return Response()
+
+                
