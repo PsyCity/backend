@@ -189,7 +189,7 @@ def game_state(valid_state=["Day", "Night"]):
     def decorator(func):
         @wraps(func)
         def wrapper(request, *args, **kwargs):
-            valid_state = "__all__" #FIXME: delete this line
+            # valid_state = "__all__" #FIXME: delete this line
             if valid_state == "__all__":
                 return func(request, *args, **kwargs)
             conf = ConstantConfig.objects.last()
