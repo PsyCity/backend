@@ -39,6 +39,7 @@ from core.models import (
     TeamFeature,
     BankSensorInstall,
     Team,
+    MoneyChangeLogger,
 )
 from abc import ABC, abstractmethod
 from team_api.utils import (
@@ -615,6 +616,15 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
         box.unlocker = serializer.validated_data["team"]
         box.lock_state = 1
         box.save()
+        money_change_logger = MoneyChangeLogger.objects.create(
+            from_team=None,
+            to_team=team,
+            amount=box.money,
+            warehouse_box=box,
+            before_wallet=team.wallet,
+            current_wallet=None,
+        )
+        money_change_logger.save()
         team: Team = serializer.validated_data["team"]
         team.wallet += box.money
         box.box_question.last_owner = team
@@ -622,6 +632,8 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
             team=team,
             question=box.box_question
         )
+        money_change_logger.current_wallet = team.wallet
+        money_change_logger.save()
         team.save()
         box.box_question.save()
         

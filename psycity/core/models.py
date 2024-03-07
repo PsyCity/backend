@@ -592,3 +592,12 @@ class TransferMoney(
             raise exceptions.NotAcceptable(" ye chisi eshtebah shod")
         return super().save(*args, **kwargs)
     
+
+class MoneyChangeLogger(BaseModel):
+
+    from_team = models.ForeignKey("Team", null=True, blank=True, on_delete=models.CASCADE, related_name="money_change_logger_from_team")
+    to_team = models.ForeignKey("Team", null=True, blank=True, on_delete=models.CASCADE, related_name="money_change_logger_to_team")
+    amount = models.IntegerField(null=True, blank=True)
+    warehouse_box = models.ForeignKey("WarehouseBox", null=True, blank=True, on_delete=models.CASCADE, related_name="money_change_logger_warehous_box")
+    before_wallet = models.IntegerField(null=True, blank=True)
+    current_wallet = models.IntegerField(null=True, blank=True)
