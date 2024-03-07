@@ -322,7 +322,7 @@ class WarehouseQuestionRetrieveSerializer(
     def get_attachment(self, obj:WarehouseQuestions):
         if obj.attachment:
                 return f"{'http://psycitycup.ir'}/{str(obj.attachment)}"
-        return str(obj.attachment_link or "")
+        return str(obj.attachment_link)
 
         # request = self.context.get('request')
         # if obj.attachment:
