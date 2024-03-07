@@ -223,7 +223,6 @@ class Team(BaseModel):
     state = models.CharField(max_length=20, choices=STATE_CHOICE)
     wallet = models.IntegerField(default=0)
     bank = models.IntegerField(default=0)
-    total_asset = models.IntegerField(default=0)
     level = models.PositiveIntegerField(validators=[
             MinValueValidator(1, message='Value must be greater than or equal to 1.'),
             MaxValueValidator(10, message='Value must be less than or equal to 10.'),
@@ -241,6 +240,11 @@ class Team(BaseModel):
 
     def __str__(self):
         return self.name
+
+    @property
+    def total_asset(self):
+        return self.wallet + (self.bank - self.bank_liabilities)
+
 
 class TeamFeature(BaseModel):
     team = models.ForeignKey(
