@@ -15,6 +15,7 @@ from core.config import HIDDEN_ID_LEN
 from team_api.serializers import(
     ContractRegisterSerializer,
     ContractSignSerializer,
+    ContractConfirmSerializer,
     ContractPaySerializer,
     ContractRejectSerializer,
     TeamContractListSerializer,
@@ -96,7 +97,8 @@ class Sign(
     serializer_class = ContractSignSerializer
     
     queryset = Contract.objects.filter(
-        state=1
+        state=1,
+        archive=False,
         )
     team_query_set = Team.objects.all()
 
@@ -141,6 +143,59 @@ class Sign(
                 state=2
             )
         
+
+class Confirm(
+    GenericViewSet,
+    mixins.UpdateModelMixin
+    ):
+    http_method_names = ["patch"]
+
+    serializer_class = ContractConfirmSerializer
+    
+    queryset = Contract.objects.filter(
+        state=2,
+        archive=False,
+        )
+    team_query_set = Team.objects.all()
+
+    @response
+    @game_state()
+    def partial_update(self, request, *args, **kwargs):
+        if request.data.get('team'):
+            if len(str(request.data.get('team'))) == HIDDEN_ID_LEN:
+                team = self.team_query_set.filter(hidden_id=request.data.get('team'))
+                if not team:
+                    return Response(
+                        data={
+                        "message": "team yaft nashod.",
+                        "data": [],
+                        "result": None,
+                        },
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+                request.data['team'] = team.first().channel_role
+        super().partial_update(request, *args, **kwargs)
+        return Response(
+            data={
+                "message": "bamovafaghiat taeed shod.",
+                "data": [],
+                "result": None
+            },
+            status=status.HTTP_200_OK
+        )
+            
+    def perform_update(self, serializer):
+        team = Team.objects.get(pk=self.request.data.get('team'))
+        if team == serializer.instance.first_party_team:
+            serializer.save(
+                first_party_confirm=True,
+            )
+        else:
+            serializer.save(
+                second_party_confirm=True,
+            )
+
+
 class Pay(
     GenericViewSet,
     mixins.UpdateModelMixin
@@ -149,8 +204,8 @@ class Pay(
     serializer_class = ContractPaySerializer
     queryset = Contract.objects.filter(
         state=2,
-        first_party_agree=True,
-        second_party_agree=True,
+        first_party_confirm=True,
+        second_party_confirm=True,
         archive=False
     )
     http_method_names = ["patch"]
@@ -183,7 +238,7 @@ class Pay(
                 contract.question.last_owner = contract.second_party_team
                 contract.question.save()
             elif contract.contract_type == 'homeless_solve_question':
-                # todo:
+                # FIXME:
                 ...
             contract.first_party_team.wallet -= contract.cost
             contract.first_party_team.save()

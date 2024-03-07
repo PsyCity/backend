@@ -337,6 +337,56 @@ class ContractSignSerializer(serializers.ModelSerializer):
             raise exceptions.NotAcceptable(
                 f"Not valid endpoint for {contract.contract_type}."
                 )
+
+class ContractConfirmSerializer(serializers.ModelSerializer):
+    team = serializers.IntegerField()
+    class Meta:
+        model = Contract
+        fields = (
+            "team",
+        )
+    
+    def validate_team(self, pk):
+        if len(str(pk)) == HIDDEN_ID_LEN:
+            team = Team.objects.get(hidden_id=pk)
+        else:
+            team = Team.objects.get(pk=pk)
+        return team.pk
+    
+    def validate(self, attrs):
+
+        self.type_validation()
+        team = Team.objects.get(pk=attrs["team"])
+
+        if self.instance.first_party_confirm and self.instance.second_party_confirm:
+            raise exceptions.ValidationError(
+                "gharardad ghablan taeed shode ast."
+            )
+        
+        if self.instance.first_party_team != team and self.instance.second_party_team != team:
+            raise exceptions.ValidationError(
+                "team is not contract team"
+                )
+        
+        return super().validate(attrs)
+    
+    def type_validation(self):
+
+        valid_contract_type = [
+            "question_ownership_transfer",
+            "bank_rubbery_sponsorship",
+            "bank_sensor_installation_sponsorship",
+            "bodyguard_for_the_homeless",
+            "other",
+        ]
+        
+        contract = self.instance
+        
+        if contract.contract_type not in valid_contract_type:
+            raise exceptions.NotAcceptable(
+                f"Not valid endpoint for {contract.contract_type}."
+                )        
+
         
 class ContractPaySerializer(serializers.ModelSerializer):
     class Meta:

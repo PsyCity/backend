@@ -26,6 +26,7 @@ action_router.register("find_card", action.FindCardViewSet, "Team_card")
 contract_router = DefaultRouter()
 contract_router.register("register", contract.Register, "contract")
 contract_router.register("sign", contract.Sign, "contract")
+contract_router.register("confirm", contract.Confirm, "contract")
 contract_router.register("pay", contract.Pay, "contract")
 
 money_router = DefaultRouter()
