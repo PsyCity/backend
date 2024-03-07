@@ -50,7 +50,7 @@ class WarehouseBox(BaseModel):
                                       blank=True,
                                       null=True
                                       )
-    expiration_date = models.DateTimeField(auto_now_add=False)
+    expiration_date = models.DateTimeField(auto_now_add=False, null=True, blank=True)
 
     lock_question = models.ForeignKey("WarehouseQuestions",
                                  on_delete=models.CASCADE,

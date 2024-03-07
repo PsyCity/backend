@@ -93,12 +93,18 @@ class QuestionViewSet(
     mixins.RetrieveModelMixin,
     GenericViewSet
     ):
-    queryset= Question.objects.filter(is_published=True, last_owner=None).all()
+    list_queryset= Question.objects.filter(is_published=True, last_owner=None).all()
+    item_queryset = Question.objects.filter(is_published=True).all()
 
     def get_serializer_class(self):
         if self.action == "retrieve":
             return QuestionRetrieveSerializer
         return QuestionListSerializer
+    
+    def get_queryset(self):
+        if self.action == "retrieve":
+            return self.item_queryset.select_related()
+        return self.list_queryset
     
 class ContractViewSet(
     ListModelMixin,
@@ -129,7 +135,7 @@ class WarehouseViewSet(
     mixins.RetrieveModelMixin,
     GenericViewSet
 ):
-    queryset = WarehouseBox.objects.all()
+    queryset = WarehouseBox.objects.all().order_by('box_number')
     
     def get_serializer_class(self):
         if self.action == "list":
