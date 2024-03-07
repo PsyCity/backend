@@ -697,7 +697,17 @@ class WarehouseDepositBoxHackCheckViewSet(WarehouseDepositBoxBaseViewSet):
         box.save()
         team: Team = serializer.validated_data["team"]
         c = box.money + int(box.box_question.price * 0.5)
+        money_change_logger = MoneyChangeLogger.objects.create(
+            from_team=team,
+            to_team=None,
+            amount=c,
+            warehouse_box=box,
+            before_wallet=team.wallet,
+            current_wallet=None,
+        )
         team.wallet += c
+        money_change_logger.current_wallet = team.wallet
+        money_change_logger.save()
         team.save()
         self.call_API(box.sensor_state)
     
@@ -826,7 +836,17 @@ class WarehouseDepositBoxHackViewSet(WarehouseDepositBoxBaseViewSet):
         police :Team = serializer.validated_data["team"]
         conf = ConstantConfig.objects.last()
         bonus = box.box_question.price * 0.3
+        money_change_logger = MoneyChangeLogger.objects.create(
+            from_team=police,
+            to_team=None,
+            amount=bonus,
+            warehouse_box=box,
+            before_wallet=police.wallet,
+            current_wallet=None,
+        )
         police.wallet += bonus
+        money_change_logger.current_wallet = police.wallet
+        money_change_logger.save()
         police.save()
 
     def operations_on_mafia(self, serializer):
@@ -836,7 +856,18 @@ class WarehouseDepositBoxHackViewSet(WarehouseDepositBoxBaseViewSet):
 
         cost = box.worth * conf.penalty_percent //100
 
+        money_change_logger = MoneyChangeLogger.objects.create(
+            from_team=mafia,
+            to_team=None,
+            amount=cost,
+            warehouse_box=box,
+            before_wallet=mafia.wallet,
+            current_wallet=None,
+        )
+
         mafia.wallet -= cost
+        money_change_logger.current_wallet = mafia.wallet
+        money_change_logger.save()
         if mafia.wallet < 0:
             mafia.bank_liabilities += mafia.wallet * (-1)
             mafia.wallet = 0
