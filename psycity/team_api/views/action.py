@@ -625,7 +625,7 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
             to_team=None,
             amount=box.money,
             warehouse_box=box,
-            before_wallet=team.wallet,
+            before_wallet=None,
             current_wallet=None,
         )
         money_change_logger.save()
@@ -633,6 +633,7 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
         q.last_owner = team
         q.is_published = True
         q.save()
+        money_change_logger.before_wallet = team.wallet
         team.wallet += box.money
         box.box_question.last_owner = team
         TeamQuestionRel.objects.create(
