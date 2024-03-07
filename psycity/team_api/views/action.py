@@ -620,27 +620,24 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
         box.lock_state = 1
         q = box.box_question
         box.save()
-        money_change_logger = MoneyChangeLogger.objects.create(
-            from_team=None,
-            to_team=None,
-            amount=box.money,
-            warehouse_box=box,
-            before_wallet=None,
-            current_wallet=None,
-        )
-        money_change_logger.save()
         team: Team = serializer.validated_data["team"]
         q.last_owner = team
         q.is_published = True
         q.save()
-        money_change_logger.before_wallet = team.wallet
+        money_change_logger = MoneyChangeLogger.objects.create(
+            from_team=team,
+            to_team=None,
+            amount=box.money,
+            warehouse_box=box,
+            before_wallet=team.wallet,
+            current_wallet=None,
+        )
         team.wallet += box.money
         box.box_question.last_owner = team
         TeamQuestionRel.objects.create(
             team=team,
             question=box.box_question
         )
-        money_change_logger.from_team = team
         money_change_logger.current_wallet = team.wallet
         money_change_logger.save()
         team.save()
