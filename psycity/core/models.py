@@ -306,6 +306,9 @@ class TeamQuestionRel(BaseModel):
     received_score = models.IntegerField(default=False)
     tries = models.IntegerField(default=False)
 
+    def __str__(self) -> str:
+        return f'{self.pk} - {self.question}'
+
 class PlayerQuestionRel(BaseModel):
     player = models.ForeignKey("Player", on_delete=models.CASCADE, related_name="playerquestionrel_player")
     question = models.ForeignKey("Question", on_delete=models.CASCADE, related_name="playerquestionrel_question")    
