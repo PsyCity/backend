@@ -119,6 +119,7 @@ class TeamRetrieveSerializer(ModelSerializer):
 
 class QuestionListSerializer(ModelSerializer):
     last_owner = serializers.SerializerMethodField()
+    price = serializers.SerializerMethodField()
     class Meta:
         model = Question
         fields = [
