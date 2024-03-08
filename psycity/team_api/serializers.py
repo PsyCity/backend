@@ -618,7 +618,7 @@ class LoanSerializer(serializers.Serializer):
         team.max_bank_loan = max_amount
         team.save()
         if amount > max_amount:
-            raise exceptions.ValidationError("amount bishtar as team's max loan amount.")
+            raise exceptions.NotAcceptable("meqdaar bishtar as had-e aksar vaam momken.")
         
     def positive_amount(self, amount):
         if amount <= 0:
