@@ -91,6 +91,7 @@ class QuestionBuyView(GenericAPIView):
             calculated_price = question.price * conf.inflation_coefficient
             team.wallet -= calculated_price
             question.last_owner = team
+            question.price = calculated_price
             team.today_bought_question = team.today_bought_question
             new_team_question_rel = TeamQuestionRel(team=team, question=question)
             question.is_published = False
@@ -276,7 +277,7 @@ class QuestionSolveView(GenericAPIView):
         # FIXME: handle player solve question
 
         if question_type == 1:
-            qprice = question.price * conf.inflation_coefficient
+            qprice = question.price
             if text_answer.strip() == question.answer_text.strip():
                 delay = (make_aware(datetime.now()) - team_question_rel.created_date).seconds // 60
                 if question.level == 1:

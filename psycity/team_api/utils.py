@@ -63,6 +63,16 @@ class ResponseStructure:
             )
         return schema
     
+def money_low_off(team: Team, amount):
+    if team.wallet <= amount:
+        team.wallet -= amount
+    elif team.bank <= amount:
+        team.bank -= amount
+    else:
+        team.bank_liabilities += amount
+    team.save()
+
+    
 
 def transfer_money(from_team,
                    penalty_percent,
