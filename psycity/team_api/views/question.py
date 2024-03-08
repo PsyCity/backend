@@ -88,7 +88,8 @@ class QuestionBuyView(GenericAPIView):
                     "result": None,
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            team.wallet -= question.price
+            calculated_price = question.price * conf.inflation_coefficient
+            team.wallet -= calculated_price
             question.last_owner = team
             team.today_bought_question = team.today_bought_question
             new_team_question_rel = TeamQuestionRel(team=team, question=question)
