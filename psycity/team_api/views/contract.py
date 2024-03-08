@@ -4,13 +4,13 @@ from rest_framework.viewsets import (
     generics,
 )
 from django.db.models import Q
-from team_api.utils import response, game_state
+from team_api.utils import response, game_state, money_low_off
 
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import exceptions
 
-from core.models import Contract, Question, Team, Player, Report
+from core.models import Contract, Question, Team, Player, Report, ConstantConfig
 from core.config import HIDDEN_ID_LEN
 from team_api.serializers import(
     ContractRegisterSerializer,
@@ -70,6 +70,7 @@ class Register(
                         },
                         status=status.HTTP_400_BAD_REQUEST,
                     )
+        
         r = super().create(request, *args, **kwargs)
         return Response(
             data={
@@ -119,6 +120,7 @@ class Sign(
                     )
                 request.data['team'] = team.first().channel_role
         super().partial_update(request, *args, **kwargs)
+        self.appy_tax(team)
         return Response(
             data={
                 "message": "bamovafaghiat emza shod.",
@@ -142,6 +144,11 @@ class Sign(
             serializer.save(
                 state=2
             )
+
+    def appy_tax(self, team):
+        conf = ConstantConfig.objects.last()
+        tax = conf.contract_tax
+        money_low_off(team, tax)
         
 
 class Confirm(
