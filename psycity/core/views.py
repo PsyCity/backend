@@ -23,5 +23,12 @@ def leaderboard(request):
     teams = list(Team.objects.all())
 
     teams.sort(reverse=True, key=lambda x: x.total_asset)
-    
+    ta = []
+    for i in range(len(teams)):
+        t = teams[i]
+        dic = t.__dict__
+        dic["n"] = i+1
+        ta.append(
+            dic
+        )    
     return render(request, 'core/leader.html', {"teams": teams})

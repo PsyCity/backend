@@ -12,16 +12,13 @@
         <th scope="col"> total asset</th>
 
     </tr>
-    {% with counter=1 %}
     {% for team in teams %}
     <tr>
-        <td scope="row">{{counter}}</td>
+        <td scope="row">{{team.n}}</td>
         <td>{{team.name}}</td>
         <td>{{team.total_asset}}</td>
-        {{counter= counter+1}}
     </tr>
     {% endfor %}
-    {% endwith %}%}
 
 </table>
 
