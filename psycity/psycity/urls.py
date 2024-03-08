@@ -35,6 +35,8 @@ schema_view = get_schema_view(
 
 
 urlpatterns = [
+    path('admin/leaderboard/', core_views.leaderboard_secret, name='leaderboard'),
+
     path('admin/', admin.site.urls),
     path('data_dir/<str:filedir>/<str:filename>', core_views.data_dir_api, name='data_dir_api'),
     path('api/v1/player/', include('player_api.urls')),

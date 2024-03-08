@@ -2,6 +2,8 @@ import os
 from django.shortcuts import render
 from django.http import HttpResponse
 from psycity.settings import BASE_DIR
+from django.http import HttpResponseRedirect
+
 from django.views.generic import TemplateView, ListView
 from core.models import Team
 def data_dir_api(request, filedir, filename):
@@ -32,3 +34,19 @@ def leaderboard(request):
             dic
         )    
     return render(request, 'core/leader.html', {"teams": teams})
+
+def leaderboard_secret(request):
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect("/")
+    teams = list(Team.objects.all())
+
+    teams.sort(reverse=True, key=lambda x: x.total_asset)
+    ta = []
+    for i in range(len(teams)):
+        t = teams[i]
+        dic = t.__dict__
+        dic["n"] = i+1
+        ta.append(
+            dic
+        )    
+    return render(request, 'core/leader_admin.html', {"teams": teams})
