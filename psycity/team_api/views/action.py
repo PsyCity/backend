@@ -39,6 +39,7 @@ from core.models import (
     TeamFeature,
     Question,
     BankSensorInstall,
+    Report,
     Team,
     MoneyChangeLogger,
 )
@@ -853,6 +854,11 @@ class WarehouseDepositBoxHackViewSet(WarehouseDepositBoxBaseViewSet):
         conf = ConstantConfig.objects.last()
         box : WarehouseBox = serializer.instance
         mafia : Team = box.unlocker
+        Report.objects.create(
+            report_type=1,
+            description="[SYSTEM REPORT] mafia{mafia.name}, reported. mafia id ={mafia.pk}",
+            team_reporter=serializer.validated_data["team"]
+        )
 
         cost = box.worth * conf.penalty_percent //100
 
