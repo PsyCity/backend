@@ -1,0 +1,27 @@
+{% extends 'core/base.html' %}
+
+{% block title %}LeaderBoard{% endblock title %}
+
+{% block main %}
+
+
+<table class="table">
+    <tr>
+        <th scope="col">#</th>
+        <th scope="col">Name</th>
+        <th scope="col"> total asset</th>
+
+    </tr>
+    {{counter = 0}}
+    {% for team in teams %}
+    <tr>
+        <td scope="row">{{counter}}</td>
+        <td>{{team.name}}</td>
+        <td>{{team.total_asset}}</td>
+    </tr>
+    {{counter = counter + 1}}
+    {% endfor %}
+
+</table>
+
+{% endblock main %}
