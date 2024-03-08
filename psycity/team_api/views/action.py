@@ -647,7 +647,7 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
         if box.sensor_state:
             Report.objects.create(
             report_type=1,
-            description="[SYSTEM REPORT] mafia{team.name}, reported. before robbery. mafia id ={team.pk}",
+            description=f"[SYSTEM REPORT] mafia{team.name}, reported. before robbery. mafia id ={team.pk}",
             team_reporter=box.sensor_hacker
             )
             self.take_back_some_money(team=team, serializer=serializer)
@@ -861,7 +861,7 @@ class WarehouseDepositBoxHackViewSet(WarehouseDepositBoxBaseViewSet):
         mafia : Team = box.unlocker
         Report.objects.create(
             report_type=1,
-            description="[SYSTEM REPORT] mafia{mafia.name}, reported. mafia id ={mafia.pk}",
+            description=f"[SYSTEM REPORT] mafia{mafia.name}, reported. mafia id ={mafia.pk}",
             team_reporter=serializer.validated_data["team"]
         )
 
