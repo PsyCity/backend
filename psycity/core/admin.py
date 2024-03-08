@@ -5,11 +5,16 @@ from . import models
 class QuestionAdmin(admin.ModelAdmin): # new
      readonly_fields = ['body_preview']
 
+
+@admin.register(models.Team)
+class TeamAdmin(admin.ModelAdmin):
+    list_display = ( "name", "team_role", "total_asset") 
+
 admin.site.register(models.WarehouseBox)
 admin.site.register(models.BankDepositBox)
 admin.site.register(models.ConstantConfig)
 admin.site.register(models.Player)
-admin.site.register(models.Team)
+# admin.site.register(models.Team)
 admin.site.register(models.TeamFeature)
 admin.site.register(models.TeamQuestionRel)
 admin.site.register(models.QuesionSolveTries)
