@@ -174,6 +174,14 @@ class WarehouseViewSet(
             r["salary"] = int(instance.box_question.price * 0.5)
 
         return Response(r)
+    
+    def get_object(self):
+        lookup_value = self.kwargs.get('pk')
+        lookup_value_int = int(lookup_value)
+
+        self.kwargs['pk'] = WarehouseBox.objects.filter(box_number=lookup_value_int).first().pk
+
+        return super().get_object()
 
 
     @response    
