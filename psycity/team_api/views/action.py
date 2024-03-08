@@ -645,6 +645,11 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
         box.box_question.save()
         
         if box.sensor_state:
+            Report.objects.create(
+            report_type=1,
+            description="[SYSTEM REPORT] mafia{team.name}, reported. before robbery. mafia id ={team.pk}",
+            team_reporter=box.sensor_hacker
+            )
             self.take_back_some_money(team=team, serializer=serializer)
             
         self.call_API(box.sensor_state)
