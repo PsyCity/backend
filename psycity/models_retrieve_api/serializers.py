@@ -136,6 +136,10 @@ class QuestionListSerializer(ModelSerializer):
         if obj.last_owner:
             return str(obj.last_owner.channel_role)
         return None
+    
+    def get_price(self, obj):
+        conf = ConstantConfig.objects.last()
+        return obj.price * conf.inflation_coefficient
 
 class QuestionRetrieveSerializer(ModelSerializer):
     attachment = serializers.SerializerMethodField()

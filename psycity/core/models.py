@@ -120,7 +120,7 @@ class ConstantConfig(BaseModel):
     question_level_2_value = models.IntegerField(default=800)
     question_solve_interest_percent = models.PositiveIntegerField(default=200)
     bought_question_max = models.PositiveIntegerField(default=12)
-    contract_tax = models.PositiveIntegerField(default=50)
+    contract_tax = models.FloatField(default=0.05)
     inflation_coefficient = models.FloatField(default=1)
     delay_factor = models.FloatField(default=0.7)
     question_level_0_max_try = models.PositiveIntegerField(default=1)
