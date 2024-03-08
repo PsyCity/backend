@@ -39,6 +39,7 @@ from core.models import (
     TeamFeature,
     Question,
     BankSensorInstall,
+    Report,
     Team,
     MoneyChangeLogger,
 )
@@ -644,6 +645,11 @@ class WarehouseDepositBoxRobberyViewSet(WarehouseDepositBoxBaseViewSet):
         box.box_question.save()
         
         if box.sensor_state:
+            Report.objects.create(
+            report_type=1,
+            description="[SYSTEM REPORT] mafia{team.name}, reported. before robbery. mafia id ={team.pk}",
+            team_reporter=box.sensor_hacker
+            )
             self.take_back_some_money(team=team, serializer=serializer)
             
         self.call_API(box.sensor_state)
@@ -853,6 +859,11 @@ class WarehouseDepositBoxHackViewSet(WarehouseDepositBoxBaseViewSet):
         conf = ConstantConfig.objects.last()
         box : WarehouseBox = serializer.instance
         mafia : Team = box.unlocker
+        Report.objects.create(
+            report_type=1,
+            description="[SYSTEM REPORT] mafia{mafia.name}, reported. mafia id ={mafia.pk}",
+            team_reporter=serializer.validated_data["team"]
+        )
 
         cost = box.worth * conf.penalty_percent //100
 
