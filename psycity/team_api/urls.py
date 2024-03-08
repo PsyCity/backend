@@ -31,6 +31,7 @@ contract_router.register("confirm", contract.Confirm, "contract")
 
 money_router = DefaultRouter()
 money_router.register("exchenge", money.TeamMoneyViewSet, "money")
+money_router.register("exchengewtb", money.TeamMoneyViewSetwtb, "moneywtb")
 money_router.register("property", money.PropertyViewSet, "property")
 
 loan_router = DefaultRouter()
