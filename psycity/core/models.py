@@ -143,7 +143,7 @@ class ConstantConfig(BaseModel):
     assassination_attempt_cooldown_time = models.PositiveIntegerField(default=90)
     team_bank_transaction_cooldown = models.PositiveIntegerField(default=30)
     # team_total_bank_value = models.PositiveIntegerField()
-    team_loan_percent_max = models.PositiveIntegerField(default=20)
+    team_loan_percent_max = models.FloatField(default=1.2)
     team_escape_room_max = models.PositiveIntegerField(default=2)
     bank_robbery_contract_sponsorship_max = models.PositiveIntegerField(default=2)
     police_sensor_contract_sponsorship_max = models.PositiveIntegerField(default=5)
