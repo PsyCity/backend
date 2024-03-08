@@ -22,5 +22,6 @@ class LeaderView(TemplateView):
 def leaderboard(request):
     teams = list(Team.objects.all())
 
-    teams.sort(reverse=True, key=lambda x: x.total_asset)        
+    teams.sort(reverse=True, key=lambda x: x.total_asset)
+    
     return render(request, 'core/leader.html', {"teams": teams})
