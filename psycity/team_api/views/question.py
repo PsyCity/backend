@@ -275,17 +275,18 @@ class QuestionSolveView(GenericAPIView):
         # FIXME: handle player solve question
 
         if question_type == 1:
+            qprice = question.price * conf.inflation_coefficient
             if text_answer.strip() == question.answer_text.strip():
                 delay = (make_aware(datetime.now()) - team_question_rel.created_date).seconds // 60
                 if question.level == 1:
                     delayed = delay <= conf.question_level_1_early_solve_time
-                    score = question.price * (conf.delay_factor if delayed else 2)
+                    score = qprice * (conf.delay_factor if delayed else 2)
                 elif question.level == 2:
                     delayed = delay <= conf.question_level_2_early_solve_time
-                    score = question.price * (conf.delay_factor if delayed else 2)
+                    score = qprice * (conf.delay_factor if delayed else 2)
                 else:
                     delayed = delay <= conf.question_level_3_early_solve_time
-                    score = question.price * (conf.delay_factor if delayed else 2)
+                    score = qprice * (conf.delay_factor if delayed else 2)
 
                 target_question.solved = True
                 target_question.received_score = score
@@ -347,15 +348,16 @@ class QuestionSolveView(GenericAPIView):
                 target_question.judge_result = result
 
                 delay = (make_aware(datetime.now()) - team_question_rel.created_date).seconds // 60
+                qprice = question.price * conf.inflation_coefficient
                 if question.level == 1:
                     delayed = delay <= conf.question_level_1_early_solve_time
-                    score = question.price * result * (conf.delay_factor if delayed else 2)
+                    score = qprice * result * (conf.delay_factor if delayed else 2)
                 elif question.level == 2:
                     delayed = delay <= conf.question_level_2_early_solve_time
-                    score = question.price * result * (conf.delay_factor if delayed else 2)
+                    score = qprice * result * (conf.delay_factor if delayed else 2)
                 else:
                     delayed = delay <= conf.question_level_3_early_solve_time
-                    score = question.price * result * (conf.delay_factor if delayed else 2)
+                    score = qprice * result * (conf.delay_factor if delayed else 2)
 
                 score = int(score)
                 if score > max_received_score:
