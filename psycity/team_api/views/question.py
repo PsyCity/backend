@@ -93,6 +93,7 @@ class QuestionBuyView(GenericAPIView):
             question.last_owner = team
             team.today_bought_question = team.today_bought_question
             new_team_question_rel = TeamQuestionRel(team=team, question=question)
+            question.is_published = False
 
             new_team_question_rel.save()
             team.save()
